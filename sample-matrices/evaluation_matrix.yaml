@@ -1,0 +1,2742 @@
+metadata:
+  format_version: '1.0'
+  description: Process adjacency matrix with temporal and existential dependencies
+  activities:
+  - RR
+  - CC
+  - WR
+  - DR
+  - GC
+  - CR
+  - SC
+  - RC
+  - CM
+  - CS
+  - CN
+  - CI
+  - CD
+  - GI
+  - CO
+  - GP
+  - AR
+dependencies:
+- from: RR
+  to: CC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: WR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: DR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: RC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CM
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: RR
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CC
+  to: RR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CC
+  to: WR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CC
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CC
+  to: GC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CC
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CC
+  to: RC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CM
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CC
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: WR
+  to: RR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: WR
+  to: CC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: WR
+  to: DR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: GC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: RC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CM
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: WR
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: DR
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: DR
+  to: CC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: DR
+  to: GC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: DR
+  to: SC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: DR
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CS
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CD
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: GI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: CO
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: GP
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: DR
+  to: AR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: GC
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GC
+  to: CC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: WR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GC
+  to: CR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GC
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GC
+  to: RC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: CM
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: GC
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: GC
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GC
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CR
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CR
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CR
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: CR
+  to: GC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: SC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CR
+  to: RC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: CM
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CR
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: SC
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: SC
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: SC
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: SC
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: SC
+  to: RC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CM
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CI
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: SC
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: RC
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: RC
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: RC
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: RC
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: RC
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: RC
+  to: SC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: RC
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: CS
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: RC
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: CI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: CD
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: GI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: CO
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: GP
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: RC
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CM
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CM
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CM
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CM
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CM
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CM
+  to: SC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CM
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: CS
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CM
+  to: CN
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CM
+  to: CI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: CD
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: GI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: CO
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: GP
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CM
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CS
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CS
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CS
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CS
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CS
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CS
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CS
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CS
+  to: RC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CS
+  to: CM
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CS
+  to: CN
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CS
+  to: CI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CS
+  to: CD
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CS
+  to: GI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CS
+  to: CO
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CS
+  to: GP
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CS
+  to: AR
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CN
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CN
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CN
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CN
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CN
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CN
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CN
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: CM
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CN
+  to: CS
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CN
+  to: CI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: CD
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: GI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: CO
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: GP
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CN
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CI
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CI
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CI
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CI
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CI
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CI
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CI
+  to: SC
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CI
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CI
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CI
+  to: CS
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: CI
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CI
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CI
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CI
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CI
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CI
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CD
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CD
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CD
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CD
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CD
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CD
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CD
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CD
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CD
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CD
+  to: CS
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: CD
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CD
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CD
+  to: GI
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CD
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CD
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CD
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GI
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GI
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GI
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GI
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GI
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GI
+  to: CS
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GI
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GI
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: CD
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GI
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CO
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CO
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CO
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CO
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CO
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: CO
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CO
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: CO
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CO
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CO
+  to: CS
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: CO
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: CO
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CO
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CO
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: CO
+  to: GP
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: CO
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GP
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GP
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GP
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GP
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GP
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: GP
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GP
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: GP
+  to: RC
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GP
+  to: CM
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GP
+  to: CS
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: GP
+  to: CN
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: nand
+    symbol: '|'
+    direction: both
+- from: GP
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: GP
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: GP
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: GP
+  to: CO
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: GP
+  to: AR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: forward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: AR
+  to: RR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: forward
+- from: AR
+  to: CC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: WR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: independence
+    symbol: '-'
+    direction: both
+- from: AR
+  to: DR
+  temporal:
+    type: independence
+    symbol: '-'
+    direction: both
+  existential:
+    type: negated equivalence
+    symbol: <=/=>
+    direction: both
+- from: AR
+  to: GC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CR
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: AR
+  to: SC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: equivalence
+    symbol: ⇒
+    direction: both
+- from: AR
+  to: RC
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CM
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CS
+  temporal:
+    type: direct
+    symbol: ≺_d
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CN
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CD
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: GI
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: CO
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward
+- from: AR
+  to: GP
+  temporal:
+    type: eventual
+    symbol: ≺
+    direction: backward
+  existential:
+    type: implication
+    symbol: ⇒
+    direction: backward

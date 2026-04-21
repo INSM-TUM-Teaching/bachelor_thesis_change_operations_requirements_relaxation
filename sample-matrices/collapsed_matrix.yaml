@@ -1,0 +1,19 @@
+metadata:
+  format_version: '1.0'
+  description: Process adjacency matrix with temporal and existential dependencies
+  activities:
+  - Y
+  - X
+dependencies:
+- from: Y
+  to: X
+  existential:
+    type: negated equivalence
+    symbol: ⇎
+    direction: both
+- from: X
+  to: Y
+  existential:
+    type: negated equivalence
+    symbol: ⇎
+    direction: both
