@@ -68,7 +68,7 @@ def check_valid_input(
         return True
     # if activities happen in between, we get an error and parallelizing is not possible 
     else: 
-        raise ValueError(f"Activties {activities_in_between} are in between the activities to be parallelized")
+        raise ValueError(f"Activities {activities_in_between} are in between the activities to be parallelized")
     
 
 def get_activities_happening_between(variants: List[List[str]], 
