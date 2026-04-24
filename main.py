@@ -51,7 +51,7 @@ def banner(text: str) -> None:
 
 
 def prompt(msg: str, default: str = "") -> str:
-    """Show a prompt and return stripped input.  Ctrl-C exits gracefully."""
+    # Show a prompt and return stripped input.  Ctrl-C exits gracefully.
     suffix = f" [{default}]" if default else ""
     try:
         value = input(f"  {msg}{suffix}: ").strip()
@@ -226,7 +226,7 @@ def load_from_sequences() -> AdjacencyMatrix:
 
 
 def step_load_model() -> AdjacencyMatrix:
-    banner("Step 1 – Load Process Model")
+    banner("Step 1 : Load Process Model")
     choice = choose(
         "How do you want to provide the process model?",
         ["YAML file", "Acceptance sequences (manual input)"],
@@ -378,7 +378,7 @@ def step_apply_operation(matrix: AdjacencyMatrix) -> AdjacencyMatrix | None:
     """
     Returns the modified matrix, or None if the user chose to exit.
     """
-    banner("Step 2 – Select Change Operation")
+    banner("Step 2 : Select Change Operation")
     operation = choose("Select an operation:", OPERATIONS)
 
     if operation.startswith("──"):
@@ -391,6 +391,7 @@ def step_apply_operation(matrix: AdjacencyMatrix) -> AdjacencyMatrix | None:
 
     print(f"\n  ── Parameters for: {operation.upper()} ──")
     try:
+        # try to perform the change operation 
         result = handler(matrix)
         print(f"\n  ✓  Operation '{operation}' applied successfully.")
         return result
@@ -443,7 +444,7 @@ def export_matrix_to_yaml(matrix: AdjacencyMatrix) -> None:
 
 def main() -> None:
     print("\n" + "═" * 60)
-    print("   Business Process Redesign – Console Tool")
+    print("   Business Process Redesign : Console Tool")
     print("═" * 60)
 
     # ── 1. Load initial model ────────────────────────────────────────────────

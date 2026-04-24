@@ -59,23 +59,76 @@ def check_valid_input(
         if parallel_activity not in activities:
             raise ValueError(f"Activity {parallel_activity} does part of process.")
 
-    # Check for existing activities y, which are in variants between elements of parallelize_activities 
-    activities_in_between = get_unique_elements_between_parallel_activities(variants, parallel_activities)
+    
+    # get the set of activities happening in between 
+    activities_in_between = get_activities_happening_between(variants, parallel_activities, dependencies)
 
-    if not activities_in_between:
-        # if activities in between are empty, we can directly paralellize
+    # check if it is empty, then parallelizing is possible 
+    if not activities_in_between: 
         return True
+    # if activities happen in between, we get an error and parallelizing is not possible 
+    else: 
+        raise ValueError(f"Activties {activities_in_between} are in between the activities to be parallelized")
+    
+
+def get_activities_happening_between(variants: List[List[str]], 
+                                     parallel_activities: Set[str], 
+                                     dependencies: Dict[
+                                        Tuple[str, str],
+                                        Tuple[Optional[TemporalDependency], Optional[ExistentialDependency]],
+                                    ],) -> List[str]:
+    """
+    Get the set of activities, which happen between (temporally dependent) the activities to be parallelized, by: 
+    1. Getting the set of activities which are in the acceptance sequences between 
+    2. Checking for each of the activities if it is temporally independent 
+    3. Return the set of activities 
+
+    Args:
+        variants: A list of variants, each being a list of activity names.
+        parallelize_activities: A set of activity names considered for parallelizing.
+        dependnecies: List of dependencies (adjacency matrix)
+        
+    Returns:
+        A list of unique activity names that are strictly (temporally independent) between two consecutive parallelize activities.
+    """
+
+    # defines the set of activities which is in the acceptance sequences located between 
+    activities_in_between_sequence = []
+
+    for variant in variants:
+        # Find indexes of collapse activities in this variant
+        parallel_indexes = [i for i, activity in enumerate(variant) if activity in parallel_activities]
+        parallel_indexes.sort()
+        
+        for i in range(len(parallel_indexes) - 1):
+            start = parallel_indexes[i]
+            end = parallel_indexes[i + 1]
+            # Add elements between start and end
+            for elem in variant[start + 1:end]:
+                if elem not in parallel_activities and elem not in activities_in_between_sequence:
+                    activities_in_between_sequence.append(elem)
+
+    if not activities_in_between_sequence:
+        # if activities in between are empty, we just return an empty list 
+        return []
     
     else: 
-        for activity in activities_in_between:
+        # define a list to store the activities which happen in between 
+        activities_in_between = []
+
+        # or each activity of the activities to be parallleized, check the temporal dependency 
+        for activity in activities_in_between_sequence:
             for parallel_activity in parallel_activities:
                 # ensure that the y which happens in between is temporally independent to all of the elements of the activities to be parallelized
-                temporal_dep, _ = dependencies.get(activity, parallel_activity)
+                temporal_dep, _ = dependencies.get((activity, parallel_activity))
                 # check for dependency type 
                 if temporal_dep.type != TemporalType.INDEPENDENCE:
-                    # then parallelizing not possible, problem is that we have activities happening in between
-                    raise ValueError(f"Activty {activity} is in between the activities to be parallelized")
-    return True
+                    # then activity is temporally dependent, and we add it to the set for return 
+                    if activity not in activities_in_between: 
+                        activities_in_between.append(activity)
+
+    return activities_in_between
+
 
 def parallelize_activities_on_variants(
         parallel_activities: Set[str],
