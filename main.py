@@ -334,7 +334,10 @@ def op_collapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
     collapsed_name = prompt("Name of new collapsed activity")
     raw = prompt("Activities to collapse (comma-separated)")
     collapse_acts = [a.strip() for a in raw.split(",") if a.strip()]
+
+    
     return collapse_operation(matrix, collapsed_name, collapse_acts)
+    
 
 
 def op_decollapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
