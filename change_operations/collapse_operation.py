@@ -93,33 +93,48 @@ def get_activities_happening_between(variants: List[List[str]],
 
         return activities_in_between
 
-def get_unique_elements_between_collapse_activities(variants: List[List[str]], collapse_activities: List[str]) -> List[str]:
+def perform_collapse_variant(variants: List[List[str]], collapsed_activity: str, collapse_activities: List[str]) -> List[List[str]]: 
     """
-    Extracts all unique elements that occur between any two collapse activities across multiple variants.
+    Performs the actual collapsing on the level of variants, by replacing the first occurence of an activity of the collapsed set 
+    with the collapsed_activity and deleting all other activities of collapse_activities 
     
     Args:
         variants: A list of variants, each being a list of activity names.
+        collapsed_activity: Activity which should replace the collapsed_acivities after the prcess of collapsing 
         collapse_activities: A set of activity names considered for collapsing.
         
     Returns:
-        A list of unique activity names that are strictly between two consecutive collapse activities.
+        A list of unique variants where the collapsing was performed
     """
-    elements_in_between = []
 
-    for variant in variants:
-        # Find indexes of collapse activities in this variant
-        collapse_indexes = [i for i, activity in enumerate(variant) if activity in collapse_activities]
-        collapse_indexes.sort()
-        
-        for i in range(len(collapse_indexes) - 1):
-            start = collapse_indexes[i]
-            end = collapse_indexes[i + 1]
-            # Add elements between start and end
-            for elem in variant[start + 1:end]:
-                if elem not in collapse_activities and elem not in elements_in_between:
-                    elements_in_between.append(elem)
+    modified_variants = []
+    seen = set()
     
-    return elements_in_between
+    for variant in variants:
+        # set initial conditions to be rest after each iteration 
+        is_collapsed = False
+        modified_variant = []
+        # Remove activity from variant if present
+        for act in variant:
+            if act in collapse_activities: 
+                if not is_collapsed: 
+                    # for the first occurence of an activity from the set collapse_activities, we replace it with the collapsed_activity
+                    modified_variant.append(collapsed_activity)
+                    is_collapsed = True
+            else:
+                # if activity is not part of the collapse_activities but just a "normal" activity from the process 
+                modified_variant.append(act)
+        
+        # Only add non-empty variants which are unique; add to overall set of collapsed variants  
+        if modified_variant:
+            variant_tuple = tuple(modified_variant)
+            if variant_tuple not in seen:
+                seen.add(variant_tuple)
+                modified_variants.append(modified_variant)
+            
+                
+    return modified_variants
+
 
 def collapse_operation(main_matrix: AdjacencyMatrix, collapsed_activity: str, collapse_activities: List[str]) -> AdjacencyMatrix:
     """
