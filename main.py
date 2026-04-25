@@ -45,6 +45,8 @@ from change_operations.parallelize_operation import get_activities_happening_bet
 # ── Change-operation solution strategies imports ─────────────────────────────────────────────────
 from modified_change_operations.parallelization_strategies import parallelize_expand_set
 from modified_change_operations.parallelization_strategies import parallelize_move_activities
+from modified_change_operations.collapse_strategies import collapse_expand_set
+from modified_change_operations.collapse_strategies import collapse_move_activities
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Small helpers
@@ -335,8 +337,49 @@ def op_collapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
     raw = prompt("Activities to collapse (comma-separated)")
     collapse_acts = [a.strip() for a in raw.split(",") if a.strip()]
 
-    
-    return collapse_operation(matrix, collapsed_name, collapse_acts)
+    # perform the change operation, if activities in between catch the error and perform the alternative change operations 
+    try: 
+        return collapse_operation(matrix, collapsed_name, collapse_acts)
+    # check that we catch the correct error message 
+    except ValueError as e:
+        msg = str(e)
+        # check if it is the error 
+        if "happen between the activities to be collapsed" in msg: 
+            print("error caught")
+            # offer the user the selection of solution strategies (either move activities, for the different activities to parallelized / include activities to be parallelized)
+            
+            # create the set of moving options
+            options = ["Move all activities to activity " + act for act in collapse_acts]
+
+            # get the activities happening in between 
+            list_str = msg.split("Activities ")[1].split(" happen between the activities to be collapsed")[0]
+            activities_in_between = list_str.strip("[]").split("', '")
+            activities_in_between = [a.strip("'") for a in activities_in_between]
+
+            # if less then 5 activities, offer to parallelize also activities in between 
+            if len(activities_in_between) <= 5: 
+                options = ["Collapse including activities " + str(activities_in_between)] + options
+
+            # let the user choose a solution strategy
+            solution_strategy = choose("Choose a solution strategy: ", options)
+
+            # based on the selected solution strategy, we perform the change operation 
+            if "Collapse including activities " in solution_strategy: 
+                # include the activities in between in the parallelization 
+                acceptance_sequences = collapse_expand_set(generate_acceptance_variants(matrix), collapse_acts, activities_in_between, collapsed_name)
+
+                # convert the acceptance sequences to a matrix and return
+                return variants_to_matrix(acceptance_sequences)
+            
+            else: 
+                # get the activity to which the others should be moved from the chosen option 
+                activity_positioning = solution_strategy.split("Move all activities to activity ")[1]
+                
+                # perform the adapted change operation
+                acceptance_sequences = collapse_move_activities(generate_acceptance_variants(matrix), collapse_acts, collapsed_name, activity_positioning)
+
+                # convert the acceptance sequences to a matrix and return
+                return variants_to_matrix(acceptance_sequences)
     
 
 
