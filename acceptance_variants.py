@@ -115,14 +115,3 @@ def generate_acceptance_variants(adj_matrix: AdjacencyMatrix) -> List[List[str]]
 
     return acceptance_variants
 
-
-# if __name__ == "__main__":
-#     adj_matrix = AdjacencyMatrix(activities=["A", "B", "C", "D", "E"])
-#     adj_matrix.add_dependency("A", "B", TemporalDependency(TemporalType.DIRECT), ExistentialDependency(ExistentialType.IMPLICATION))
-#     adj_matrix.add_dependency("B", "C", TemporalDependency(TemporalType.EVENTUAL), ExistentialDependency(ExistentialType.EQUIVALENCE))
-#     adj_matrix.add_dependency("C", "D", TemporalDependency(TemporalType.INDEPENDENCE), ExistentialDependency(ExistentialType.NAND))
-#     adj_matrix.add_dependency("D", "E", TemporalDependency(TemporalType.DIRECT), ExistentialDependency(ExistentialType.INDEPENDENCE))
-#     acceptance_vars = generate_acceptance_variants(adj_matrix)
-#     print("Generated Acceptance Variants:")
-#     for var in acceptance_vars:
-#         print(var)

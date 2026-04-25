@@ -1,4 +1,5 @@
 from typing import List
+from typing import Set
 from adjacency_matrix import AdjacencyMatrix
 from optimized_acceptance_variants import generate_optimized_acceptance_variants as generate_acceptance_variants
 from variants_to_matrix import variants_to_matrix
@@ -22,7 +23,7 @@ def collapse_variant_level(matrix: AdjacencyMatrix, main_variants: List[List[str
     variants_to_add = []
 
     # Check for existing activities y, which are in variants between elements of collapse_activities 
-    activities_in_between = get_unique_elements_between_collapse_activities(main_variants, collapse_activities)
+    activities_in_between = get_activities_happening_between(main_variants, collapse_activities, matrix)
 
     if not activities_in_between:
         # if activities in between are empty, we can directly collapse 
@@ -36,11 +37,61 @@ def collapse_variant_level(matrix: AdjacencyMatrix, main_variants: List[List[str
                 # check for dependency type 
                 if temporal_dep.type != TemporalType.INDEPENDENCE:
                     # then collapsing not possible, problem is that we have activities happening in between 
-                    raise ValueError(f"Activity {activity} happens between the activities to be collapsed")
+                    raise ValueError(f"Activities {activities_in_between} happen between the activities to be collapsed")
     
         # if we pass this check without raising an error, we can do the actual collapsing 
         return perform_collapse_variant(main_variants, collapsed_activity, collapse_activities)
 
+def get_activities_happening_between(variants: List[List[str]], 
+                                     collapse_activities: Set[str], 
+                                     matrix: AdjacencyMatrix) -> List[str]:
+    """
+    Get the set of activities, which happen between (temporally dependent) the activities to be collapsed, by: 
+    1. Getting the set of activities which are in the acceptance sequences between 
+    2. Checking for each of the activities if it is temporally independent 
+    3. Return the set of activities 
+
+    Args:
+        variants: A list of variants, each being a list of activity names.
+        collapse_activities: A set of activity names considered for parallelizing.
+        dependnecies: List of dependencies (adjacency matrix)
+        
+    Returns:
+        A list of unique activity names that are strictly (temporally independent) between two consecutive parallelize activities.
+    """
+
+    elements_in_between = []
+
+    for variant in variants:
+        # Find indexes of collapse activities in this variant
+        collapse_indexes = [i for i, activity in enumerate(variant) if activity in collapse_activities]
+        collapse_indexes.sort()
+        
+        for i in range(len(collapse_indexes) - 1):
+            start = collapse_indexes[i]
+            end = collapse_indexes[i + 1]
+            # Add elements between start and end
+            for elem in variant[start + 1:end]:
+                if elem not in collapse_activities and elem not in elements_in_between:
+                    elements_in_between.append(elem)
+
+    if not elements_in_between:
+        # if activities in between are empty, we just return an empty list 
+        return []
+    else: 
+        # define a list to store the activities which happen in between 
+        activities_in_between = []
+
+        for activity in elements_in_between:
+            for collapse_activity in collapse_activities:
+                # ensure that the intermediate variable y is temporally independent of all activities that are to be collapsed. 
+                temporal_dep, _ = matrix.get_dependency(activity, collapse_activity)
+                # check for dependency type 
+                if temporal_dep.type != TemporalType.INDEPENDENCE and activity not in activities_in_between:
+                    # then collapsing not possible, problem is that we have activities happening in between 
+                    activities_in_between.append(activity)
+
+        return activities_in_between
 
 def perform_collapse_variant(variants: List[List[str]], collapsed_activity: str, collapse_activities: List[str]) -> List[List[str]]: 
     """
@@ -84,33 +135,6 @@ def perform_collapse_variant(variants: List[List[str]], collapsed_activity: str,
                 
     return modified_variants
 
-def get_unique_elements_between_collapse_activities(variants: List[List[str]], collapse_activities: List[str]) -> List[str]:
-    """
-    Extracts all unique elements that occur between any two collapse activities across multiple variants.
-    
-    Args:
-        variants: A list of variants, each being a list of activity names.
-        collapse_activities: A set of activity names considered for collapsing.
-        
-    Returns:
-        A list of unique activity names that are strictly between two consecutive collapse activities.
-    """
-    elements_in_between = []
-
-    for variant in variants:
-        # Find indexes of collapse activities in this variant
-        collapse_indexes = [i for i, activity in enumerate(variant) if activity in collapse_activities]
-        collapse_indexes.sort()
-        
-        for i in range(len(collapse_indexes) - 1):
-            start = collapse_indexes[i]
-            end = collapse_indexes[i + 1]
-            # Add elements between start and end
-            for elem in variant[start + 1:end]:
-                if elem not in collapse_activities and elem not in elements_in_between:
-                    elements_in_between.append(elem)
-    
-    return elements_in_between
 
 def collapse_operation(main_matrix: AdjacencyMatrix, collapsed_activity: str, collapse_activities: List[str]) -> AdjacencyMatrix:
     """

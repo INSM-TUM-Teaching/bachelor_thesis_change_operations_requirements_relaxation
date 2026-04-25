@@ -24,6 +24,7 @@ from dependencies import (
     TemporalType, ExistentialType, Direction,
 )
 from variants_to_matrix import variants_to_matrix
+from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.delete_operation    import delete_activity
@@ -38,6 +39,14 @@ from change_operations.de_collapse_operation import decollapse_operation
 from change_operations.parallelize_operation import parallelize_activities
 from change_operations.condition_update    import condition_update
 
+# ── Change-operation helper functions imports ─────────────────────────────────────────────────
+from change_operations.parallelize_operation import get_activities_happening_between
+
+# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
+from modified_change_operations.parallelization_strategies import parallelize_expand_set
+from modified_change_operations.parallelization_strategies import parallelize_move_activities
+from modified_change_operations.collapse_strategies import collapse_expand_set
+from modified_change_operations.collapse_strategies import collapse_move_activities
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Small helpers
@@ -51,7 +60,7 @@ def banner(text: str) -> None:
 
 
 def prompt(msg: str, default: str = "") -> str:
-    """Show a prompt and return stripped input.  Ctrl-C exits gracefully."""
+    # Show a prompt and return stripped input.  Ctrl-C exits gracefully.
     suffix = f" [{default}]" if default else ""
     try:
         value = input(f"  {msg}{suffix}: ").strip()
@@ -226,7 +235,7 @@ def load_from_sequences() -> AdjacencyMatrix:
 
 
 def step_load_model() -> AdjacencyMatrix:
-    banner("Step 1 – Load Process Model")
+    banner("Step 1 : Load Process Model")
     choice = choose(
         "How do you want to provide the process model?",
         ["YAML file", "Acceptance sequences (manual input)"],
@@ -327,7 +336,51 @@ def op_collapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
     collapsed_name = prompt("Name of new collapsed activity")
     raw = prompt("Activities to collapse (comma-separated)")
     collapse_acts = [a.strip() for a in raw.split(",") if a.strip()]
-    return collapse_operation(matrix, collapsed_name, collapse_acts)
+
+    # perform the change operation, if activities in between catch the error and perform the alternative change operations 
+    try: 
+        return collapse_operation(matrix, collapsed_name, collapse_acts)
+    # check that we catch the correct error message 
+    except ValueError as e:
+        msg = str(e)
+        # check if it is the error 
+        if "happen between the activities to be collapsed" in msg: 
+            print("error caught")
+            # offer the user the selection of solution strategies (either move activities, for the different activities to parallelized / include activities to be parallelized)
+            
+            # create the set of moving options
+            options = ["Move all activities to activity " + act for act in collapse_acts]
+
+            # get the activities happening in between 
+            list_str = msg.split("Activities ")[1].split(" happen between the activities to be collapsed")[0]
+            activities_in_between = list_str.strip("[]").split("', '")
+            activities_in_between = [a.strip("'") for a in activities_in_between]
+
+            # if less then 5 activities, offer to parallelize also activities in between 
+            if len(activities_in_between) <= 5: 
+                options = ["Collapse including activities " + str(activities_in_between)] + options
+
+            # let the user choose a solution strategy
+            solution_strategy = choose("Choose a solution strategy: ", options)
+
+            # based on the selected solution strategy, we perform the change operation 
+            if "Collapse including activities " in solution_strategy: 
+                # include the activities in between in the parallelization 
+                acceptance_sequences = collapse_expand_set(generate_acceptance_variants(matrix), collapse_acts, activities_in_between, collapsed_name)
+
+                # convert the acceptance sequences to a matrix and return
+                return variants_to_matrix(acceptance_sequences)
+            
+            else: 
+                # get the activity to which the others should be moved from the chosen option 
+                activity_positioning = solution_strategy.split("Move all activities to activity ")[1]
+                
+                # perform the adapted change operation
+                acceptance_sequences = collapse_move_activities(generate_acceptance_variants(matrix), collapse_acts, collapsed_name, activity_positioning)
+
+                # convert the acceptance sequences to a matrix and return
+                return variants_to_matrix(acceptance_sequences)
+    
 
 
 def op_decollapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
@@ -348,8 +401,52 @@ def op_decollapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
 def op_parallelize(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
     print(f"\n  Current activities: {matrix.activities}")
     raw = prompt("Activities to parallelize (comma-separated)")
-    acts = [a.strip() for a in raw.split(",") if a.strip()]
-    return parallelize_activities(matrix, acts)
+    activities_parallelization = [a.strip() for a in raw.split(",") if a.strip()]
+
+    # perform the change operation, if activities in between catch the error and perform the alternative change operations 
+    try: 
+        return parallelize_activities(matrix, activities_parallelization)
+    # check that we catch the correct error message 
+    except ValueError as e:
+        msg = str(e)
+        # check if it is the error 
+        if "are in between the activities to be parallelized" in msg: 
+            print("error caught")
+            # offer the user the selection of solution strategies (either move activities, for the different activities to parallelized / include activities to be parallelized)
+            
+            # create the set of moving options
+            options = ["Move all activities to activity " + act for act in activities_parallelization]
+
+            # get the activities happening in between 
+            list_str = msg.split("Activities ")[1].split(" are in between")[0]
+            activities_in_between = list_str.strip("[]").split("', '")
+            activities_in_between = [a.strip("'") for a in activities_in_between]
+
+            # if less then 5 activities, offer to parallelize also activities in between 
+            if len(activities_in_between) <= 5: 
+                options = ["Parallelize including activities " + str(activities_in_between)] + options
+
+            # let the user choose a solution strategy
+            solution_strategy = choose("Choose a solution strategy: ", options)
+
+            # based on the selected solution strategy, we perform the change operation 
+            if "Parallelize including activities " in solution_strategy: 
+                # include the activities in between in the parallelization 
+                acceptance_sequences = parallelize_expand_set(generate_acceptance_variants(matrix), activities_parallelization, activities_in_between)
+
+                # convert the acceptance sequences to a matrix and return
+                return variants_to_matrix(acceptance_sequences)
+            
+            else: 
+                # get the activity to which the others should be moved from the chosen option 
+                activity_positioning = solution_strategy.split("Move all activities to activity ")[1]
+                
+                # perform the adapted change operation
+                acceptance_sequences = parallelize_move_activities(generate_acceptance_variants(matrix), activities_parallelization, activity_positioning)
+
+                # convert the acceptance sequences to a matrix and return
+                return variants_to_matrix(acceptance_sequences)
+        
 
 
 def op_condition_update(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
@@ -378,7 +475,7 @@ def step_apply_operation(matrix: AdjacencyMatrix) -> AdjacencyMatrix | None:
     """
     Returns the modified matrix, or None if the user chose to exit.
     """
-    banner("Step 2 – Select Change Operation")
+    banner("Step 2 : Select Change Operation")
     operation = choose("Select an operation:", OPERATIONS)
 
     if operation.startswith("──"):
@@ -391,6 +488,7 @@ def step_apply_operation(matrix: AdjacencyMatrix) -> AdjacencyMatrix | None:
 
     print(f"\n  ── Parameters for: {operation.upper()} ──")
     try:
+        # try to perform the change operation 
         result = handler(matrix)
         print(f"\n  ✓  Operation '{operation}' applied successfully.")
         return result
@@ -443,7 +541,7 @@ def export_matrix_to_yaml(matrix: AdjacencyMatrix) -> None:
 
 def main() -> None:
     print("\n" + "═" * 60)
-    print("   Business Process Redesign – Console Tool")
+    print("   Business Process Redesign : Console Tool")
     print("═" * 60)
 
     # ── 1. Load initial model ────────────────────────────────────────────────
