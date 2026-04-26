@@ -17,6 +17,12 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
         A similarity score of the occurence for the two seqeunces, the closer the score is to 1, the higher is the similarity  
     """
 
+    # for the empty skeleton sequence, make a comparison 
+    if skeleton_sequence == [] and acceptence_sequence == []:
+        return 1.0
+    elif skeleton_sequence == [] and acceptence_sequence != []: 
+        return 0.0
+
     # define a list to store the unique activities in the provided skeleton 
     activities_skeleton = []
 
@@ -54,7 +60,7 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
     return similarity_score
 
 
-def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_sequence: List[str], all_skeleton_activities: List[str]) -> float: 
+def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_sequence: List[str]) -> float: 
     """
     For a given acceptance sequence and a skeleton sequence calculate the similarity score for the orderings(float) 
     1. Compare the ordering of activities in acceptance sequence with skeleton sequence (we only consider the activities occuring in the acceptance sequence)
@@ -70,6 +76,12 @@ def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_seq
         A similarity score of the ordering for the two seqeunces, the closer the score is to 1, the higher is the similarity  
     """
 
+    # for the empty skeleton sequence, make a comparison 
+    if skeleton_sequence == [] and acceptence_sequence == []:
+        return 1.0
+    elif skeleton_sequence == [] and acceptence_sequence != []: 
+        return 0.0
+    
     # define a list to store the unique activities in the provided skeleton 
     activities_skeleton = []
 
@@ -97,6 +109,3 @@ def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_seq
     similarity_score = 1 - (num_mis_order / num_combinations)
 
     return similarity_score
-
-
-

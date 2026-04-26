@@ -69,7 +69,7 @@ def add_placeholder_activities(acceptance_skeleton: List[List[str]],
 
 def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
     """
-    Generates all valid acceptance variants from an adjacency matrix.
+    Generates all valid acceptance variants from the provided conditions and dependencies matrix.
     """
     activities = adj_matrix.activities
     temporal_deps: Dict[Tuple[str, str], TemporalDependency] = {}

@@ -51,7 +51,8 @@ def build_test_matrix() -> AdjacencyMatrix:
 
     return matrix
 
-skeleton = acceptance_skeleton.generate_skeleton(build_test_matrix())
+from modified_change_operations.insert_strategies import insert_variant
 
-sim_score = similarity_calculation_ordering(['B', 'A', 'C', 'D', 'E'], skeleton[0], ['A', 'B', 'X'])
-print(sim_score)
+dependencies = build_test_matrix()
+
+insert_variant([['A', 'B', 'C', 'D', 'E'], ['B', 'A', 'C']], 'X', dependencies)
