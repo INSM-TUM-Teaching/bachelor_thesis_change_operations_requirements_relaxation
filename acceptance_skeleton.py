@@ -106,4 +106,4 @@ def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
 
     # add the empty acceptnace sequence 
     skeleton = skeleton + [[]]
-    return skeleton
+    return skeleton   
