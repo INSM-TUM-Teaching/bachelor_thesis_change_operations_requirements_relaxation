@@ -1,11 +1,12 @@
 from typing import List, Tuple, Dict, Set
+from itertools import combinations
 
-def similarity_calculation(acceptence_sequence: List[str], skeleton_sequence: List[str], all_skeleton_activities: List[str]) -> float: 
+def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_sequence: List[str], all_skeleton_activities: List[str]) -> float: 
     """
-    For a given acceptance sequence and a skeleton sequence calculate the similarity score (float) 
+    For a given acceptance sequence and a skeleton sequence calculate the similarity score for the occurence (float) 
     1. Compare the occurences of activities in skeleton with acceptance sequence 
-    2. Compare how many of the orderings are correct 
-    3. Combine them in a combined score
+    2. Compare how many of the occurences are correct 
+    3. Calculate based on difference a similarity score
 
     Args:
         acceptance_sequence: single acceptance sequence 
@@ -13,7 +14,7 @@ def similarity_calculation(acceptence_sequence: List[str], skeleton_sequence: Li
         all_skeleton_activities: list of all activities which are part of locked / conditional dependencies 
         
     Returns:
-        A combined similarity score of the occurence and ordering for the two seqeunces 
+        A similarity score of the occurence for the two seqeunces, the closer the score is to 1, the higher is the similarity  
     """
 
     # define a list to store the unique activities in the provided skeleton 
@@ -49,6 +50,51 @@ def similarity_calculation(acceptence_sequence: List[str], skeleton_sequence: Li
 
     # Calculate the similarity score, optimal score is 1 for full similarity 
     similarity_score = 1 - (difference / num_skeleton_act)
+
+    return similarity_score
+
+
+def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_sequence: List[str], all_skeleton_activities: List[str]) -> float: 
+    """
+    For a given acceptance sequence and a skeleton sequence calculate the similarity score for the orderings(float) 
+    1. Compare the ordering of activities in acceptance sequence with skeleton sequence (we only consider the activities occuring in the acceptance sequence)
+    2. Compare how many of the orderings are correct 
+    3. Calculate a similarity score 
+
+    Args:
+        acceptance_sequence: single acceptance sequence 
+        skeleton_sequence: single skeleton sequence with placeholders '_'
+        all_skeleton_activities: list of all activities which are part of locked / conditional dependencies 
+        
+    Returns:
+        A similarity score of the ordering for the two seqeunces, the closer the score is to 1, the higher is the similarity  
+    """
+
+    # define a list to store the unique activities in the provided skeleton 
+    activities_skeleton = []
+
+    # from the skeleton get the activities, which are not a placeholder 
+    for act in skeleton_sequence: 
+        if act != '_' and act not in activities_skeleton and act in acceptence_sequence: 
+            activities_skeleton.append(act)
+
+    # define a variable num_combinations to count the orderings to check 
+    num_combinations = 0
+
+    # define a variable num_mis_order to count the number of wrong orderings 
+    num_mis_order = 0
+
+    # for all pairs of activities which are in the skeleton sequence and acceptance sequences iterate over them 
+    for ai, aj in combinations(activities_skeleton, 2):    
+        # increment the number of combinations 
+        num_combinations += 1
+
+        # check if the ordering does not match
+        if (acceptence_sequence.index(ai) < acceptence_sequence.index(aj)) != (skeleton_sequence.index(ai) < skeleton_sequence.index(aj)): 
+            num_mis_order += 1
+
+    # calculate the similarity score 
+    similarity_score = 1 - (num_mis_order / num_combinations)
 
     return similarity_score
 

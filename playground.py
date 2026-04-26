@@ -1,4 +1,5 @@
-from similarity_score import similarity_calculation
+from similarity_score import similarity_calculation_occurence
+from similarity_score import similarity_calculation_ordering
 import acceptance_skeleton
 
 from itertools import permutations
@@ -52,5 +53,5 @@ def build_test_matrix() -> AdjacencyMatrix:
 
 skeleton = acceptance_skeleton.generate_skeleton(build_test_matrix())
 
-sim_score = similarity_calculation(['A', 'B', 'C', 'D', 'E'], skeleton[0], ['A', 'B', 'X'])
+sim_score = similarity_calculation_ordering(['B', 'A', 'C', 'D', 'E'], skeleton[0], ['A', 'B', 'X'])
 print(sim_score)
