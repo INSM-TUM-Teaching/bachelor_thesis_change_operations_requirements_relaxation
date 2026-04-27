@@ -53,6 +53,10 @@ def build_test_matrix() -> AdjacencyMatrix:
 
 from modified_change_operations.insert_strategies import insert_variant
 
-dependencies = build_test_matrix()
+# dependencies = build_test_matrix()
 
-insert_variant([['A', 'B', 'C', 'D', 'E'], ['B', 'A', 'C']], 'X', dependencies)
+# insert_variant([['A', 'B', 'C', 'D', 'E'], ['B', 'A', 'C']], 'X', dependencies)
+
+from modified_change_operations.insert_strategies import adapt_anchor_sort_reinsert
+
+adapt_anchor_sort_reinsert(['A', 'B', 'C', 'D', 'E'], ['_', 'B', '_', 'X', '_', 'A', '_'], ['A', 'B', 'X', 'E'])
