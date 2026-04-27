@@ -90,13 +90,57 @@ def confirm(msg: str) -> bool:
 #  Matrix display
 # ════════════════════════════════════════════════════════════════════════════
 
+_W = 6  # fixed width for all symbols
+
 def _dep_label(temporal, existential) -> str:
     parts = []
-    if temporal and temporal.type != TemporalType.INDEPENDENCE:
-        parts.append(f"T:{temporal.type.name[:3]}/{temporal.direction.name[:3]}")
-    if existential and existential.type != ExistentialType.INDEPENDENCE:
-        parts.append(f"E:{existential.type.name[:3]}/{existential.direction.name[:3]}")
-    return ", ".join(parts) if parts else "—"
+
+    if temporal:
+        if temporal.type == TemporalType.INDEPENDENCE:
+            temporal_name = "-"
+        elif temporal.type == TemporalType.DIRECT:
+            if temporal.direction == Direction.FORWARD:
+                temporal_name = ">_d"
+            elif temporal.direction == Direction.BACKWARD:
+                temporal_name = "<_d"
+            else:  # BOTH
+                temporal_name = "<>_d"
+        elif temporal.type == TemporalType.EVENTUAL:
+            if temporal.direction == Direction.FORWARD:
+                temporal_name = ">_e"
+            elif temporal.direction == Direction.BACKWARD:
+                temporal_name = "<_e"
+            else:  # BOTH
+                temporal_name = "<>_e"
+        else:
+            temporal_name = "?"
+        parts.append(temporal_name.center(_W))
+
+    if existential:
+        if existential.type == ExistentialType.INDEPENDENCE:
+            existential_name = "-"
+        elif existential.type == ExistentialType.IMPLICATION:
+            if existential.direction == Direction.FORWARD:
+                existential_name = "=>_i"
+            elif existential.direction == Direction.BACKWARD:
+                existential_name = "<=_i"
+            else:  # BOTH
+                existential_name = "<=>_i"
+        elif existential.type == ExistentialType.EQUIVALENCE:
+            existential_name = "<=>_eq"
+        elif existential.type == ExistentialType.AND:
+            existential_name = "∧"
+        elif existential.type == ExistentialType.OR:
+            existential_name = "∨"
+        elif existential.type == ExistentialType.NAND:
+            existential_name = "¬∧"
+        elif existential.type == ExistentialType.NOR:
+            existential_name = "¬∨"
+        else:
+            existential_name = "?"
+        parts.append(existential_name.center(_W))
+
+    return " , ".join(parts) if parts else "—".center(_W)
 
 
 def print_matrix(matrix: AdjacencyMatrix, title: str = "Adjacency Matrix") -> None:

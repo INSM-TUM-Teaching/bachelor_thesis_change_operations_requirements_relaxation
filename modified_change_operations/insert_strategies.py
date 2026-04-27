@@ -187,8 +187,12 @@ def insert_variant(acceptance_sequences, conditions_insertion) -> List[List[str]
     Returns:
         The modified acceptance sequences for which the insertion is performed  
     """
+
     # generate the skeleton sequences 
     skeleton_sequences = generate_skeleton(conditions_insertion)
+
+    if skeleton_sequence == [[]]: 
+        raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")
 
     # get the list of all activities of the skeleton 
     activities_in_skeleton = []

@@ -105,5 +105,7 @@ def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
     skeleton = add_placeholder_activities(acceptance_variants, temporal_deps)
 
     # add the empty acceptnace sequence 
-    skeleton = skeleton + [[]]
+    skeleton.append([])
+
+    # return the final skeleton 
     return skeleton   
