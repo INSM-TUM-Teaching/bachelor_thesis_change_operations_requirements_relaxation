@@ -97,6 +97,17 @@ _W = 6  # fixed width for all symbols
 def _dep_label(temporal, existential) -> str:
     parts = []
 
+    if temporal: 
+        temporal_name = dep_label_temp(temporal)
+        parts.append(temporal_name.center(_W))
+
+    if existential: 
+        existential_name = dep_label_exist(existential)
+        parts.append(existential_name.center(_W))
+
+    return " , ".join(parts) if parts else "—".center(_W)
+
+def dep_label_temp(temporal) -> str: 
     if temporal:
         if temporal.type == TemporalType.INDEPENDENCE:
             temporal_name = "-"
@@ -116,8 +127,11 @@ def _dep_label(temporal, existential) -> str:
                 temporal_name = "<>_e"
         else:
             temporal_name = "?"
-        parts.append(temporal_name.center(_W))
 
+        return temporal_name
+
+        
+def dep_label_exist(existential) -> str: 
     if existential:
         if existential.type == ExistentialType.INDEPENDENCE:
             existential_name = "-"
@@ -138,9 +152,8 @@ def _dep_label(temporal, existential) -> str:
             existential_name = "</=>"
         else:
             existential_name = "?"
-        parts.append(existential_name.center(_W))
-
-    return " , ".join(parts) if parts else "—".center(_W)
+        
+        return existential_name
 
 
 def print_matrix(matrix: AdjacencyMatrix, title: str = "Adjacency Matrix") -> None:
@@ -406,38 +419,23 @@ def is_relaxation(
         bool: true if one of the dimensions is a relaxation, while the others remained without a violation 
     """
 
-    # if one of the dependencies is missing, we are not speaking about a relaxation 
-    if old_dependency is None or new_dependency is None:
-        return False
-
     old_temp, old_exist = old_dependency
     new_temp, new_exist = new_dependency
 
-    # for both, exiatntial and temporal dependencies, check if they are a relaxation of each other
-    temp_relaxed = (
-        old_temp is not None
-        and new_temp is not None
-        and is_temp_relaxation(old_temp, new_temp)
-    )
-    exist_relaxed = (
-        old_exist is not None
-        and new_exist is not None
-        and is_exist_relaxation(old_exist, new_exist)
-    )
+    # locked temporal dependency 
+    if old_temp is not None: 
+        if is_temp_relaxation(old_temp, new_temp): 
+            return True
+        
+    # locked existential dependency 
+    if old_exist is not None: 
+        if is_exist_relaxation(old_exist, new_exist): 
+            return True
+    
+    # if neither temporal nor existential relaxation, return false 
+    return False
 
-    # check if the dependency types remained unchanged 
-    temp_unchanged = old_temp == new_temp
-    exist_unchanged = old_exist == new_exist
-
-    # At least one component must be relaxed,
-    # and the other must not be made stricter (i.e. also relaxed or unchanged)
-    return (
-        (temp_relaxed and exist_relaxed)
-        or (temp_relaxed and exist_unchanged)
-        or (exist_relaxed and temp_unchanged)
-    )
-
-
+    
 def is_temp_relaxation(old_temp_dep: TemporalDependency, new_temp_dep: TemporalDependency): 
     """
     For temporal dependencies, check if it is a relaxation (old is direct and new is eventual)
@@ -856,17 +854,26 @@ def main() -> None:
                 # check if it is violated, if yes check for relaxation 
                 if is_violated(locked_dep, new_dependency): 
 
+                    ###########################################
+                    # we reach this point 
+                    print(f"From {from_act} to {to_act} is violated")
+
                     # check if the dependency is a relaxation and ask the user, if he accepts the relaxation
-                    if is_relaxation(locked_dep, new_dependency):  
+                    if is_relaxation(locked_dep, new_dependency): 
+
+                        #####################################
+                        # we do not get into this condition 
+                        print(f"From {from_act} to {to_act} is potential relaxation")
 
                         # extract the dependency types, to provide them to the user as information 
                         locked_temp_dep, locked_exist_dep = locked_dep
                         new_temp_dep, new_exist_dep = new_dependency
 
                         # ask the user, if applicable, to relax the existential dependency 
-                        if is_exist_relaxation(locked_exist_dep, new_exist_dep): 
+                        if (locked_exist_dep is not None and new_exist_dep is not None
+                            and is_exist_relaxation(locked_exist_dep, new_exist_dep)): 
 
-                            if confirm(f"Do you want to relax the existential between activities {from_act, to_act} dependency from {locked_exist_dep} to the relaxed {new_exist_dep}?"): 
+                            if confirm(f"Do you want to relax the existential dependency between activities {from_act, to_act} from dependency type {dep_label_exist(locked_exist_dep)} to the relaxed dependency type {dep_label_exist(new_exist_dep)}?"): 
                                 # if the user agrees on the relaxation, adapt the locked dependencies accordingly 
                                 locked_dependencies[(from_act, to_act)] = (locked_temp_dep, new_exist_dep)
                                 
@@ -880,9 +887,10 @@ def main() -> None:
 
 
                         # ask the user, if applicable, to relax the temporal dependency 
-                        if is_temp_relaxation(locked_temp_dep, new_temp_dep): 
+                        if (locked_temp_dep is not None and new_temp_dep is not None
+                            and is_temp_relaxation(locked_temp_dep, new_temp_dep)):
 
-                            if confirm(f"Do you want to relax the temporal between activities {from_act, to_act} dependency from {locked_temp_dep} to the relaxed {new_temp_dep}?"): 
+                            if confirm(f"Do you want to relax the temporal dependency between activities {from_act, to_act} from the dependency type {dep_label_temp(locked_temp_dep)} to the relaxed dependency type {dep_label_temp(new_temp_dep)}?"): 
                                 # if the user agrees on the relaxation, adapt the locked dependencies accordingly 
                                 locked_dependencies[(from_act, to_act)] = (new_temp_dep, locked_exist_dep)
                             
@@ -895,11 +903,11 @@ def main() -> None:
                         # if we do not have a relaxation but a violation, we need the skeleton approach 
                         exist_violations = True
 
-        # 3) if there are still violations, we must use the skeleton approch 
+        # 3) if there are still violations, we must use the skeleton approach 
         if exist_violations: 
             # inform the user that dependency relacation was not enough 
             print("Using dependency relaxation was unable to resolve (all) violations.")
-            print("The skeleton approch will be used to resolve the violations.")
+            print("The skeleton approach will be used to resolve the violations.")
 
             # we offer the user the option to choose the method to calculate the similarity score
             options = ["Pure occurence similarity score - focus on preserving existential dependencies", 
