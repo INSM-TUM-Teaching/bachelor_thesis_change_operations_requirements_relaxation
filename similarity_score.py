@@ -54,10 +54,12 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
     # calculate the number of activities which are different between skeleton and the acceptance sequence     
     difference = num_add_act + (num_skeleton_act - num_act_skeleton_acceptance)
 
-    # Calculate the similarity score, optimal score is 1 for full similarity 
-    similarity_score = 1 - (difference / num_skeleton_act)
-
-    return similarity_score
+    # implement a guar if there are no skeleton activities 
+    if num_all_skeleton_act == 0: 
+        return 1
+    else: 
+        # Calculate the similarity score, optimal score is 1 for full similarity 
+        return (1 - (difference / num_skeleton_act))
 
 
 def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_sequence: List[str]) -> float: 
@@ -105,7 +107,9 @@ def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_seq
         if (acceptence_sequence.index(ai) < acceptence_sequence.index(aj)) != (skeleton_sequence.index(ai) < skeleton_sequence.index(aj)): 
             num_mis_order += 1
 
-    # calculate the similarity score 
-    similarity_score = 1 - (num_mis_order / num_combinations)
-
-    return similarity_score
+    # if no combinations found, we define that the order is correct. Guard needed to prevent divisison by zero 
+    if num_combinations == 0: 
+        return 1
+    else: 
+        # calculate the similarity score 
+        return (1 - (num_mis_order / num_combinations))

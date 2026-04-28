@@ -172,9 +172,10 @@ def adapt_anchor_sort_reinsert(
     return acceptance_sequences_new
 
 
-def insert_variants_strategy(acceptance_sequences, conditions_insertion, similarity_strategy) -> List[List[str]]: 
+def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strategy) -> List[List[str]]: 
     """
-    For the change operation insert, perform it when contradictions in the process araised earlier  
+    For the change operations (especially insert and when using locked dependencies), 
+    perform it when contradictions in the process araised earlier  
     1. Generate the skeleton based on conditions & locked dependencies 
     2. Calculate the similarity score between acceptance - and skeleton sequence 
     3. For each acceptance sequence select the matching skeleton sequence 
@@ -182,7 +183,7 @@ def insert_variants_strategy(acceptance_sequences, conditions_insertion, similar
 
     Args:
         acceptance_sequences: acceptance sequences of the process for insertion 
-        conditions_insertion: dependencies which are defined for the insertion, this also contains the activity to be inserted
+        conditions: dependencies which must hold (insertion, locked dependencies)
         similarity_strategy: str, defines which score to be used for the similarity 
         
     Returns:
@@ -190,7 +191,7 @@ def insert_variants_strategy(acceptance_sequences, conditions_insertion, similar
     """
 
     # generate the skeleton sequences 
-    skeleton_sequences = generate_skeleton(conditions_insertion)
+    skeleton_sequences = generate_skeleton(conditions)
 
     if skeleton_sequences == [[]]: 
         raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")
