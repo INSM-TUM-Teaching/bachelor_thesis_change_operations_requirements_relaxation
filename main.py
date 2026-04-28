@@ -351,8 +351,22 @@ def op_insert(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
         # indicate to the user that the standard insert method does not work here 
         print("The insert operation is ambigous, we use the new method to adapt the acceptance sequnces")
 
+        # we offer the user the option to choose the method to calculate the similarity score
+        options = ["Pure occurence similarity score - focus on preserving existential dependencies", 
+                   "Pure ordering similarity score - focus on preserving temporal dependencies",
+                   "Combined similarity score - allowing for a balanced consideration"]
+        
+        similarity_strategy = choose("Choose a method to calculate the similarity score between skeleton sequences and acceptance sequences: ", options)
+
+        if "occurence" in similarity_strategy: 
+            similarity_strategy = "occurence"
+        elif "ordering" in similarity_strategy: 
+            similarity_strategy = "ordering"
+        else: 
+            similarity_strategy = "combined"
+
         # if an error occurs, we use the new insert opportunity 
-        modified_acceptance_sequences = insert_variants_strategy(generate_acceptance_variants(matrix), deps_to_matrix(deps))
+        modified_acceptance_sequences = insert_variants_strategy(generate_acceptance_variants(matrix), deps_to_matrix(deps), similarity_strategy)
 
         # return the modified matrix
         return variants_to_matrix(modified_acceptance_sequences)
