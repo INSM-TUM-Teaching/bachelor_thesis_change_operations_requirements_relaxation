@@ -391,19 +391,19 @@ def is_violated(
     Returns: 
         bool: true if there is a violation, false if they are the same 
     """
-    # use a guard to check if it is None 
     if old_dependency is None or new_dependency is None:
         return old_dependency != new_dependency
-    
-    # extract the temporal and existential component 
+
     old_temp, old_exist = old_dependency
     new_temp, new_exist = new_dependency
 
-    # compare the dependencies, if they were changes 
-    temp_unchanged = old_temp == new_temp
-    exist_unchanged = old_exist == new_exist
+    # Only check components that were actually locked (non-None)
+    if old_temp is not None and old_temp != new_temp:
+        return True
+    if old_exist is not None and old_exist != new_exist:
+        return True
 
-    return not(temp_unchanged and exist_unchanged)
+    return False
     
 
 def is_relaxation(
@@ -617,7 +617,6 @@ def op_collapse(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
         msg = str(e)
         # check if it is the error 
         if "happen between the activities to be collapsed" in msg: 
-            print("error caught")
             # offer the user the selection of solution strategies (either move activities, for the different activities to parallelized / include activities to be parallelized)
             
             # create the set of moving options
@@ -683,7 +682,6 @@ def op_parallelize(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
         msg = str(e)
         # check if it is the error 
         if "are in between the activities to be parallelized" in msg: 
-            print("error caught")
             # offer the user the selection of solution strategies (either move activities, for the different activities to parallelized / include activities to be parallelized)
             
             # create the set of moving options
