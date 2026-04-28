@@ -172,7 +172,7 @@ def adapt_anchor_sort_reinsert(
     return acceptance_sequences_new
 
 
-def insert_variant(acceptance_sequences, conditions_insertion) -> List[List[str]]: 
+def insert_variants_strategy(acceptance_sequences, conditions_insertion) -> List[List[str]]: 
     """
     For the change operation insert, perform it when contradictions in the process araised earlier  
     1. Generate the skeleton based on conditions & locked dependencies 
@@ -191,7 +191,7 @@ def insert_variant(acceptance_sequences, conditions_insertion) -> List[List[str]
     # generate the skeleton sequences 
     skeleton_sequences = generate_skeleton(conditions_insertion)
 
-    if skeleton_sequence == [[]]: 
+    if skeleton_sequences == [[]]: 
         raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")
 
     # get the list of all activities of the skeleton 

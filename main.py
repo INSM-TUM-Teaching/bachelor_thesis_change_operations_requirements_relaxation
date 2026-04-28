@@ -47,6 +47,7 @@ from modified_change_operations.parallelization_strategies import parallelize_ex
 from modified_change_operations.parallelization_strategies import parallelize_move_activities
 from modified_change_operations.collapse_strategies import collapse_expand_set
 from modified_change_operations.collapse_strategies import collapse_move_activities
+from modified_change_operations.insert_strategies import insert_variants_strategy
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Small helpers
@@ -227,6 +228,27 @@ def ask_dependencies(activities: list[str]) -> dict:
     return deps
 
 
+def deps_to_matrix(deps: dict) -> AdjacencyMatrix:
+    """
+    Builds a minimal AdjacencyMatrix from an insertion dependencies dict.
+    Activities are inferred from the (from, to) keys of the dict.
+    """
+    # collect all unique activity names, preserving insertion order
+    activities = []
+    for (from_act, to_act) in deps:
+        if from_act not in activities:
+            activities.append(from_act)
+        if to_act not in activities:
+            activities.append(to_act)
+
+    matrix = AdjacencyMatrix(activities)
+
+    for (from_act, to_act), (temp_dep, exist_dep) in deps.items():
+        matrix.add_dependency(from_act, to_act, temp_dep, exist_dep)
+
+    return matrix
+
+
 # ════════════════════════════════════════════════════════════════════════════
 #  Step 1 – Load process model
 # ════════════════════════════════════════════════════════════════════════════
@@ -318,7 +340,22 @@ def op_insert(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
     activity = prompt("New activity name")
     print(f"\n  Current activities: {matrix.activities}")
     deps = ask_dependencies(matrix.activities + [activity])
-    return insert_activity(matrix, activity, deps)
+
+    #######################################
+    # begin new implementataion 
+    #######################################
+    try: 
+        # try to perform the insert operation
+        return insert_activity(matrix, activity, deps)
+    except ValueError as e: 
+        # indicate to the user that the standard insert method does not work here 
+        print("The insert operation is ambigous, we use the new method to adapt the acceptance sequnces")
+
+        # if an error occurs, we use the new insert opportunity 
+        modified_acceptance_sequences = insert_variants_strategy(generate_acceptance_variants(matrix), deps_to_matrix(deps))
+
+        # return the modified matrix
+        return variants_to_matrix(modified_acceptance_sequences)
 
 
 def op_modify(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
@@ -600,7 +637,10 @@ def main() -> None:
             print("\n  No further operations selected.  Exiting.\n")
             break
 
-        print_matrix(result, "Modified Matrix")
+        if result is not current_matrix:
+            print_matrix(result, "Modified Matrix")
+        else:
+            print("\n  ℹ  Matrix unchanged – no modified matrix to display.")
 
         if confirm("Export this matrix to YAML?"):
             export_matrix_to_yaml(result)
