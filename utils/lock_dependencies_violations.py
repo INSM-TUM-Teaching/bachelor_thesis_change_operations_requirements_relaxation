@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Optional
 from adjacency_matrix import AdjacencyMatrix
 from optimized_acceptance_variants import generate_optimized_acceptance_variants as generate_acceptance_variants
 from dependencies import TemporalType, ExistentialType
@@ -16,13 +16,15 @@ def _dependencies_equal(dep1, dep2) -> bool:
     return dep1.type == dep2.type and dep1.direction == dep2.direction
 
 
-def locked_dependencies_preserved(initial_matrix: AdjacencyMatrix, modified_matrix: AdjacencyMatrix, locked_dependencies: Dict[Tuple[str, str], Tuple[bool, bool]], deletion_allowed: List[str]) -> bool:
+def locked_dependencies_preserved(matrix: AdjacencyMatrix, locked_dependencies: Dict[
+        Tuple[str, str],
+        Tuple[Optional[TemporalType], Optional[ExistentialType]]
+    ], deletion_allowed: List[str]) -> bool:
     """
     Check if provided constraints are fulfilled, meaning that dependencies which are locked are not modified when applying the change operation 
     
     Args:
-        initial_matrix: The adjacency matrix before performing the change operation
-        modified_matrix: The adjacency matrix after performing the change operation
+        matrix: The adjacency matrix after performing the change operation
         locked_dependencies: List of dependencies which are locked (activity1, activity2, dependency_type) which should be ensured. The first tuples describes the activities and the second one (temporal, dependency) 
         describes which of the depencies are locked  
         deletion_allowed: List of activities that are allowed to be deleted without violating a locked dependency.
