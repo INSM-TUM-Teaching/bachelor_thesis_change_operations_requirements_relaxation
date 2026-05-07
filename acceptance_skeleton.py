@@ -51,20 +51,19 @@ def add_placeholder_activities(acceptance_skeleton: List[List[str]],
 
             # get the dependency type between the activities, if they are temporally direct dependent, skip
             dependency = temporal_dependencies.get((ai, aj))
-            if dependency.type != TemporalType.DIRECT: 
+            if dependency is None or dependency.type != TemporalType.DIRECT:  
                 # add a placeholder activity 
                 expanded_variant.append("_")
         
         # append the last activity and a final placeholder 
-        expanded_variant = expanded_variant + [aj, "_"]
+        if len(variant) >= 2:
+            expanded_variant = expanded_variant + [variant[-1], "_"]
 
         # add the modified variant to the other modified variants 
         if expanded_variant not in expanded_acceptance_skeleton: 
             expanded_acceptance_skeleton.append(expanded_variant)
     
     return expanded_acceptance_skeleton
-
-
 
 
 def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
