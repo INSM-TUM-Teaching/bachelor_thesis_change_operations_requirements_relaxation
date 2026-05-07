@@ -760,7 +760,7 @@ def step_apply_operation(matrix: AdjacencyMatrix) -> AdjacencyMatrix | None:
     try:
         # try to perform the change operation 
         result = handler(matrix)
-        print(f"\n  ✓  Operation '{operation}' applied successfully.")
+        # print(f"\n  ✓  Operation '{operation}' applied successfully.")
         return result
     except ValueError as e:
         print(f"\n  ✗  Operation failed: {e}")
@@ -931,6 +931,9 @@ def main() -> None:
             result = variants_to_matrix(modified_acceptance_sequences)
 
 
+        # inform the user that the change operation was applied succesfully 
+        print(f"\n  ✓  Change operation applied successfully.")
+        
         # if the matrix did not change, display this information 
         if result is not current_matrix:
             print_matrix(result, "Modified Matrix")

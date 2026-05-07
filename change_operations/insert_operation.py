@@ -120,7 +120,6 @@ def insert_into_variants(
     if satisfies_existential_constraints(
         {activity}, new_activities, total_existential_deps
     ):
-        print(activity, total_existential_deps)
         new_variants.append([activity])
 
     for variant in variants:

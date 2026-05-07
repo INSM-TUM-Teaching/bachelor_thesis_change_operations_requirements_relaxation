@@ -57,7 +57,7 @@ def build_test_matrix() -> AdjacencyMatrix:
 
 # insert_variant([['A', 'B', 'C', 'D', 'E'], ['B', 'A', 'C']], 'X', dependencies)
 
-from modified_change_operations.insert_strategies import adapt_anchor_sort_reinsert
+from modified_change_operations.skeleton_strategies import adapt_anchor_sort_reinsert
 
 result = adapt_anchor_sort_reinsert(['A', 'C', 'B', 'D', 'E'], ['_', 'B', '_', 'X', '_', 'A', '_'], ['A', 'B', 'X', 'E'])
 
