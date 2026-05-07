@@ -208,6 +208,9 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                 activities_in_skeleton.append(act)
 
 
+    # define a set to store all the used skeleton sequences 
+    used_skeleton_sequences = []
+
     # calculate for all acceptance sequence and skeleton sequence the similarity score 
     for acceptance_sequence in acceptance_sequences:
 
@@ -265,10 +268,87 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                     selected_skeleton_sequence = skeleton_sequence
 
 
+        # add the used skeleton sequence to the set of skeleton sequences used 
+        used_skeleton_sequences.append(selected_skeleton_sequence)
+
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_anchor_sort_reinsert(acceptance_sequence, selected_skeleton_sequence, activities_in_skeleton)
 
-        acceptance_sequences_new = acceptance_sequences_new + modified_variants
+        # ensure that we do not add duplicates 
+        for v in modified_variants: 
+            if v not in acceptance_sequences_new: 
+                acceptance_sequences_new.append(v)
+
+    
+    # for all the skeleton sequences which were not used so far, find the acceptance sequence with the highest sim score 
+    for skeleton_sequence in [s for s in skeleton_sequences if s not in used_skeleton_sequences]: 
+
+        # initialize the max score 
+        max_sim_score_occurence = -10
+        max_sim_score_ordering = -10
+
+        max_sim_score_combined = -10
+
+        selected_acceptance_sequence = []
+
+        # TODO 
+        # find the most similar acceptance sequence 
+        # iterate over all the possible skeleton sequences and select the sequence with the highest sim_score
+        for acceptance_sequence in acceptance_sequences:
+
+            # calculate the similarity score of occurence and ordering  
+            sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
+            sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
+
+            
+            # based on the selected similarity startegy, select the skeleton sequence 
+            if similarity_strategy == "occurence": 
+                # we search for the highest occurence sim score, if found also update the ordering 
+                if sim_score_occurence > max_sim_score_occurence: 
+                    max_sim_score_occurence = sim_score_occurence
+                    selected_acceptance_sequence = acceptance_sequence
+                    max_sim_score_ordering = sim_score_ordering
+                
+                # if the same sim_score for occurence, use the sim_score of ordering for detrmination 
+                elif sim_score_occurence == max_sim_score_occurence:  
+
+                    if sim_score_ordering > max_sim_score_ordering: 
+                        max_sim_score_ordering = sim_score_ordering
+                        selected_acceptance_sequence = acceptance_sequence
+            
+            elif similarity_strategy == "ordering": 
+                # for the similarity score of ordering, select the skeleton sequence 
+                if sim_score_ordering > max_sim_score_ordering: 
+                    max_sim_score_ordering = sim_score_ordering
+                    selected_acceptance_sequence = acceptance_sequence
+                    max_sim_score_occurence = sim_score_occurence
+                
+                # if the same sim_score for occurence, use the sim_score of ordering for detrmination 
+                elif sim_score_ordering == max_sim_score_ordering:  
+
+                    if sim_score_occurence > max_sim_score_occurence: 
+                        max_sim_score_occurence = sim_score_occurence
+                        selected_acceptance_sequence = acceptance_sequence
+
+            else: 
+                # combined
+                sim_score_combined = (sim_score_occurence + sim_score_ordering) / 2
+
+                if sim_score_combined > max_sim_score_combined: 
+                    max_sim_score_combined = sim_score_combined
+                    selected_acceptance_sequence = acceptance_sequence
+
+        # perfom the adaption 
+        # perfom the adaption of the acceptance sequence 
+        modified_variants = adapt_anchor_sort_reinsert(selected_acceptance_sequence, skeleton_sequence, activities_in_skeleton)
+
+        # ensure that we do not add duplicates 
+        for v in modified_variants: 
+            if v not in acceptance_sequences_new: 
+                acceptance_sequences_new.append(v)
+
+    print(acceptance_sequences_new) 
+    print(skeleton_sequences)          
 
     # return the result 
     return acceptance_sequences_new

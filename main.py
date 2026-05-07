@@ -137,13 +137,13 @@ def dep_label_exist(existential) -> str:
             existential_name = "-"
         elif existential.type == ExistentialType.IMPLICATION:
             if existential.direction == Direction.FORWARD:
-                existential_name = "=>_i"
+                existential_name = "=>"
             elif existential.direction == Direction.BACKWARD:
-                existential_name = "<=_i"
+                existential_name = "<="
             else:  # BOTH
-                existential_name = "<=>_i"
+                existential_name = "<=>"
         elif existential.type == ExistentialType.EQUIVALENCE:
-            existential_name = "<=>_eq"
+            existential_name = "<=>"
         elif existential.type == ExistentialType.OR:
             existential_name = "∨"
         elif existential.type == ExistentialType.NAND:
