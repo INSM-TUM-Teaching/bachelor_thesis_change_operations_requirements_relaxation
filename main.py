@@ -113,18 +113,18 @@ def dep_label_temp(temporal) -> str:
             temporal_name = "-"
         elif temporal.type == TemporalType.DIRECT:
             if temporal.direction == Direction.FORWARD:
-                temporal_name = ">_d"
-            elif temporal.direction == Direction.BACKWARD:
                 temporal_name = "<_d"
+            elif temporal.direction == Direction.BACKWARD:
+                temporal_name = ">_d"
             else:  # BOTH
                 temporal_name = "<>_d"
         elif temporal.type == TemporalType.EVENTUAL:
             if temporal.direction == Direction.FORWARD:
-                temporal_name = ">_e"
+                temporal_name = "<"
             elif temporal.direction == Direction.BACKWARD:
-                temporal_name = "<_e"
+                temporal_name = ">"
             else:  # BOTH
-                temporal_name = "<>_e"
+                temporal_name = "<>"
         else:
             temporal_name = "?"
 
@@ -837,6 +837,7 @@ def main() -> None:
         # 2) if there are violations, we check if can resolve them by relaxation 
         if exist_violations: 
 
+            print("")
             print("The performance of the change operation caused a violation of the locked dependencies.")
             print("In the next steps we want to resolve these violations")
 
@@ -854,7 +855,7 @@ def main() -> None:
 
                     ###########################################
                     # we reach this point 
-                    print(f"From {from_act} to {to_act} is violated")
+                    print(f"The locked depenency from activity {from_act} to activity {to_act} is violated")
 
                     # check if the dependency is a relaxation and ask the user, if he accepts the relaxation
                     if is_relaxation(locked_dep, new_dependency): 
@@ -904,6 +905,7 @@ def main() -> None:
         # 3) if there are still violations, we must use the skeleton approach 
         if exist_violations: 
             # inform the user that dependency relacation was not enough 
+            print("")
             print("Using dependency relaxation was unable to resolve (all) violations.")
             print("The skeleton approach will be used to resolve the violations.")
 
@@ -922,6 +924,7 @@ def main() -> None:
                 similarity_strategy = "combined"
 
             # if an error occurs, we use the new insert opportunity 
+            # TODO -> do not only provide the locked dependencies, but depending on the change operation a particular set of dependencies
             modified_acceptance_sequences = adapt_acceptance_skeleton(generate_acceptance_variants(result), deps_to_matrix(locked_dependencies), similarity_strategy)
 
             # get the result by translating the modified acceptance sequences in the matrix
