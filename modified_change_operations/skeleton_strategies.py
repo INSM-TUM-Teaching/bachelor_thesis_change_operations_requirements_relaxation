@@ -201,7 +201,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
     # generate the skeleton sequences 
     skeleton_sequences = generate_skeleton(conditions)
 
-    if skeleton_sequences == [[]]: 
+    if skeleton_sequences == [[]] or skeleton_sequences is None: 
         raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")
 
     # get the list of all activities of the skeleton 
@@ -215,8 +215,20 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
             if act not in activities_in_skeleton and act != "_": 
                 activities_in_skeleton.append(act)
 
+    # if not each acceptance seqeunec contains a skeleton activity, we add the empty set 
+    # ── Ensure the empty skeleton is available if any acceptance sequence
+    #    has no skeleton activity to match against ──────────────────────────
+    anchor_set = set(activities_in_skeleton)
 
-    # define a set to store all the used skeleton sequences 
+    all_have_anchor = all(
+        any(act in anchor_set for act in acc_seq)
+        for acc_seq in acceptance_sequences
+    )
+
+    if not all_have_anchor and [] not in skeleton_sequences:
+        skeleton_sequences.append([])
+
+    # define a set to store all the used skeleton occurence combinations  
     used_occurence_combinations = set()
 
     # ----------------------------------------------
