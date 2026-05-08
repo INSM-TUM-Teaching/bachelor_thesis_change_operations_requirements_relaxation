@@ -83,7 +83,7 @@ def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
     acceptance_variants = []
     n = len(activities)
 
-    for i in range(1, 1 << n):  # 2^n subsets, skip empty set
+    for i in range(0, 1 << n):  # 2^n subsets, skip empty set
         current_subset_indices = []
         for j in range(n):
             if (i >> j) & 1:  # Check if j-th bit is set

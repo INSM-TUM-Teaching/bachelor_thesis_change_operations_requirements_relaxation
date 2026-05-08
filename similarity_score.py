@@ -55,7 +55,7 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
     difference = num_add_act + (num_skeleton_act - num_act_skeleton_acceptance)
 
     # implement a guar if there are no skeleton activities 
-    if num_all_skeleton_act == 0: 
+    if num_all_skeleton_act == 0 or num_skeleton_act == 0: 
         return 1
     else: 
         # Calculate the similarity score, optimal score is 1 for full similarity 

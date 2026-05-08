@@ -115,9 +115,12 @@ def adapt_anchor_sort_reinsert(
                     next_anchor_idx_acc = acceptance_sequence.index(next_anchor)
                     next_anchor_idx = skeleton_sequence.index(next_anchor)
 
+                # TODO 08.05.2026
+                # When inserting anchor activities, check if the original temporal dependencies can be used for insert 
+                # in some cases this allows to preserve the original structure 
+
                 # given that both anchors are present 
                 if next_anchor and prev_anchor: 
-                    # TODO 
                     # check for direct dependencies to previous 
                     if missing_idx - prev_anchor_idx == 1: 
                         # direct temporal dependency, so add the missing_anchor directly after the activity 
@@ -214,19 +217,6 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
         for act in skeleton_sequence: 
             if act not in activities_in_skeleton and act != "_": 
                 activities_in_skeleton.append(act)
-
-    # if not each acceptance seqeunec contains a skeleton activity, we add the empty set 
-    # ── Ensure the empty skeleton is available if any acceptance sequence
-    #    has no skeleton activity to match against ──────────────────────────
-    anchor_set = set(activities_in_skeleton)
-
-    all_have_anchor = all(
-        any(act in anchor_set for act in acc_seq)
-        for acc_seq in acceptance_sequences
-    )
-
-    if not all_have_anchor and [] not in skeleton_sequences:
-        skeleton_sequences.append([])
 
     # define a set to store all the used skeleton occurence combinations  
     used_occurence_combinations = set()
