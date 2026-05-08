@@ -721,9 +721,11 @@ def op_parallelize(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
 
 def op_condition_update(matrix: AdjacencyMatrix) -> AdjacencyMatrix:
     print(f"\n  Current activities: {matrix.activities}")
-    print("\n  Specify the condition-update dependencies:")
-    deps = ask_dependencies(matrix.activities)
-    return condition_update(matrix, deps)
+    print("\n  Specify the condition-update activities:")
+
+    condition_activity = prompt("Condition activity ")
+    depending_activity = prompt("Depending activity ")
+    return condition_update(matrix, condition_activity, depending_activity)
 
 
 OP_HANDLERS = {
