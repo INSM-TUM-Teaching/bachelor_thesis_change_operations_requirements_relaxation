@@ -18,9 +18,11 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
     """
 
     # for the empty skeleton sequence, make a comparison 
-    if skeleton_sequence == [] and acceptence_sequence == []:
+    if skeleton_sequence == ['_'] and acceptence_sequence == []:
+        print("Both empty")
         return 1.0
-    elif skeleton_sequence == [] and acceptence_sequence != []: 
+    elif skeleton_sequence == ['_'] and acceptence_sequence != []: 
+        print("Skeleton empty and acceptance sequence non empty")
         return 0.0
 
     # define a list to store the unique activities in the provided skeleton 
@@ -54,8 +56,10 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
     # calculate the number of activities which are different between skeleton and the acceptance sequence     
     difference = num_add_act + (num_skeleton_act - num_act_skeleton_acceptance)
 
-    # implement a guar if there are no skeleton activities 
-    if num_all_skeleton_act == 0 or num_skeleton_act == 0: 
+    # implement a guard if there are no skeleton activities 
+    if num_skeleton_act == 0 and not (set(all_skeleton_activities) & set(acceptence_sequence)) : 
+        return 0
+    elif num_skeleton_act == 0 and (set(all_skeleton_activities) & set(acceptence_sequence)) : 
         return 1
     else: 
         # Calculate the similarity score, optimal score is 1 for full similarity 
@@ -80,8 +84,10 @@ def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_seq
 
     # for the empty skeleton sequence, make a comparison 
     if skeleton_sequence == [] and acceptence_sequence == []:
+        print("1")
         return 1.0
-    elif skeleton_sequence == [] and acceptence_sequence != []: 
+    elif skeleton_sequence == [] and acceptence_sequence != []:
+        print("0") 
         return 0.0
     
     # define a list to store the unique activities in the provided skeleton 

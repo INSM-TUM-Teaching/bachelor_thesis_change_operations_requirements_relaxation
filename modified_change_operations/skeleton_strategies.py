@@ -204,6 +204,8 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
     # generate the skeleton sequences 
     skeleton_sequences = generate_skeleton(conditions)
 
+    print(f"Skeleton sequences: {skeleton_sequences}")
+
     if skeleton_sequences == [[]] or skeleton_sequences is None: 
         raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")
 
@@ -236,6 +238,8 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
 
         selected_skeleton_sequence = []
 
+        print(f"Current acceptanec sequence: {acceptance_sequence}")
+
         # iterate over all the possible skeleton sequences and select the sequence with the highest sim_score
         for skeleton_sequence in skeleton_sequences:
 
@@ -243,6 +247,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
             sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
             sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
 
+            print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
             
             # based on the selected similarity startegy, select the skeleton sequence 
             if similarity_strategy == "occurence": 
@@ -281,6 +286,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                     max_sim_score_combined = sim_score_combined
                     selected_skeleton_sequence = skeleton_sequence
 
+        print(f"selected skeleton sequence: {selected_skeleton_sequence}")
         # TODO adapt that we do not consider used skeleton sequences but the skeleton occurence sets 
         # add the used skeleton sequence to the set of skeleton sequences used 
         used_occurence_combinations.add(_occurrence_set(selected_skeleton_sequence))
@@ -325,6 +331,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                 sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
 
+                print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
                 
                 # based on the selected similarity startegy, select the skeleton sequence 
                 if similarity_strategy == "occurence": 
@@ -363,6 +370,8 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                         max_sim_score_combined = sim_score_combined
                         selected_acceptance_sequence = acceptance_sequence
 
+        print(f"Missing occurnece combinations: skeleton sequence: {selected_skeleton_sequence} and acceptanec_sequence: {acceptance_sequence}")
+        
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_anchor_sort_reinsert(selected_acceptance_sequence, skeleton_sequence, activities_in_skeleton)
 
