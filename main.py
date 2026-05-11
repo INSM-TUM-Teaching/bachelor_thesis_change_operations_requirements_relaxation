@@ -839,9 +839,8 @@ def main() -> None:
         # 2) if there are violations, we check if can resolve them by relaxation 
         if exist_violations: 
 
-            print("")
-            print("The performance of the change operation caused a violation of the locked dependencies.")
-            print("In the next steps we want to resolve these violations")
+            banner("Step 4: Resolve violations of locked dependencies")
+            print("\nThe performance of the change operation caused a violation of the locked dependencies.")
 
             # our status variable exist_violations is set to False 
             exist_violations = False
@@ -857,14 +856,10 @@ def main() -> None:
 
                     ###########################################
                     # we reach this point 
-                    print(f"The locked depenency from activity {from_act} to activity {to_act} is violated")
+                    print(f"\n The locked dependency from activity {from_act} to activity {to_act} is violated")
 
                     # check if the dependency is a relaxation and ask the user, if he accepts the relaxation
                     if is_relaxation(locked_dep, new_dependency): 
-
-                        #####################################
-                        # we do not get into this condition 
-                        print(f"From {from_act} to {to_act} is potential relaxation")
 
                         # extract the dependency types, to provide them to the user as information 
                         locked_temp_dep, locked_exist_dep = locked_dep
@@ -874,7 +869,7 @@ def main() -> None:
                         if (locked_exist_dep is not None and new_exist_dep is not None
                             and is_exist_relaxation(locked_exist_dep, new_exist_dep)): 
 
-                            if confirm(f"Do you want to relax the existential dependency between activities {from_act, to_act} from dependency type {dep_label_exist(locked_exist_dep)} to the relaxed dependency type {dep_label_exist(new_exist_dep)}?"): 
+                            if confirm(f"Do you want to relax the existential dependency between activities {from_act, to_act} from dependency \n type {dep_label_exist(locked_exist_dep)} to the relaxed dependency type {dep_label_exist(new_exist_dep)}?"): 
                                 # if the user agrees on the relaxation, adapt the locked dependencies accordingly 
                                 locked_dependencies[(from_act, to_act)] = (locked_temp_dep, new_exist_dep)
                                 
@@ -907,8 +902,9 @@ def main() -> None:
         # 3) if there are still violations, we must use the skeleton approach 
         if exist_violations: 
             # inform the user that dependency relacation was not enough 
-            print("")
-            print("Using dependency relaxation was unable to resolve (all) violations.")
+
+            banner("Step 5: Using skeleton to resolve violations")
+            print("\nUsing dependency relaxation was unable to resolve (all) violations.")
             print("The skeleton approach will be used to resolve the violations.")
 
             # we offer the user the option to choose the method to calculate the similarity score
