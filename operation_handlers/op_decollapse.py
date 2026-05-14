@@ -30,11 +30,14 @@ from change_operations.condition_update    import condition_update
 from change_operations.parallelize_operation import get_activities_happening_between
 
 # ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
+from solution_strategies.parallelization_strategies import parallelize_expand_set
+from solution_strategies.parallelization_strategies import parallelize_move_activities
+from solution_strategies.collapse_strategies import collapse_expand_set
+from solution_strategies.collapse_strategies import collapse_move_activities
+from solution_strategies.skeleton_strategies import adapt_acceptance_skeleton
+
+# ── Skeleton algorithm ─────────────────────────────────────────────────
+from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -59,9 +62,6 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
-
-# ── Skeleton algorithm ─────────────────────────────────────────────────
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
 
 # ── Load process models ─────────────────────────────────────────────────
 from utils.load_process_models import load_from_sequences
