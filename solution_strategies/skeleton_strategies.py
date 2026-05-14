@@ -24,6 +24,7 @@ def perfom_skeleton_algorithm(matrix, locked_dependencies):
     """
 
     banner("Step 5: Using skeleton to resolve violations")
+
     print("\nUsing dependency relaxation was unable to resolve (all) violations.")
     print("The skeleton approach will be used to resolve the violations.")
 
@@ -42,7 +43,6 @@ def perfom_skeleton_algorithm(matrix, locked_dependencies):
         similarity_strategy = "combined"
 
     # if an error occurs, we use the new insert opportunity 
-    # TODO -> do not only provide the locked dependencies, but depending on the change operation a particular set of dependencies
     modified_acceptance_sequences = adapt_acceptance_skeleton(generate_acceptance_variants(matrix), deps_to_matrix(locked_dependencies), similarity_strategy)
 
     # get the result by translating the modified acceptance sequences in the matrix
@@ -231,8 +231,8 @@ def adapt_anchor_sort_reinsert(
 
 def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strategy) -> List[List[str]]: 
     """
-    For the change operations (especially insert and when using locked dependencies), 
-    perform it when contradictions in the process araised earlier  
+    Application of the solution staretgy for a whole matrix, by applying the following steps: 
+
     1. Generate the skeleton based on conditions & locked dependencies 
     2. Calculate the similarity score between acceptance - and skeleton sequence 
     3. For each acceptance sequence select the matching skeleton sequence 
@@ -332,8 +332,6 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                     max_sim_score_combined = sim_score_combined
                     selected_skeleton_sequence = skeleton_sequence
 
-        # print(f"selected skeleton sequence: {selected_skeleton_sequence}")
-        # TODO adapt that we do not consider used skeleton sequences but the skeleton occurence sets 
         # add the used skeleton sequence to the set of skeleton sequences used 
         used_occurence_combinations.add(_occurrence_set(selected_skeleton_sequence))
 
