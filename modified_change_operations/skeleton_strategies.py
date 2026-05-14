@@ -1,15 +1,61 @@
 from acceptance_skeleton import generate_skeleton
 from typing import List, Tuple, Dict, Set
 
-import similarity_score
+import utils.similarity_score as similarity_score
+
+from utils.console_helpers import banner
+from utils.console_helpers import choose
+
+from variants_to_matrix import variants_to_matrix
+from acceptance_variants import generate_acceptance_variants
+from utils.console_helpers import deps_to_matrix
+
+
+def perfom_skeleton_algorithm(matrix, locked_dependencies): 
+    """
+    Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
+
+    Args: 
+        matrix: Adjacency matrix for midfication 
+        locked_dependencies: Dict of locked dependencies 
+
+    Return: 
+        modified adjacency matrix 
+    """
+
+    banner("Step 5: Using skeleton to resolve violations")
+    print("\nUsing dependency relaxation was unable to resolve (all) violations.")
+    print("The skeleton approach will be used to resolve the violations.")
+
+    # we offer the user the option to choose the method to calculate the similarity score
+    options = ["Pure occurence similarity score - focus on preserving existential dependencies", 
+            "Pure ordering similarity score - focus on preserving temporal dependencies",
+            "Combined similarity score - allowing for a balanced consideration"]
+    
+    similarity_strategy = choose("Choose a method to calculate the similarity score between skeleton sequences and acceptance sequences: ", options)
+
+    if "occurence" in similarity_strategy: 
+        similarity_strategy = "occurence"
+    elif "ordering" in similarity_strategy: 
+        similarity_strategy = "ordering"
+    else: 
+        similarity_strategy = "combined"
+
+    # if an error occurs, we use the new insert opportunity 
+    # TODO -> do not only provide the locked dependencies, but depending on the change operation a particular set of dependencies
+    modified_acceptance_sequences = adapt_acceptance_skeleton(generate_acceptance_variants(matrix), deps_to_matrix(locked_dependencies), similarity_strategy)
+
+    # get the result by translating the modified acceptance sequences in the matrix
+    result = variants_to_matrix(modified_acceptance_sequences)
+
+    return result
+
 
 def _occurrence_set(skeleton_sequence: List[str]) -> frozenset:
     """
     Reduce a skeleton sequence to its set of anchor activities (no order, no placeholders).
     """
     return frozenset(a for a in skeleton_sequence if a != "_")
-
-
 
 
 def adapt_anchor_sort_reinsert(
@@ -247,8 +293,8 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
             sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
             sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
 
-            print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
-            
+            # print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
+
             # based on the selected similarity startegy, select the skeleton sequence 
             if similarity_strategy == "occurence": 
                 # we search for the highest occurence sim score, if found also update the ordering 
@@ -286,7 +332,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                     max_sim_score_combined = sim_score_combined
                     selected_skeleton_sequence = skeleton_sequence
 
-        print(f"selected skeleton sequence: {selected_skeleton_sequence}")
+        # print(f"selected skeleton sequence: {selected_skeleton_sequence}")
         # TODO adapt that we do not consider used skeleton sequences but the skeleton occurence sets 
         # add the used skeleton sequence to the set of skeleton sequences used 
         used_occurence_combinations.add(_occurrence_set(selected_skeleton_sequence))
@@ -331,7 +377,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                 sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
 
-                print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
+                # print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
                 
                 # based on the selected similarity startegy, select the skeleton sequence 
                 if similarity_strategy == "occurence": 
@@ -370,7 +416,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
                         max_sim_score_combined = sim_score_combined
                         selected_acceptance_sequence = acceptance_sequence
 
-        print(f"Missing occurnece combinations: skeleton sequence: {selected_skeleton_sequence} and acceptanec_sequence: {acceptance_sequence}")
+        # print(f"Missing occurnece combinations: skeleton sequence: {selected_skeleton_sequence} and acceptanec_sequence: {acceptance_sequence}")
         
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_anchor_sort_reinsert(selected_acceptance_sequence, skeleton_sequence, activities_in_skeleton)
@@ -380,7 +426,7 @@ def adapt_acceptance_skeleton(acceptance_sequences, conditions, similarity_strat
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
 
-    print(acceptance_sequences_new)          
+    # print(acceptance_sequences_new)          
 
     # return the result 
     return acceptance_sequences_new

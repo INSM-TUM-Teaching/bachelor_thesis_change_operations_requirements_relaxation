@@ -1,5 +1,5 @@
-from similarity_score import similarity_calculation_occurence
-from similarity_score import similarity_calculation_ordering
+from utils.similarity_score import similarity_calculation_occurence
+from utils.similarity_score import similarity_calculation_ordering
 import acceptance_skeleton
 
 from itertools import permutations
@@ -20,6 +20,8 @@ from acceptance_variants import satisfies_temporal_constraints
 from acceptance_variants import build_permutations
 from acceptance_variants import generate_acceptance_variants
 
+from acceptance_skeleton import generate_skeleton
+
 ####################################################
 # Testing 
 def build_test_matrix() -> AdjacencyMatrix:
@@ -39,11 +41,11 @@ def build_test_matrix() -> AdjacencyMatrix:
     exist_nand  = ExistentialDependency(type=ExistentialType.NAND,        direction=Direction.BOTH)
     exist_indep = ExistentialDependency(type=ExistentialType.INDEPENDENCE, direction=Direction.BOTH)
 
-    matrix.add_dependency("X", "B", temp_evt_back, exist_equiv)
-    matrix.add_dependency("B", "X", temp_evt_forw, exist_equiv)
+    matrix.add_dependency("X", "B", temp_evt_back, None)
+    matrix.add_dependency("B", "X", temp_evt_forw, None)
 
-    matrix.add_dependency("X", "A", temp_evt_forw, exist_equiv)
-    matrix.add_dependency("A", "X", temp_evt_back, exist_equiv)
+    matrix.add_dependency("X", "A", temp_evt_forw, None)
+    matrix.add_dependency("A", "X", temp_evt_back, None)
 
     # A <-> B — no constraint between them directly
     # matrix.add_dependency("A", "B", temp_indep, exist_indep)
@@ -53,7 +55,11 @@ def build_test_matrix() -> AdjacencyMatrix:
 
 # from modified_change_operations.insert_strategies import insert_variant
 
-# dependencies = build_test_matrix()
+dependencies = build_test_matrix()
+
+print(generate_skeleton(dependencies))
+
+
 
 # insert_variant([['A', 'B', 'C', 'D', 'E'], ['B', 'A', 'C']], 'X', dependencies)
 
