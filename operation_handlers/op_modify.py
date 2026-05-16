@@ -65,28 +65,40 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
     print(f"\n  Current activities: {matrix.activities}")
     modifications = []
-    print("\n  Enter modifications (blank 'from' to stop):")
+    print("\n  Enter modification:")
+    
     while True:
-        from_act = prompt("    From activity (blank to finish)")
-        if not from_act:
-            break
+        from_act = prompt("    From activity")
+        if from_act not in matrix.activities:
+            print(f"  ✗  '{from_act}' is not in the activity list: {matrix.activities}")
+            continue
+
         to_act = prompt("    To activity")
+        if to_act not in matrix.activities:
+            print(f"  ✗  '{to_act}' is not in the activity list: {matrix.activities}")
+            continue
+
+        if from_act == to_act:
+            print(f"  ✗  From and To activity must be different.")
+            continue
+
         temp  = ask_temporal()
         exist = ask_existential()
-        if temp is None or exist is None:
-            print("  ✗  Modify requires both temporal and existential dependencies.")
+
+        if temp is None and exist is None:
+            print("  ✗  Modify requires at least one dependency to be specified.")
             continue
-        modifications.append((from_act, to_act, temp, exist))
-    if not modifications:
-        print("  ✗  No modifications specified : operation cancelled.")
-        return matrix
-       
+
+        # valid input received
+        break
+
+    modification = [(from_act, to_act, temp, exist)]
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
     # ════════════════════════════════════════════════════════════════════════════
 
-    result, _ = modify_dependencies(matrix, modifications)
+    result, _ = modify_dependencies(matrix, modification)
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 3: Check for violation of locked dependencies 
@@ -108,13 +120,43 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-            # TODO
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
+
+            # we must check for overlaps, if they exist, we raise an error 
+            if (from_act, to_act) not in locked_dependencies:
+                combined[(from_act, to_act)] = (temp, exist)
+            else: 
+                # get the dependencies from the locked one 
+                locked_temp, locked_exist = locked_dependencies[(from_act, to_act)]
+
+                if locked_temp is not None and temp is not None:
+                    raise ValueError(
+                        f"Conflict on temporal dependency ({from_act} → {to_act}): "
+                        f"locked as '{dep_label_temp(locked_temp)}' but modification "
+                        f"also specifies '{dep_label_temp(temp)}'. "
+                        f"Cannot apply both — please relax the locked dependency first."
+                    )
+
+                if locked_exist is not None and exist is not None:
+                    raise ValueError(
+                        f"Conflict on existential dependency ({from_act} → {to_act}): "
+                        f"locked as '{dep_label_exist(locked_exist)}' but modification "
+                        f"also specifies '{dep_label_exist(exist)}'. "
+                        f"Cannot apply both — please relax the locked dependency first."
+                    )
+                
+                # if no overlap exists, we can just merge them 
+                combined[(from_act, to_act)] = (
+                    temp  if temp  is not None else locked_temp,
+                    exist if exist is not None else locked_exist,
+                )
 
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perfom_skeleton_algorithm(result, combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════

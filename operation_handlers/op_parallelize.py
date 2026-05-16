@@ -139,9 +139,47 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
         # in case dependency relaxation was unable to resolve violations of locked dependencies 
         if exist_violations: 
             
-            # create a dict of combined dependencies 
-            # TODO
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
 
+            # build a dict for the parallelize activities 
+            for from_act in activities_parallelization: 
+                for to_act in activities_parallelization: 
+                    # filter that we do not include self pairs 
+                    if from_act == to_act: 
+                        continue
+
+                    # check that there is no conflict with an existing locked dependency
+                    if (from_act, to_act) in combined: 
+                        locked_temp, locked_exist = combined[(from_act, to_act)]
+
+
+                        if locked_temp is not None and locked_temp.type != TemporalType.INDEPENDENCE:
+                            print(
+                                f"  ✗  Conflict on temporal dependency ({from_act} → {to_act}): "
+                                f"locked as '{dep_label_temp(locked_temp)}' but parallelization "
+                                f"requires INDEPENDENCE. Cannot apply — please relax the locked "
+                                f"dependency first."
+                            )
+                            return result, locked_dependencies  
+
+                        if locked_exist is not None and locked_exist.type != ExistentialType.EQUIVALENCE:
+                            print(
+                                f"  ✗  Conflict on existential dependency ({from_act} → {to_act}): "
+                                f"locked as '{dep_label_exist(locked_exist)}' but parallelization "
+                                f"requires EQUIVALENCE. Cannot apply — please relax the locked "
+                                f"dependency first."
+                            )
+                            return result, locked_dependencies  
+                        
+                    
+                    # add the entry to the dictionary 
+                    combined[(from_act, to_act)] = (
+                        TemporalDependency(type=TemporalType.INDEPENDENCE, direction=Direction.BOTH),
+                        ExistentialDependency(type=ExistentialType.EQUIVALENCE, direction=Direction.BOTH),
+                    )
+
+            
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 

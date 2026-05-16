@@ -47,7 +47,7 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 
 
 
-def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
+def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     """
     Logic applied in muliple steps to perform the change operation insert 
 
@@ -113,7 +113,14 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-            # TODO
+
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
+
+            # we can not have any overlaps here, so no checks are required 
+            # the deps are always including the new activity, which can not be part of the process 
+            for (from_act, to_act), (ins_temp, ins_exist) in deps.items():
+                combined[(from_act, to_act)] = (ins_temp, ins_exist)
 
             # perfom the skeleton approach
             result = perfom_skeleton_algorithm(result, locked_dependencies)

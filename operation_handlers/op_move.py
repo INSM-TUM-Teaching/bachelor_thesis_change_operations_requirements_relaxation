@@ -113,14 +113,49 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-            # TODO
+
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
+
+            # we must check for overlaps, if they exist, we raise an error
+            for (from_act, to_act), (temp_dep_move, exist_dep_move) in deps:  
+
+                # without overlaps, we can just add the dependencies from the move operation  
+                if (from_act, to_act) not in locked_dependencies:
+                    combined[(from_act, to_act)] = (temp_dep_move, exist_dep_move)
+
+                # if we have an overlap, we must chec if we can resolve it 
+                else: 
+                    # get the dependencies from the locked one 
+                    locked_temp, locked_exist = locked_dependencies[(from_act, to_act)]
+
+                    if locked_temp is not None and temp_dep_move is not None:
+                        raise ValueError(
+                            f"Conflict on temporal dependency ({from_act} → {to_act}): "
+                            f"locked as '{dep_label_temp(locked_temp)}' but modification "
+                            f"also specifies '{dep_label_temp(temp_dep_move)}'. "
+                            f"Cannot apply both — please relax the locked dependency first."
+                        )
+
+                    if locked_exist is not None and exist_dep_move is not None:
+                        raise ValueError(
+                            f"Conflict on existential dependency ({from_act} → {to_act}): "
+                            f"locked as '{dep_label_exist(locked_exist)}' but modification "
+                            f"also specifies '{dep_label_exist(exist_dep_move)}'. "
+                            f"Cannot apply both — please relax the locked dependency first."
+                        )
+                    
+                    # if no overlap exists, we can just merge them 
+                    combined[(from_act, to_act)] = (
+                        temp_dep_move  if temp_dep_move  is not None else locked_temp,
+                        exist_dep_move if exist_dep_move is not None else locked_exist,
+                    )
 
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
             result = perfom_skeleton_algorithm(result, locked_dependencies)
-
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 4: Return the reuslt to the user
