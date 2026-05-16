@@ -85,6 +85,9 @@ from operation_handlers.op_swap import op_swap
 from utils.load_process_models import load_from_sequences
 from utils.load_process_models import load_from_yaml
 
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import enable as enable_debug_mode
+from utils.debug_mode import log
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Step 1 – Load process model
@@ -208,10 +211,14 @@ def main() -> None:
     print("   Business Process Redesign : Console Tool")
     print("═" * 60)
 
+    # ── 0. Ask for debug mode ────────────────────────────────────────────────
+    if confirm("Enable detailed information mode?"):
+        enable_debug_mode()
+
     # ── 1. Load initial model ────────────────────────────────────────────────
     current_matrix = step_load_model()
     print_matrix(current_matrix, "Initial Matrix")
-
+    
     # ── 2. Define locked dependencies ────────────────────────────────────────
     banner("Step 2 : Define locked dependendencies")
     locked_dependencies = get_locked_dependencies(current_matrix)

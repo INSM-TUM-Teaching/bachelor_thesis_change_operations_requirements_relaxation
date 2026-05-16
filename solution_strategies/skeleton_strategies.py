@@ -22,6 +22,9 @@ from itertools import product as cartesian_product
 from utils.similarity_score import similarity_calculation_occurence
 from utils.similarity_score import similarity_calculation_ordering
 
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import log
+
 
 def perfom_skeleton_algorithm(matrix, locked_dependencies): 
     """
@@ -136,6 +139,8 @@ def adapt_process(matrix: AdjacencyMatrix,
                 chain_sets.pop(i)
             chain_sets.append(merged)
 
+    log("Build the chain sets")
+    log(f"Chain sets: {chain_sets} \n")
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Form all possible occurence sets based on chain sets 
@@ -225,7 +230,7 @@ def adapt_process(matrix: AdjacencyMatrix,
     chain_sets_combined = filtered
     unused_chain_sets = list(chain_sets_combined)
 
-    print(f"Chain occurnece combinations which must be used: {unused_chain_sets} \n the rest is optional")
+    log(f"Chain occurence combinations which must be used: {unused_chain_sets} \n The rest is optional \n")
     # ------------------------------
 
     # copy in a list to keep track of the chain sets which were not yet used 
@@ -241,8 +246,6 @@ def adapt_process(matrix: AdjacencyMatrix,
     # we do not have to use all skeleton sequences, but use chain occurneces for filtering 
     locked_deps_matrix = deps_to_matrix(locked_dependencies)
     skeleton_sequences = generate_skeleton(locked_deps_matrix)
-    
-    # print(f"Preview skeleton sequences: {skeleton_sequences[:10]}")
 
     # check that the provided input does not have a contradiction in itself, preventing the creation of the skeleton sequences 
     if skeleton_sequences == [[]] or skeleton_sequences is None: 
@@ -259,6 +262,7 @@ def adapt_process(matrix: AdjacencyMatrix,
     # define a list to store the new acceptance sequences 
     acceptance_sequences_new = []
 
+    log("Phase 1 of skeleton algorithm: for each acceptance sequence find best fitting skeleton sequence")
     # iterate thorugh all acceptance sequences 
     for acceptance_sequence in acceptance_sequences: 
 
@@ -278,8 +282,6 @@ def adapt_process(matrix: AdjacencyMatrix,
             # calculate the similarity score of occurence and ordering  
             sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
             sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
-
-            # print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
 
             # based on the selected similarity startegy, select the skeleton sequence 
             if similarity_strategy == "occurence": 
@@ -327,11 +329,9 @@ def adapt_process(matrix: AdjacencyMatrix,
             if contained_chain_occuence_set in unused_chain_sets: 
                 unused_chain_sets.remove(contained_chain_occuence_set)
 
-        print(f"Skeleton seqeunce: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, sim score: {max_sim_score_occurence}")
-        print(f"Contained chain occurence sets: {contained_chain_occurence_sets}")
-        print(f"Unsused chain occurence sets: {unused_chain_sets}")
+        log(f"Skeleton sequence: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, sim score: {max_sim_score_occurence}")
+        log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         
-        # TODO - perfom adaption 
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(acceptance_sequence, selected_skeleton_sequence, activities_in_skeleton)
 
@@ -340,16 +340,16 @@ def adapt_process(matrix: AdjacencyMatrix,
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
 
-    print(f"Unsused chain occurence sets: {unused_chain_sets}")
+    log(f"Unsused chain occurence sets after phase 1: {unused_chain_sets} \n")
 
 
     # ════════════════════════════════════════════════════════════════════════════
     #  For unused chain sets, find acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
 
-    print("#################")
-
     adapted_sequences: List[List[str]] = []
+
+    log("Phase 2: for unused chain occurnece sets find pair of acceptance and skeleton sequence")
 
     for unused_chain_occurrence in list(unused_chain_sets):  # create a copy, since the list is modified mid-loop
 
@@ -361,8 +361,6 @@ def adapt_process(matrix: AdjacencyMatrix,
         candidate_skeleton_sequences = combined_occurrences_containing(
             unused_chain_occurrence, skeleton_sequences, occurence_combinations_per_chain_set
         )
-
-        print(f"candidates: {candidate_skeleton_sequences[:5]}")
 
         best_acceptance_sequence = []
         best_skel_seq = []
@@ -378,9 +376,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                 # calculate the similarity score of occurence and ordering  
                 sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
-
-                # print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
-                
+             
                 # based on the selected similarity startegy, select the skeleton sequence 
                 if similarity_strategy == "occurence": 
                     # we search for the highest occurence sim score, if found also update the ordering 
@@ -430,8 +426,8 @@ def adapt_process(matrix: AdjacencyMatrix,
             if contained_chain_occuence_set in unused_chain_sets: 
                 unused_chain_sets.remove(contained_chain_occuence_set)
 
-        print(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, sim score: {max_sim_score_occurence}")
-        print(f"Contained chain occurence sets: {contained_chain_occurence_sets}")
+        log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, sim score: {max_sim_score_occurence}")
+        log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         # TODO - perform adaption 
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton)
@@ -440,7 +436,6 @@ def adapt_process(matrix: AdjacencyMatrix,
         for v in modified_variants: 
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
-
 
     # return the final result 
     return acceptance_sequences_new
