@@ -12,7 +12,7 @@ from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 from utils.console_helpers import deps_to_matrix
 
-from dependencies import ExistentialDependency, TemporalDependency
+from dependencies import ExistentialDependency, TemporalDependency, ExistentialType
 
 from acceptance_variants import satisfies_existential_constraints
 from acceptance_variants import satisfies_temporal_constraints
@@ -64,7 +64,7 @@ def perfom_skeleton_algorithm(matrix, locked_dependencies):
 
 
 def adapt_process(matrix: AdjacencyMatrix, 
-                  locked_dependencies:AdjacencyMatrix, 
+                  locked_dependencies: dict, 
                   similarity_strategy: str
                 ): 
 #-> AdjacencyMatrix: 
@@ -97,7 +97,7 @@ def adapt_process(matrix: AdjacencyMatrix,
     existential_deps: Dict[Tuple[str, str], ExistentialDependency] = {}     
 
     # iterate through all the locked dependencies 
-    for (from_act, to_act), (temp_dep, exist_dep) in locked_dependencies.dependencies.items():
+    for (from_act, to_act), (temp_dep, exist_dep) in locked_dependencies.items():
 
         # create the dicts of dependencies 
         if temp_dep:
@@ -145,11 +145,14 @@ def adapt_process(matrix: AdjacencyMatrix,
     #  Form all possible occurence sets based on chain sets 
     # ════════════════════════════════════════════════════════════════════════════
 
+    # define a list to store all possible occurence combinations per chain set for all chain sets 
+    # defines the set of combinations which are valid (does not mean, that we need all of them)
     occurence_combinations_per_chain_set = []
 
-    # iterate thorigh all the chain sets 
+    # iterate through all the chain sets 
     for chain_set in chain_sets:
 
+        # define a list, to store for this chain set the occurence combinations
         occurence_combinations_chain_set = []
 
         # from the existential deps, filter the relevant ones 
@@ -159,16 +162,15 @@ def adapt_process(matrix: AdjacencyMatrix,
             if s in chain_set and t in chain_set
         }
 
-
         # build all possible permutations for each chain_set 
         chain_set = list(chain_set)
 
         n = len(chain_set)
 
-        for i in range(0, 1 << n):  # 2^n subsets, skip empty set
+        for i in range(0, 1 << n):  
             current_subset_indices = []
             for j in range(n):
-                if (i >> j) & 1:  # Check if j-th bit is set
+                if (i >> j) & 1:  
                     current_subset_indices.append(j)
 
             # create the subset 
@@ -181,9 +183,13 @@ def adapt_process(matrix: AdjacencyMatrix,
         occurence_combinations_per_chain_set.append(occurence_combinations_chain_set)
 
     # ════════════════════════════════════════════════════════════════════════════
-    #  Generate the dictionary of chain sets to keep track 
-    #  Generate all possible occurence combinations 
+    #  Mark the chain sets with IDs to keep track of them (used for empyt sets)
+    #  Filter the occurences which are required and which are optional  
+    #  Generate the needed acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
+
+    # based on the matrix generate the acceptance sequences 
+    acceptance_sequences = generate_acceptance_variants(matrix)
 
     # create a list of all chain sets, and mark each with a unique ID
     # allows to distinguish between empty sets 
@@ -194,19 +200,40 @@ def adapt_process(matrix: AdjacencyMatrix,
             if entry not in chain_sets_combined:
                 chain_sets_combined.append(entry)
 
+    # ------------------------------
+    # FILTER 
+
+    # After building chain_sets_combined, before copying to unused_chain_sets:
+    filtered = []
+    for (cs_idx, occ_tuple) in chain_sets_combined:
+        keep = True
+        occ_list = list(occ_tuple)
+
+        # Check this occurrence against every locked existential dep within the chain set
+        for (act_a, act_b), exist_dep in existential_deps.items():
+            cs_all = {a for occ in occurence_combinations_per_chain_set[cs_idx] for a in occ}
+            if act_a not in cs_all or act_b not in cs_all:
+                continue   # dep belongs to a different chain set
+
+            if not occurrence_is_needed(
+                occ_list, act_a, act_b,
+                exist_dep.type,
+                acceptance_sequences   # original process sequences, already computed above
+            ):
+                keep = False
+                break
+
+        if keep:
+            filtered.append((cs_idx, occ_tuple))
+
+    chain_sets_combined = filtered
+    unused_chain_sets = list(chain_sets_combined)
+
+    print(f"Chain occurnece combinations which must be used: {unused_chain_sets} \n the rest is optional")
+    # ------------------------------
+
     # copy in a list to keep track of the chain sets which were not yet used 
     unused_chain_sets = list(chain_sets_combined)
-            
-
-    # generate all the combined occurence combinations 
-    # all_combined_occurrences: List[List[str]] = [
-    #    [act for occ_set in combination for act in occ_set]
-    #    for combination in cartesian_product(*occurence_combinations_per_chain_set)
-    #]
-
-    # print(f"All combined occurences: {all_combined_occurrences}")
-
-    # replace this by generating all the acceptance combinations 
 
     # ════════════════════════════════════════════════════════════════════════════
     #  For each acceptance sequence find the best occurnce set & adapt & keep track of used chain sets 
@@ -214,7 +241,11 @@ def adapt_process(matrix: AdjacencyMatrix,
 
     # start by generating the skeleton sequences 
     # generate the skeleton sequences 
-    skeleton_sequences = generate_skeleton(locked_dependencies)
+    # we use the skeleton sequences, since they present all cases
+    # we do not have to use all skeleton sequences, but use chain occurneces for filtering 
+    locked_deps_matrix = deps_to_matrix(locked_dependencies)
+    skeleton_sequences = generate_skeleton(locked_deps_matrix)
+    
     # print(f"Preview skeleton sequences: {skeleton_sequences[:10]}")
 
     # check that the provided input does not have a contradiction in itself, preventing the creation of the skeleton sequences 
@@ -231,10 +262,6 @@ def adapt_process(matrix: AdjacencyMatrix,
 
     # define a list to store the new acceptance sequences 
     acceptance_sequences_new = []
-
-
-    # based on the matrix generate the acceptance sequences 
-    acceptance_sequences = generate_acceptance_variants(matrix)
 
     # iterate thorugh all acceptance sequences 
     for acceptance_sequence in acceptance_sequences: 
@@ -667,3 +694,95 @@ def adapt_acceptance_sequence(
 
     # return the final set of obtained acceptance sequences 
     return acceptance_sequences_new
+
+
+
+def required_truth_values(dep_type: ExistentialType) -> dict:
+    """
+    Returns which truth values MUST be True for the discovery algorithm
+    to correctly identify the given dependency type.
+    Maps directly to get_existential_relation() in variants_to_matrix.py.
+    """
+    # Key: flag name → True = must appear, False = must NOT appear, None = don't care
+    return {
+        ExistentialType.EQUIVALENCE: {
+            "exists_both":    True,   # required
+            "exists_only_a":  False,  # forbidden
+            "exists_only_b":  False,  # forbidden
+            "exists_neither": None,   # don't care — optional
+        },
+        ExistentialType.IMPLICATION: {  # direction FORWARD: a→b
+            "exists_both":    True,   # required
+            "exists_only_a":  False,  # forbidden
+            "exists_only_b":  True,   # required
+            "exists_neither": None,   # don't care
+        },
+        ExistentialType.NEGATED_EQUIVALENCE: {
+            "exists_both":    False,  # forbidden
+            "exists_only_a":  True,   # required
+            "exists_only_b":  True,   # required
+            "exists_neither": False,  # forbidden
+        },
+        ExistentialType.NAND: {
+            "exists_both":    False,  # forbidden
+            "exists_only_a":  None,   # don't care
+            "exists_only_b":  None,   # don't care
+            "exists_neither": None,   # don't care
+        },
+        ExistentialType.OR: {
+            "exists_both":    None,   # don't care
+            "exists_only_a":  None,   # don't care
+            "exists_only_b":  None,   # don't care
+            "exists_neither": False,  # forbidden — OR requires at least one always present
+        },
+        ExistentialType.INDEPENDENCE: {
+            "exists_both":    None,
+            "exists_only_a":  None,
+            "exists_only_b":  None,
+            "exists_neither": None,   # all don't care
+        },
+    }[dep_type]
+
+
+def occurrence_is_needed(
+    occ: List[str],
+    act_a: str,
+    act_b: str,
+    dep_type: ExistentialType,
+    original_acceptance_sequences: List[List[str]],
+) -> bool:
+    """
+    Using the discovery algorithm truth-value logic, decide whether
+    an occurrence combination must be kept in the chain set.
+
+    Rules:
+      - FORBIDDEN  → always drop
+      - REQUIRED   → always keep
+      - DON'T CARE → keep only if reachable in the original process
+    """
+    occ_set = set(occ)
+    has_a = act_a in occ_set
+    has_b = act_b in occ_set
+
+    # Map this occurrence to one of the four truth-value flags
+    if has_a and has_b:
+        flag = "exists_both"
+    elif has_a:
+        flag = "exists_only_a"
+    elif has_b:
+        flag = "exists_only_b"
+    else:
+        flag = "exists_neither"
+
+    tv = required_truth_values(dep_type)[flag]
+
+    if tv is False:   # forbidden by the dependency type
+        return False
+    if tv is True:    # required to identify the dependency type
+        return True
+
+    # tv is None → don't care: keep only if reachable in original process
+    return any(
+        (act_a in seq) == has_a and (act_b in seq) == has_b
+        for seq in original_acceptance_sequences
+    )

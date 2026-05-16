@@ -37,6 +37,7 @@ from utils.console_helpers import print_matrix
 from utils.console_helpers import ask_temporal
 from utils.console_helpers import ask_existential
 from utils.console_helpers import ask_dependencies
+from utils.console_helpers import ask_dependencies_insertion
 from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
@@ -73,7 +74,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     print(f"\n  Current activities: {matrix.activities}")
     activity = prompt("Activity to move")
     print("\n  Specify the new dependencies that define the new position:")
-    deps = ask_dependencies(matrix.activities)
+    deps = ask_dependencies_insertion(matrix.activities, activity)
     
 
     # ════════════════════════════════════════════════════════════════════════════

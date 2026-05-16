@@ -31,6 +31,7 @@ from utils.console_helpers import print_matrix
 from utils.console_helpers import ask_temporal
 from utils.console_helpers import ask_existential
 from utils.console_helpers import ask_dependencies
+from utils.console_helpers import ask_dependencies_insertion
 from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
@@ -77,7 +78,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
     print(f"\n  Current activities: {matrix.activities}")
 
     # TODO modify so that only dependencies including the activity for insertion can be provided
-    deps = ask_dependencies(matrix.activities + [activity])
+    deps = ask_dependencies_insertion(matrix.activities + [activity], activity)
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
@@ -89,9 +90,9 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
     
     except ValueError as e: 
         # indicate to the user that the standard insert method does not work here 
-        print("The insert operation is ambigous, we use the new skeleton approach to adapt the acceptance sequences")
+        print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
 
-        result = perfom_skeleton_algorithm(matrix, locked_dependencies)
+        result = perfom_skeleton_algorithm(matrix, deps)
 
 
     # ════════════════════════════════════════════════════════════════════════════
