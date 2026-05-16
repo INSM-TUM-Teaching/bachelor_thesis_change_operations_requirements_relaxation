@@ -92,6 +92,9 @@ def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
             # create a dict of combined dependencies 
             # TODO
 
+            banner("Using skeleton to resolve violations of locked dependencies")
+            print("\nUsing dependency relaxation was unable to resolve (all) violations.")
+
             # perfom the skeleton approach
             result = perfom_skeleton_algorithm(result, locked_dependencies)
 

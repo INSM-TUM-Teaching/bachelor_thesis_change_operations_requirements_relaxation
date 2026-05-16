@@ -72,8 +72,6 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     # get the parameters for the change operation
-    print(f"\n  ── Parameters for: insert ──")
-
     activity = prompt("New activity name")
     print(f"\n  Current activities: {matrix.activities}")
 

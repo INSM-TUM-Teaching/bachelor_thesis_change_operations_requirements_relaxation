@@ -35,10 +35,6 @@ def perfom_skeleton_algorithm(matrix, locked_dependencies):
         modified adjacency matrix 
     """
 
-    banner("Step 5: Using skeleton to resolve violations")
-
-    # print("\nUsing dependency relaxation was unable to resolve (all) violations.")
-    print("The skeleton approach will be used to resolve the violations.")
 
     # we offer the user the option to choose the method to calculate the similarity score
     options = ["Pure occurence similarity score - focus on preserving existential dependencies", 

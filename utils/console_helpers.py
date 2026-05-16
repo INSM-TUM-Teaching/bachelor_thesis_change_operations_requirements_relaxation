@@ -196,7 +196,7 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
     print("\n  Enter dependencies (empty 'to' to stop):")
     while True:
         from_act = mandatory_activity
-        print(f"    From activity (is the mandatory activity): {mandatory_activity}")
+        print(f"\n    From activity (is the mandatory activity): {mandatory_activity}")
 
         # ask the user to provide the second activity
         to_act = prompt("    To activity (or blank to finish) ")

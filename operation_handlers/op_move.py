@@ -87,7 +87,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     
     except ValueError as e: 
         # indicate to the user that the standard insert method does not work here 
-        print("The move operation is ambigous, we use the new skeleton approach to adapt the acceptance sequences")
+        print("\nThe move operation is ambigous, we use the new skeleton approach to adapt the acceptance sequences")
 
         # return the modified matrix
         result = perfom_skeleton_algorithm(matrix, locked_dependencies)
@@ -114,6 +114,9 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
             
             # create a dict of combined dependencies 
             # TODO
+
+            banner("Using skeleton to resolve violations of locked dependencies")
+            print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
             result = perfom_skeleton_algorithm(result, locked_dependencies)
