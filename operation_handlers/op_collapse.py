@@ -34,7 +34,6 @@ from solution_strategies.parallelization_strategies import parallelize_expand_se
 from solution_strategies.parallelization_strategies import parallelize_move_activities
 from solution_strategies.collapse_strategies import collapse_expand_set
 from solution_strategies.collapse_strategies import collapse_move_activities
-from solution_strategies.skeleton_strategies import adapt_acceptance_skeleton
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
 from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm

@@ -43,14 +43,6 @@ from change_operations.condition_update    import condition_update
 # ── Change-operation helper functions imports ─────────────────────────────────────────────────
 from change_operations.parallelize_operation import get_activities_happening_between
 
-# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
-
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
 from utils.console_helpers import prompt

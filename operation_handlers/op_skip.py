@@ -16,16 +16,6 @@ from acceptance_variants import generate_acceptance_variants
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.skip_operation      import skip_activity
 
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
-
-# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from solution_strategies.parallelization_strategies import parallelize_expand_set
-from solution_strategies.parallelization_strategies import parallelize_move_activities
-from solution_strategies.collapse_strategies import collapse_expand_set
-from solution_strategies.collapse_strategies import collapse_move_activities
-from solution_strategies.skeleton_strategies import adapt_acceptance_skeleton
-
 # ── Skeleton algorithm ─────────────────────────────────────────────────
 from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
 
