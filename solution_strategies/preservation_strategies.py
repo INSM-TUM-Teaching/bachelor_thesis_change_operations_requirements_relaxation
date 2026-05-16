@@ -185,16 +185,17 @@ def adapt_process(matrix: AdjacencyMatrix,
     #  Generate all possible occurence combinations 
     # ════════════════════════════════════════════════════════════════════════════
 
+    # create a list of all chain sets, and mark each with a unique ID
+    # allows to distinguish between empty sets 
     chain_sets_combined = []
+    for cs_idx, chain_set_occs in enumerate(occurence_combinations_per_chain_set):
+        for occurence_chain_set in chain_set_occs:
+            entry = (cs_idx, tuple(occurence_chain_set))   # tagged with cs_idx
+            if entry not in chain_sets_combined:
+                chain_sets_combined.append(entry)
 
-    for chain_set in occurence_combinations_per_chain_set: 
-        for occurence_chain_set in chain_set: 
-            if occurence_chain_set not in chain_sets_combined: 
-                chain_sets_combined.append(occurence_chain_set)
-    
-    print(chain_sets_combined)
-
-    unused_chain_sets = chain_sets_combined
+    # copy in a list to keep track of the chain sets which were not yet used 
+    unused_chain_sets = list(chain_sets_combined)
             
 
     # generate all the combined occurence combinations 
@@ -340,19 +341,20 @@ def adapt_process(matrix: AdjacencyMatrix,
 
         print(f"candidates: {candidate_skeleton_sequences[:5]}")
 
+        best_acceptance_sequence = []
+        best_skel_seq = []
+        max_sim_score_occurence = -10.0
+        max_sim_score_ordering = -10.0
+        max_sim_score_combined = -10.0
+
         for candidate_skel_seq in candidate_skeleton_sequences:
 
             # ── Select the best fitting acceptance sequence ───────────────────
-            best_acceptance_sequence = []
-            best_skel_seq = []
-            max_sim_score_occurence = -10.0
-            max_sim_score_ordering = -10.0
-
             for acceptance_sequence in acceptance_sequences:
 
                 # calculate the similarity score of occurence and ordering  
-                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
-                sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
+                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
+                sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
 
                 # print(f"Skeleton {skeleton_sequence}, acceptanec sequence {acceptance_sequence}; \n occurnece sim {sim_score_occurence}, ordering sim {sim_score_ordering}")
                 
@@ -425,7 +427,8 @@ def adapt_process(matrix: AdjacencyMatrix,
 def contained_occurence_chain_sets(
     occurence_combination: List[str],
     occurence_combinations_per_chain_set: List[List[List[str]]]
-) -> List[List[str]]:
+) -> List[Tuple[int, tuple]]:
+    
     """
     For a given occurrence combination, return for each chain set the largest
     occurrence that is fully contained in the combination.
@@ -444,24 +447,20 @@ def contained_occurence_chain_sets(
     """
     contained_occurences = []
 
-    for chain_set_occs in occurence_combinations_per_chain_set:
-
-        # Find all occurrences from this chain set that fit in the combination.
+    for cs_idx, chain_set_occs in enumerate(occurence_combinations_per_chain_set):
         fitting = [
             occ for occ in chain_set_occs
             if all(a in occurence_combination for a in occ)
         ]
-
         if fitting:
-            # Per chain set keep only the largest fitting occurrence.
             largest = max(fitting, key=len)
-            contained_occurences.append(largest)
+            contained_occurences.append((cs_idx, tuple(largest)))  # tagged
 
     return contained_occurences
 
 
 def combined_occurrences_containing(
-    chain_occurrence: List[str],
+    chain_occurrence_indexed: Tuple[int, tuple],   # (cs_idx, activities)
     all_combined_occurrences: List[List[str]],
     occurence_combinations_per_chain_set: List[List[List[str]]]
 ) -> List[List[str]]:
@@ -470,7 +469,7 @@ def combined_occurrences_containing(
     chain set as chain_occurrence is *exactly* chain_occurrence — not a superset.
 
     Args:
-        chain_occurrence:                     the unused chain set occurrence to match
+        chain_occurrence_indexed:                     the unused chain set occurrence to match
         all_combined_occurrences:             every possible combined occurrence
         occurence_combinations_per_chain_set: valid occurrences grouped by chain set,
                                               used to identify which chain set the
@@ -481,32 +480,14 @@ def combined_occurrences_containing(
         combined occurrences whose chain-set slice equals chain_occurrence exactly
     """
 
-    chain_occurrence_set = frozenset(chain_occurrence)
+    cs_idx, chain_occurrence_tuple = chain_occurrence_indexed
+    chain_occurrence_set = frozenset(chain_occurrence_tuple)
 
-    # Identify which chain set this occurrence belongs to, and collect all
-    # activities owned by that chain set (union of all its valid occurrences).
-    # Any activity in a non-empty occurrence uniquely pins the chain set,
-    # since each activity belongs to exactly one chain set.
+    # All activities owned by this chain set (union of all its valid occurrences)
     cs_activities: Set[str] = set()
-    found = False
+    for occ in occurence_combinations_per_chain_set[cs_idx]:
+        cs_activities.update(occ)
 
-    for chain_set_occs in occurence_combinations_per_chain_set:
-        candidate_cs_activities = set()
-        for occ in chain_set_occs:
-            candidate_cs_activities.update(occ)
-
-        if chain_occurrence_set <= candidate_cs_activities or chain_occurrence_set == frozenset():
-            # Check if this chain set actually has this occurrence as a valid entry
-            if any(frozenset(occ) == chain_occurrence_set for occ in chain_set_occs):
-                cs_activities = candidate_cs_activities
-                found = True
-                break
-
-    if not found:
-        return []
-
-    # For each combined occurrence, extract the slice that belongs to this chain
-    # set and check whether it equals chain_occurrence exactly.
     result = []
     for combined_occ in all_combined_occurrences:
         cs_slice = frozenset(act for act in combined_occ if act in cs_activities)
