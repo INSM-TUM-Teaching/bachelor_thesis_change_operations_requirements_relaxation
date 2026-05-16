@@ -36,7 +36,7 @@ def build_test_locked_dep() -> AdjacencyMatrix:
       - X ⊼ B  (NAND: cannot co-occur, but both may be absent)
     No temporal constraints.
     """
-    matrix = AdjacencyMatrix(activities=["A", "B", "C", "X", "Y", "G", "H"])
+    matrix = AdjacencyMatrix(activities=["A", "B", "C", "X", "Y", "G", "H", "D"])
 
     temp_indep  = TemporalDependency(type=TemporalType.INDEPENDENCE, direction=Direction.BOTH)
     temp_evt_forw  = TemporalDependency(type=TemporalType.EVENTUAL, direction=Direction.FORWARD)
@@ -49,6 +49,7 @@ def build_test_locked_dep() -> AdjacencyMatrix:
 
     matrix.add_dependency("A", "B", None, exist_n_equiv)
     matrix.add_dependency("B", "C", None, exist_imp)
+    matrix.add_dependency("D", "C", None, exist_equiv)
 
     matrix.add_dependency("X", "Y", None, exist_equiv)
 
@@ -63,7 +64,7 @@ def build_test_locked_dep() -> AdjacencyMatrix:
 dependencies = build_test_locked_dep()
 matrix = variants_to_matrix([[], ["A", "B", "C", "X", "Y", "G", "H"], ["A", "C", "X", "Y", "G"], ["A", "B", "C", "X", "Y", "H"]])
 
-print(adapt_process(matrix, dependencies))
+print(adapt_process(matrix, dependencies, "occurence"))
 
 # print(generate_skeleton(dependencies))
 
