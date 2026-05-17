@@ -22,6 +22,8 @@ from itertools import product as cartesian_product
 from utils.similarity_score import similarity_calculation_occurence
 from utils.similarity_score import similarity_calculation_ordering
 
+from dependencies import TemporalType, Direction
+
 # ── Debug mode ─────────────────────────────────────────────────
 from utils.debug_mode import log
 
@@ -333,7 +335,7 @@ def adapt_process(matrix: AdjacencyMatrix,
         log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         
         # perfom the adaption of the acceptance sequence 
-        modified_variants = adapt_acceptance_sequence(acceptance_sequence, selected_skeleton_sequence, activities_in_skeleton)
+        modified_variants = adapt_acceptance_sequence(acceptance_sequence, selected_skeleton_sequence, activities_in_skeleton, matrix)
 
         # ensure that we do not add duplicates 
         for v in modified_variants: 
@@ -430,7 +432,7 @@ def adapt_process(matrix: AdjacencyMatrix,
         log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         # TODO - perform adaption 
         # perfom the adaption of the acceptance sequence 
-        modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton)
+        modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
 
         # ensure that we do not add duplicates 
         for v in modified_variants: 
@@ -520,6 +522,7 @@ def adapt_acceptance_sequence(
     acceptance_sequence: List[str],
     skeleton_sequence: List[str],
     activities_in_skeleton: List[str],
+    matrix: AdjacencyMatrix
 ) -> List[List[str]]:
     """
     Adapt an acceptance sequence to conform to the selected skeleton sequence.
@@ -534,6 +537,7 @@ def adapt_acceptance_sequence(
         acceptance_sequence:   The acceptance sequence to adapt.
         skeleton_sequence:     The selected skeleton sequence (anchors + placeholders).
         activities_in_skeleton: All anchor activities across all skeleton sequences, used to identify mismatched anchors in step 1.
+        matrix: Adjacency matrix of the process, to get temporal dependencies to preserve the structure for insertion 
 
     Returns:
         A list of adapted sequences. Contains exactly one sequence when no
@@ -617,11 +621,10 @@ def adapt_acceptance_sequence(
 
                 if next_anchor: 
                     next_anchor_idx_acc = acceptance_sequence.index(next_anchor)
-                    next_anchor_idx = skeleton_sequence.index(next_anchor)
+                    next_anchor_idx = skeleton_sequence.index(next_anchor) 
 
-                # TODO 08.05.2026
-                # When inserting anchor activities, check if the original temporal dependencies can be used for insert 
-                # in some cases this allows to preserve the original structure 
+                # initialize the list to store the modification of the current iteration; used to see if we were able to perfom the insert 
+                acceptance_sequence_current = []
 
                 # given that both anchors are present 
                 if next_anchor and prev_anchor: 
@@ -639,8 +642,15 @@ def adapt_acceptance_sequence(
                     else: 
                         # all different positions to be inserted 
                         for i in range (prev_anchor_idx_acc + 1, next_anchor_idx_acc + 1): 
-                            acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
-                            current_acceptance_sequences.append(acceptance_sequence_current)
+                            if _valid_insertion_position(acceptance_sequence, missing_anchor, i, matrix):
+                                acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                current_acceptance_sequences.append(acceptance_sequence_current)
+                        
+                        # if none of the insertion positions was valid, insert at all of them 
+                        if acceptance_sequence_current == []: 
+                            for i in range (prev_anchor_idx_acc + 1, next_anchor_idx_acc + 1): 
+                                acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                current_acceptance_sequences.append(acceptance_sequence_current)
 
                 elif next_anchor and not prev_anchor: 
                     # beginning of the acceptance sequence 
@@ -653,8 +663,16 @@ def adapt_acceptance_sequence(
                     else: 
                         # no direct temporal dependency but only eventual, all positions before are possible 
                         for i in range (0, next_anchor_idx_acc + 1): 
-                            acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
-                            current_acceptance_sequences.append(acceptance_sequence_current)
+                            if _valid_insertion_position(acceptance_sequence, missing_anchor, i, matrix):
+                                acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                current_acceptance_sequences.append(acceptance_sequence_current)
+
+                        # if no insertion position was valid, use all the insertion positions 
+                        if acceptance_sequence_current == []: 
+                            for i in range (0, next_anchor_idx_acc + 1): 
+                                acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                current_acceptance_sequences.append(acceptance_sequence_current)
+
 
                 elif prev_anchor and not next_anchor: 
                     # end of the acceptance sequence 
@@ -667,14 +685,31 @@ def adapt_acceptance_sequence(
                     else: 
                         # no direct temporal dependency but only eventual, all positions before are possible 
                         for i in range (prev_anchor_idx_acc + 1, len(acceptance_sequence) + 1): 
-                            acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
-                            current_acceptance_sequences.append(acceptance_sequence_current)
+                            if _valid_insertion_position(acceptance_sequence, missing_anchor, i, matrix):
+                                acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                current_acceptance_sequences.append(acceptance_sequence_current)
+
+                            # if no of the insertion positions was valid, use all of them 
+                            if acceptance_sequence_current == []:
+                                for i in range (prev_anchor_idx_acc + 1, len(acceptance_sequence) + 1): 
+                                    acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                    current_acceptance_sequences.append(acceptance_sequence_current)
 
                 else: 
                     # no anchors present, so wen insert at all possible positions 
                     for i in range (0, len(acceptance_sequence) + 1): 
-                        acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
-                        current_acceptance_sequences.append(acceptance_sequence_current)
+                        if _valid_insertion_position(acceptance_sequence, missing_anchor, i, matrix):
+                            acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                            current_acceptance_sequences.append(acceptance_sequence_current)
+
+                    # if no of the insertion positions was valid with regard to the process, use all of the positions
+                    if acceptance_sequence_current == []: 
+                        for i in range (0, len(acceptance_sequence) + 1): 
+                            acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                            current_acceptance_sequences.append(acceptance_sequence_current)
+
+
+
 
 
             # add the added anchor to the list of activities present in the process 
@@ -685,6 +720,96 @@ def adapt_acceptance_sequence(
 
     # return the final set of obtained acceptance sequences 
     return acceptance_sequences_new
+
+
+def _valid_insertion_position(
+    acceptance_sequence: List[str],
+    activity: str,
+    index: int,
+    matrix: AdjacencyMatrix,
+) -> bool:
+    """
+    For a provided insertion position, check if it is valid regarding the temporal dependencies provided from the process 
+
+    Args: 
+        acceptance_sequence: acceptance sequence, in which the activity should be inserted 
+        activity: activity for insertion 
+        index: integer of the position for insertion 
+        matrix: adjacency matrix to get the temporal dependencies 
+
+    Returns: 
+        True if the insertion is valid, False when the insertion is not valid 
+    """
+
+    # extract the sequence of activities happening before and the sequence of activities happening after 
+    before_sequence = acceptance_sequence[:index]
+    after_sequence = acceptance_sequence[:index] 
+
+    # check for each activity of the before sequence, if it happens before the activity or is temporally independent 
+    for before_act in before_sequence: 
+
+        # get the dependency between the activities 
+        temp_dep, _ = matrix.get_dependency(before_act, activity)
+
+        # if no dependency provided, skip 
+        if temp_dep is None: 
+            continue
+
+        # check for the valid dependency types eventual dependecy forward, direct forwrad, independence 
+        is_eventual_forward = (
+            temp_dep.type      == TemporalType.EVENTUAL
+            and temp_dep.direction == Direction.FORWARD
+        )
+
+        is_direct_forward = (
+            temp_dep.type      == TemporalType.DIRECT
+            and temp_dep.direction == Direction.FORWARD
+        )
+
+        is_independent = temp_dep.type == TemporalType.INDEPENDENCE
+
+        # check if it is one of these types, if that is the case: continue
+        # otherwise return False since insertion does not match the process structure 
+        if is_eventual_forward or is_direct_forward or is_independent: 
+            continue
+        else: 
+            return False
+        
+    # check for each activity of the after sequence, if it happens after the activity or is temporally independent 
+    for after_activity in after_sequence: 
+
+        # get the dependency between the activities 
+        temp_dep, _ = matrix.get_dependency(activity, after_activity)
+
+        # if no dependency provided, skip 
+        if temp_dep is None: 
+            continue
+
+        # check for the valid dependency types eventual dependecy forward, direct forwrad, independence 
+        is_eventual_forward = (
+            temp_dep.type      == TemporalType.EVENTUAL
+            and temp_dep.direction == Direction.FORWARD
+        )
+
+        is_direct_forward = (
+            temp_dep.type      == TemporalType.DIRECT
+            and temp_dep.direction == Direction.FORWARD
+        )
+
+        is_independent = temp_dep.type == TemporalType.INDEPENDENCE
+
+        # check if it is one of these types, if that is the case: continue
+        # otherwise return False since insertion does not match the process structure 
+        if is_eventual_forward or is_direct_forward or is_independent: 
+            continue
+        else: 
+            return False
+        
+    # if all the checks passed, the position is possible regarding the process structure 
+    return True
+
+
+
 
 
 
