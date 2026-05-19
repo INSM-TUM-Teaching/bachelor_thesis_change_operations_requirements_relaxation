@@ -206,12 +206,13 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
 
             # check that an existential dependency was provided 
             has_existential = any(exist is not None for (_, exist) in deps.values())
-            if not has_existential:
-                print("  ✗  At least one existential dependency is required. Please add one before finishing.")
+            has_temporal = any(temp is not None for (temp, _) in deps.values())
+            if not has_existential and not has_temporal:
+                print("  ✗  At least one dependency is required. Please add one before finishing.")
                 continue
-
-            # if no activity provided, break the loop 
-            break
+            else: 
+                # if no activity provided, break the loop 
+                break
 
         # ensure the provided activity is in the activities 
         if to_act not in activities:

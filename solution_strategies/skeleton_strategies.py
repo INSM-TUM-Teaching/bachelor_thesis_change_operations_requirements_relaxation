@@ -209,24 +209,48 @@ def adapt_process(matrix: AdjacencyMatrix,
     # After building chain_sets_combined, before copying to unused_chain_sets:
     filtered = []
     for (cs_idx, occ_tuple) in chain_sets_combined:
-        keep = True
-        occ_list = list(occ_tuple)
+        occ_list  = list(occ_tuple)
+        occ_set   = set(occ_list)
+        forbidden = False
+        required  = False
 
-        # Check this occurrence against every locked existential dep within the chain set
         for (act_a, act_b), exist_dep in existential_deps.items():
             cs_all = {a for occ in occurence_combinations_per_chain_set[cs_idx] for a in occ}
             if act_a not in cs_all or act_b not in cs_all:
-                continue   # dep belongs to a different chain set
+                continue
 
-            if not occurrence_is_needed(
-                occ_list, act_a, act_b,
-                exist_dep.type,
-                acceptance_sequences   # original process sequences, already computed above
-            ):
-                keep = False
+            # Inline the flag derivation that was previously buried inside occurrence_is_needed
+            has_a = act_a in occ_set
+            has_b = act_b in occ_set
+
+            if has_a and has_b:
+                flag = "exists_both"
+            elif has_a:
+                flag = "exists_only_a"
+            elif has_b:
+                flag = "exists_only_b"
+            else:
+                flag = "exists_neither"
+
+            tv = required_truth_values(exist_dep.type)[flag]
+
+            if tv is False:    # forbidden by the dependency type — drop immediately
+                forbidden = True
                 break
+            if tv is True:     # required by the dependency type — must be kept
+                required = True
+            # tv is None → don't care, reachability decides below
 
-        if keep:
+        if forbidden:
+            continue
+
+        if required:
+            filtered.append((cs_idx, occ_tuple))
+        elif any(
+            (act_a in seq) == (act_a in occ_set) and (act_b in seq) == (act_b in occ_set)
+            for (act_a, act_b) in existential_deps
+            for seq in acceptance_sequences
+        ):
             filtered.append((cs_idx, occ_tuple))
 
     chain_sets_combined = filtered
@@ -743,13 +767,18 @@ def _valid_insertion_position(
 
     # extract the sequence of activities happening before and the sequence of activities happening after 
     before_sequence = acceptance_sequence[:index]
-    after_sequence = acceptance_sequence[:index] 
+    after_sequence = acceptance_sequence[index:] 
 
     # check for each activity of the before sequence, if it happens before the activity or is temporally independent 
     for before_act in before_sequence: 
 
         # get the dependency between the activities 
-        temp_dep, _ = matrix.get_dependency(before_act, activity)
+        dep = matrix.get_dependency(before_act, activity)
+
+        if dep is None: 
+            continue
+        else: 
+            temp_dep, _ = dep
 
         # if no dependency provided, skip 
         if temp_dep is None: 
@@ -779,7 +808,12 @@ def _valid_insertion_position(
     for after_activity in after_sequence: 
 
         # get the dependency between the activities 
-        temp_dep, _ = matrix.get_dependency(activity, after_activity)
+        dep = matrix.get_dependency(activity, after_activity)
+
+        if dep is None: 
+            continue
+        else: 
+            temp_dep, _ = dep
 
         # if no dependency provided, skip 
         if temp_dep is None: 
