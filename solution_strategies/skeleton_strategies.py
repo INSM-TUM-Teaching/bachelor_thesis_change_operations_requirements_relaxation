@@ -30,7 +30,8 @@ from utils.debug_mode import log
 
 def perfom_skeleton_algorithm(matrix: AdjacencyMatrix, 
                               locked_dependencies: dict, 
-                              new_activity: Optional[str]): 
+                              new_activity: Optional[str] = None
+                              ): 
     """
     Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
 
@@ -586,6 +587,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                     acceptance_sequences_new.append(v)
 
 
+    log(f"\nAcceptance sequences after skeleton algorithm: {acceptance_sequences_new}")
     # return the final result 
     return acceptance_sequences_new
 
@@ -711,6 +713,8 @@ def adapt_acceptance_sequence(
     # anchors in the filtered sequence, then overwrite those positions with
     # the anchors in the order the skeleton prescribes.
 
+
+    # ── Step 2a: Sort present anchors into skeleton order, by switching positions ──────────
     # define the list of anchors in the correct order, which are currently in the acceptance sequence  
     present_anchors_skeleton_order = [anchor for anchor in skeleton_sequence if anchor in filtered_sequence]
 
@@ -721,6 +725,46 @@ def adapt_acceptance_sequence(
     adapted: List[str] = list(filtered_sequence)
     for position, anchor in zip(anchor_positions, present_anchors_skeleton_order):
         adapted[position] = anchor
+
+    # ── Step 2b: For anchors with direct temporal dependencies insert them correctly ──────────
+    direct_pairs = []
+    for i in range(len(skeleton_sequence) - 1):
+        a = skeleton_sequence[i]
+        b = skeleton_sequence[i + 1]
+        if a != '_' and b != '_':          # adjacent anchors → DIRECT constraint
+            direct_pairs.append((a, b))
+    
+    # for all the direct pairs, ensure they have the direct ordering 
+    for (anchor_a, anchor_b) in direct_pairs: 
+
+        # if one of the activities not in the adapted sequence, continue (will be added in the next step)
+        if anchor_a not in adapted or anchor_b not in adapted: 
+            continue
+
+        # get the idx of the activities in the adapted sequence 
+        idx_a = adapted.index(anchor_a)
+        idx_b = adapted.index(anchor_b)
+
+        lower_idx, upper_idx = min(idx_a, idx_b), max(idx_a, idx_b)
+
+        # check if they already have the direct ordering 
+        if upper_idx - lower_idx == 1: 
+            # the activities have a distance of 1, so direct ordering 
+            continue
+
+        else: 
+            # the activities do not yet have a direct ordering, need to change the positioning 
+            # move upper activity directly after lower activity 
+
+            # get the upper activity 
+            upper_activity = adapted[upper_idx]
+
+            # remove the upper activity from the process 
+            adapted.remove(upper_activity)
+
+            # insert it after the lower activity 
+            adapted = adapted[:(lower_idx + 1)] + [upper_activity] + adapted[(lower_idx + 1):]
+
 
     # ── Step 3: Insert missing anchors ───────────────────────────
     # For each missing anchor activity (either because missing in general or because of insertion)

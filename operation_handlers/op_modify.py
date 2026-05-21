@@ -102,27 +102,36 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
     # using the standard algorithm, in the next step we need to check, that the modification really took place 
     result, _ = modify_dependencies(matrix, modification)
-
-    # ask for the dependency after the modification 
-    mod_temp_dep, mod_exist_dep = result.get_dependency(from_act, to_act)
+    print(result)
+    log("\nStandard algorithm used for the modify operation")
 
     # initialize variables to store the violations of modifications 
     not_cor_temp = False
     not_cor_exist = False
+    act_in_result = True
 
-    # compare if the dependency types are correct 
-    if temp is not None: 
-        if temp != mod_temp_dep: 
-            not_cor_temp = True
-    
-    if exist is not None: 
-        if exist != mod_exist_dep: 
-            not_cor_exist = True 
+    # ask for the dependency after the modification 
+    deps = result.get_dependency(from_act, to_act)
+
+    # we check for the case of the activities not contained / empty matrix
+    if deps is None: 
+        act_in_result = False
+    else: 
+        mod_temp_dep, mod_exist_dep = deps
+
+        # compare if the dependency types are correct 
+        if temp is not None: 
+            if temp != mod_temp_dep: 
+                not_cor_temp = True
+        
+        if exist is not None: 
+            if exist != mod_exist_dep: 
+                not_cor_exist = True 
 
     # check if the new dependencies do not match the intended modification 
-    if not_cor_exist or not_cor_temp: 
-        print("\nThe standard modification algorithm was unable to perform the modification.")
-        print("We use the skeleton algorithm to perfom the modification")
+    if not_cor_exist or not_cor_temp or not act_in_result: 
+        log("\nThe standard modification algorithm was unable to perform the modification.")
+        log("We use the skeleton algorithm to perfom the modification")
 
         # build the dictionary for the skeleton algorithm 
         modified_dependencies = {(from_act, to_act): (temp, exist)}

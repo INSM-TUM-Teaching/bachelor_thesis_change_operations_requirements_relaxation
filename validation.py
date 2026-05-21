@@ -107,7 +107,8 @@ BOTH       = Direction.BOTH
 
 # WCP 1 acceptance_sequences = [['A', 'B', 'C']]
 
-# WCP 2 acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
+# WCP 2 
+acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
 
 # WCP 3 
 # acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
@@ -157,15 +158,14 @@ acceptance_sequences = [
 ]
 """
 
+"""
 # WCP 17
 acceptance_sequences = [
     ['A', 'B', 'C'],
     ['A', 'C', 'B'],
     ['C', 'A', 'B'],
 ]
-# build the matrix
-matrix = variants_to_matrix(acceptance_sequences)
-
+"""
 """
 LOCKED_DEPENDENCIES: Dict[
     Tuple[str, str],
@@ -182,13 +182,16 @@ LOCKED_DEPENDENCIES: Dict[
 
 locked_dependencies = dict()
 
+# build the matrix
+matrix = variants_to_matrix(acceptance_sequences)
+
 
 print("\n" + "═" * 60)
 print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_parallelize(matrix, locked_dependencies)
+result, locked_dependencies = op_insert(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:

@@ -238,7 +238,7 @@ def modify_dependencies(
     # Start with original dependencies
     modified_deps = matrix.get_dependencies().copy()
 
-    # (A) Convert all DIRECT temporal dependencies to EVENTUAL
+    # (A) Convert all DIRECT temporal dependencies of the matrix to EVENTUAL, used to prevent contradictions
     for (from_act, to_act), (temporal_dep, existential_dep) in list(modified_deps.items()):
         if temporal_dep.type == TemporalType.DIRECT:
             modified_deps[(from_act, to_act)] = (
