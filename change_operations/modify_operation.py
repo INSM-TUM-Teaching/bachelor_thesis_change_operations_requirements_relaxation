@@ -238,7 +238,7 @@ def modify_dependencies(
     # Start with original dependencies
     modified_deps = matrix.get_dependencies().copy()
 
-    # (A) Convert all DIRECT temporal dependencies to EVENTUAL
+    # (A) Convert all DIRECT temporal dependencies of the matrix to EVENTUAL, used to prevent contradictions
     for (from_act, to_act), (temporal_dep, existential_dep) in list(modified_deps.items()):
         if temporal_dep.type == TemporalType.DIRECT:
             modified_deps[(from_act, to_act)] = (
@@ -253,24 +253,39 @@ def modify_dependencies(
             # Get existing dependencies
             existing_temporal, existing_existential = modified_deps[(from_act, to_act)]
 
-            # Use the modification's temporal and existential types and directions
-            new_temporal = TemporalDependency(temporal_dep.type, direction=temporal_dep.direction)
-            new_existential = ExistentialDependency(existential_dep.type, direction=existential_dep.direction)
+            if temporal_dep is not None:
+                new_temporal = TemporalDependency(temporal_dep.type, direction=temporal_dep.direction)
+            else:
+                new_temporal = existing_temporal   # keep what's already there
+
+            if existential_dep is not None:
+                new_existential = ExistentialDependency(existential_dep.type, direction=existential_dep.direction)
+            else:
+                new_existential = existing_existential  # keep what's already there
 
             # Update the forward dependency
             modified_deps[(from_act, to_act)] = (new_temporal, new_existential)
 
             # Also update reverse dependency if it exists
             if (to_act, from_act) in modified_deps:
-                # Create reverse dependencies with inverted directions
-                reverse_temporal_dir = Direction.BOTH if temporal_dep.direction == Direction.BOTH else \
-                                     (Direction.FORWARD if temporal_dep.direction == Direction.BACKWARD else Direction.BACKWARD)
-                reverse_existential_dir = Direction.BOTH if existential_dep.direction == Direction.BOTH else \
-                                        (Direction.FORWARD if existential_dep.direction == Direction.BACKWARD else Direction.BACKWARD)
 
-                reverse_temporal = TemporalDependency(temporal_dep.type, direction=reverse_temporal_dir)
-                reverse_existential = ExistentialDependency(existential_dep.type, direction=reverse_existential_dir)
+                if temporal_dep is not None:
+                    reverse_temporal_dir = Direction.BOTH if temporal_dep.direction == Direction.BOTH else \
+                                        (Direction.FORWARD if temporal_dep.direction == Direction.BACKWARD else Direction.BACKWARD)
+                    reverse_temporal = TemporalDependency(temporal_dep.type, direction=reverse_temporal_dir)
+                else:
+                    reverse_temporal = modified_deps[(to_act, from_act)][0]  # keep existing
+
+                if existential_dep is not None:
+                    reverse_existential_dir = Direction.BOTH if existential_dep.direction == Direction.BOTH else \
+                                            (Direction.FORWARD if existential_dep.direction == Direction.BACKWARD else Direction.BACKWARD)
+                    reverse_existential = ExistentialDependency(existential_dep.type, direction=reverse_existential_dir)
+                else:
+                    reverse_existential = modified_deps[(to_act, from_act)][1]  # keep existing
+
+                # update the dependencies 
                 modified_deps[(to_act, from_act)] = (reverse_temporal, reverse_existential)
+
         else:
             # New dependency - use provided directions
             modified_deps[(from_act, to_act)] = (temporal_dep, existential_dep)

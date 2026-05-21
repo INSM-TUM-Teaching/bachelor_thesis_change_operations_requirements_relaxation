@@ -14,27 +14,10 @@ from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
-from change_operations.insert_operation    import insert_activity
 from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
-from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
-from change_operations.parallelize_operation import parallelize_activities
-from change_operations.condition_update    import condition_update
 
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
-
-# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
+# ── Skeleton algorithm ─────────────────────────────────────────────────
+from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -60,9 +43,8 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
-# ── Skeleton algorithm ─────────────────────────────────────────────────
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
-
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import log
 
 
 def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
@@ -85,28 +67,77 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
     print(f"\n  Current activities: {matrix.activities}")
     modifications = []
-    print("\n  Enter modifications (blank 'from' to stop):")
+    print("\n  Enter modification:")
+    
     while True:
-        from_act = prompt("    From activity (blank to finish)")
-        if not from_act:
-            break
+        from_act = prompt("    From activity")
+        if from_act not in matrix.activities:
+            print(f"  ✗  '{from_act}' is not in the activity list: {matrix.activities}")
+            continue
+
         to_act = prompt("    To activity")
+        if to_act not in matrix.activities:
+            print(f"  ✗  '{to_act}' is not in the activity list: {matrix.activities}")
+            continue
+
+        if from_act == to_act:
+            print(f"  ✗  From and To activity must be different.")
+            continue
+
         temp  = ask_temporal()
         exist = ask_existential()
-        if temp is None or exist is None:
-            print("  ✗  Modify requires both temporal and existential dependencies.")
+
+        if temp is None and exist is None:
+            print("  ✗  Modify requires at least one dependency to be specified.")
             continue
-        modifications.append((from_act, to_act, temp, exist))
-    if not modifications:
-        print("  ✗  No modifications specified : operation cancelled.")
-        return matrix
-       
+
+        # valid input received
+        break
+
+    modification = [(from_act, to_act, temp, exist)]
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
     # ════════════════════════════════════════════════════════════════════════════
 
-    result, _ = modify_dependencies(matrix, modifications)
+    # using the standard algorithm, in the next step we need to check, that the modification really took place 
+    result, _ = modify_dependencies(matrix, modification)
+    print(result)
+    log("\nStandard algorithm used for the modify operation")
+
+    # initialize variables to store the violations of modifications 
+    not_cor_temp = False
+    not_cor_exist = False
+    act_in_result = True
+
+    # ask for the dependency after the modification 
+    deps = result.get_dependency(from_act, to_act)
+
+    # we check for the case of the activities not contained / empty matrix
+    if deps is None: 
+        act_in_result = False
+    else: 
+        mod_temp_dep, mod_exist_dep = deps
+
+        # compare if the dependency types are correct 
+        if temp is not None: 
+            if temp != mod_temp_dep: 
+                not_cor_temp = True
+        
+        if exist is not None: 
+            if exist != mod_exist_dep: 
+                not_cor_exist = True 
+
+    # check if the new dependencies do not match the intended modification 
+    if not_cor_exist or not_cor_temp or not act_in_result: 
+        log("\nThe standard modification algorithm was unable to perform the modification.")
+        log("We use the skeleton algorithm to perfom the modification")
+
+        # build the dictionary for the skeleton algorithm 
+        modified_dependencies = {(from_act, to_act): (temp, exist)}
+
+        result = perfom_skeleton_algorithm(matrix, modified_dependencies)
+
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 3: Check for violation of locked dependencies 
@@ -128,10 +159,43 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-            # TODO
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
+
+            # we must check for overlaps, if they exist, we raise an error 
+            if (from_act, to_act) not in locked_dependencies:
+                combined[(from_act, to_act)] = (temp, exist)
+            else: 
+                # get the dependencies from the locked one 
+                locked_temp, locked_exist = locked_dependencies[(from_act, to_act)]
+
+                if locked_temp is not None and temp is not None:
+                    raise ValueError(
+                        f"Conflict on temporal dependency ({from_act} → {to_act}): "
+                        f"locked as '{dep_label_temp(locked_temp)}' but modification "
+                        f"also specifies '{dep_label_temp(temp)}'. "
+                        f"Cannot apply both — please relax the locked dependency first."
+                    )
+
+                if locked_exist is not None and exist is not None:
+                    raise ValueError(
+                        f"Conflict on existential dependency ({from_act} → {to_act}): "
+                        f"locked as '{dep_label_exist(locked_exist)}' but modification "
+                        f"also specifies '{dep_label_exist(exist)}'. "
+                        f"Cannot apply both — please relax the locked dependency first."
+                    )
+                
+                # if no overlap exists, we can just merge them 
+                combined[(from_act, to_act)] = (
+                    temp  if temp  is not None else locked_temp,
+                    exist if exist is not None else locked_exist,
+                )
+
+            banner("Using skeleton to resolve violations of locked dependencies")
+            print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perfom_skeleton_algorithm(result, combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════

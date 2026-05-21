@@ -43,14 +43,6 @@ from change_operations.condition_update    import condition_update
 # ── Change-operation helper functions imports ─────────────────────────────────────────────────
 from change_operations.parallelize_operation import get_activities_happening_between
 
-# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
-
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
 from utils.console_helpers import prompt
@@ -93,6 +85,9 @@ from operation_handlers.op_swap import op_swap
 from utils.load_process_models import load_from_sequences
 from utils.load_process_models import load_from_yaml
 
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import enable as enable_debug_mode
+from utils.debug_mode import log
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Step 1 – Load process model
@@ -216,10 +211,14 @@ def main() -> None:
     print("   Business Process Redesign : Console Tool")
     print("═" * 60)
 
+    # ── 0. Ask for debug mode ────────────────────────────────────────────────
+    if confirm("Enable detailed information mode?"):
+        enable_debug_mode()
+
     # ── 1. Load initial model ────────────────────────────────────────────────
     current_matrix = step_load_model()
     print_matrix(current_matrix, "Initial Matrix")
-
+    
     # ── 2. Define locked dependencies ────────────────────────────────────────
     banner("Step 2 : Define locked dependendencies")
     locked_dependencies = get_locked_dependencies(current_matrix)

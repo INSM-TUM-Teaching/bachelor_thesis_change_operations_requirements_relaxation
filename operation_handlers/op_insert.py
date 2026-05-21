@@ -14,27 +14,10 @@ from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
 from change_operations.insert_operation    import insert_activity
-from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
-from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
-from change_operations.parallelize_operation import parallelize_activities
-from change_operations.condition_update    import condition_update
 
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
-
-# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
+# ── Skeleton algorithm ─────────────────────────────────────────────────
+from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -48,6 +31,7 @@ from utils.console_helpers import print_matrix
 from utils.console_helpers import ask_temporal
 from utils.console_helpers import ask_existential
 from utils.console_helpers import ask_dependencies
+from utils.console_helpers import ask_dependencies_insertion
 from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
@@ -60,12 +44,10 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
-# ── Skeleton algorithm ─────────────────────────────────────────────────
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
 
 
 
-def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
+def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     """
     Logic applied in muliple steps to perform the change operation insert 
 
@@ -90,13 +72,11 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     # get the parameters for the change operation
-    print(f"\n  ── Parameters for: insert ──")
-
     activity = prompt("New activity name")
     print(f"\n  Current activities: {matrix.activities}")
 
     # TODO modify so that only dependencies including the activity for insertion can be provided
-    deps = ask_dependencies(matrix.activities + [activity])
+    deps = ask_dependencies_insertion(matrix.activities + [activity], activity)
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
@@ -108,27 +88,9 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
     
     except ValueError as e: 
         # indicate to the user that the standard insert method does not work here 
-        print("The insert operation is ambigous, we use the new skeleton approach to adapt the acceptance sequences")
+        print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
 
-        # we offer the user the option to choose the method to calculate the similarity score
-        options = ["Pure occurence similarity score - focus on preserving existential dependencies", 
-                   "Pure ordering similarity score - focus on preserving temporal dependencies",
-                   "Combined similarity score - allowing for a balanced consideration"]
-        
-        similarity_strategy = choose("Choose a method to calculate the similarity score between skeleton sequences and acceptance sequences: ", options)
-
-        if "occurence" in similarity_strategy: 
-            similarity_strategy = "occurence"
-        elif "ordering" in similarity_strategy: 
-            similarity_strategy = "ordering"
-        else: 
-            similarity_strategy = "combined"
-
-        # if an error occurs, we use the new insert opportunity 
-        modified_acceptance_sequences = adapt_acceptance_skeleton(generate_acceptance_variants(matrix), deps_to_matrix(deps), similarity_strategy)
-
-        # return the modified matrix
-        result = variants_to_matrix(modified_acceptance_sequences)
+        result = perfom_skeleton_algorithm(matrix, deps, activity)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -151,10 +113,17 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-            # TODO
+
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
+
+            # we can not have any overlaps here, so no checks are required 
+            # the deps are always including the new activity, which can not be part of the process 
+            for (from_act, to_act), (ins_temp, ins_exist) in deps.items():
+                combined[(from_act, to_act)] = (ins_temp, ins_exist)
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perfom_skeleton_algorithm(result, combined, activity)
 
 
     # ════════════════════════════════════════════════════════════════════════════

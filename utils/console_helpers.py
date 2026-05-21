@@ -179,11 +179,69 @@ def ask_existential() -> ExistentialDependency | None:
         direction = Direction.BOTH.name
     return ExistentialDependency(ExistentialType[e_type], Direction[direction])
 
+def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -> dict:
+    """
+    Ask the user to specify one or more (from, to, temporal, existential) tuples.
+    Returns a dict keyed by (from_act, to_act).
+    At least one existential dependency must be provided and each tuple must contain the mandatory_activity 
+
+    Args: 
+        activities: list of all the activities contained
+        mandatory_activity: the activity for insertion / for move, every tuple needs to contain this activity 
+
+    Returns: 
+        dict of dependencies 
+    """
+    deps: dict = {}
+    print("\n  Enter dependencies (empty 'to' to stop):")
+    while True:
+        from_act = mandatory_activity
+        print(f"\n    From activity (is the mandatory activity): {mandatory_activity}")
+
+        # ask the user to provide the second activity
+        to_act = prompt("    To activity (or blank to finish) ")
+
+        
+        if not to_act: 
+
+            # check that an existential dependency was provided 
+            has_existential = any(exist is not None for (_, exist) in deps.values())
+            has_temporal = any(temp is not None for (temp, _) in deps.values())
+            if not has_existential and not has_temporal:
+                print("  ✗  At least one dependency is required. Please add one before finishing.")
+                continue
+            else: 
+                # if no activity provided, break the loop 
+                break
+
+        # ensure the provided activity is in the activities 
+        if to_act not in activities:
+            print(f"  ✗  '{to_act}' is not in the activity list.")
+            continue
+
+        # ensure that no self dependencies are defined 
+        if to_act == from_act:
+            print(f"  ✗  '{to_act}' is the same as from activity.")
+            continue
+
+        # ask for the dependencies 
+        temp  = ask_temporal()
+        exist = ask_existential()
+
+        # add the dependencies to the dictionary 
+        deps[(from_act, to_act)] = (temp, exist)
+
+    # return the new dependencies 
+    return deps
+
 
 def ask_dependencies(activities: list[str]) -> dict:
     """
     Ask the user to specify one or more (from, to, temporal, existential) tuples.
     Returns a dict keyed by (from_act, to_act).
+
+    Args: 
+        activities: list of all the activities contained
     """
     deps: dict = {}
     print("\n  Enter dependencies (empty 'from' to stop):")

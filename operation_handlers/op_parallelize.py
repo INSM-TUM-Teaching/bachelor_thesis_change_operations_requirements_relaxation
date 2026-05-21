@@ -14,27 +14,16 @@ from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
-from change_operations.insert_operation    import insert_activity
-from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
-from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
 from change_operations.parallelize_operation import parallelize_activities
-from change_operations.condition_update    import condition_update
-
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
 
 # ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
+from solution_strategies.parallelization_strategies import parallelize_expand_set
+from solution_strategies.parallelization_strategies import parallelize_move_activities
+from solution_strategies.collapse_strategies import collapse_expand_set
+from solution_strategies.collapse_strategies import collapse_move_activities
+
+# ── Skeleton algorithm ─────────────────────────────────────────────────
+from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -59,9 +48,6 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
-
-# ── Skeleton algorithm ─────────────────────────────────────────────────
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
 
 
 
@@ -153,8 +139,49 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
         # in case dependency relaxation was unable to resolve violations of locked dependencies 
         if exist_violations: 
             
-            # create a dict of combined dependencies 
-            # TODO
+            # use the locked dependencies as a base 
+            combined = dict(locked_dependencies)  
+
+            # build a dict for the parallelize activities 
+            for from_act in activities_parallelization: 
+                for to_act in activities_parallelization: 
+                    # filter that we do not include self pairs 
+                    if from_act == to_act: 
+                        continue
+
+                    # check that there is no conflict with an existing locked dependency
+                    if (from_act, to_act) in combined: 
+                        locked_temp, locked_exist = combined[(from_act, to_act)]
+
+
+                        if locked_temp is not None and locked_temp.type != TemporalType.INDEPENDENCE:
+                            print(
+                                f"  ✗  Conflict on temporal dependency ({from_act} → {to_act}): "
+                                f"locked as '{dep_label_temp(locked_temp)}' but parallelization "
+                                f"requires INDEPENDENCE. Cannot apply — please relax the locked "
+                                f"dependency first."
+                            )
+                            return result, locked_dependencies  
+
+                        if locked_exist is not None and locked_exist.type != ExistentialType.EQUIVALENCE:
+                            print(
+                                f"  ✗  Conflict on existential dependency ({from_act} → {to_act}): "
+                                f"locked as '{dep_label_exist(locked_exist)}' but parallelization "
+                                f"requires EQUIVALENCE. Cannot apply — please relax the locked "
+                                f"dependency first."
+                            )
+                            return result, locked_dependencies  
+                        
+                    
+                    # add the entry to the dictionary 
+                    combined[(from_act, to_act)] = (
+                        TemporalDependency(type=TemporalType.INDEPENDENCE, direction=Direction.BOTH),
+                        ExistentialDependency(type=ExistentialType.EQUIVALENCE, direction=Direction.BOTH),
+                    )
+
+            
+            banner("Using skeleton to resolve violations of locked dependencies")
+            print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
             result = perfom_skeleton_algorithm(result, locked_dependencies)

@@ -14,27 +14,10 @@ from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
-from change_operations.insert_operation    import insert_activity
-from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
-from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
-from change_operations.parallelize_operation import parallelize_activities
 from change_operations.condition_update    import condition_update
 
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
-
-# ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from modified_change_operations.parallelization_strategies import parallelize_expand_set
-from modified_change_operations.parallelization_strategies import parallelize_move_activities
-from modified_change_operations.collapse_strategies import collapse_expand_set
-from modified_change_operations.collapse_strategies import collapse_move_activities
-from modified_change_operations.skeleton_strategies import adapt_acceptance_skeleton
+# ── Skeleton algorithm ─────────────────────────────────────────────────
+from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -60,8 +43,7 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
-# ── Skeleton algorithm ─────────────────────────────────────────────────
-from modified_change_operations.skeleton_strategies import perfom_skeleton_algorithm
+
 
 
 
@@ -117,6 +99,9 @@ def op_condition_update(matrix: AdjacencyMatrix, locked_dependencies):
             # create a dict of combined dependencies 
             # TODO
 
+            banner("Using skeleton to resolve violations of locked dependencies")
+            print("\nUsing dependency relaxation was unable to resolve (all) violations.")
+            
             # perfom the skeleton approach
             result = perfom_skeleton_algorithm(result, locked_dependencies)
 
