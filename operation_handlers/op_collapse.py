@@ -87,7 +87,16 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
     print(f"\n  Current activities: {matrix.activities}")
     collapsed_name = prompt("Name of new collapsed activity")
     raw = prompt("Activities to collapse (comma-separated)")
-    collapse_acts = [a.strip() for a in raw.split(",") if a.strip()]
+    
+
+    while True:
+        collapse_acts = [a.strip() for a in raw.split(",") if a.strip()]
+
+        if all(act in matrix.activities for act in collapse_acts):
+            break
+
+        print(f"  Invalid activities. Please enter only activities from: {matrix.activities}")
+        raw = prompt("Activities to collapse (comma-separated)")
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  

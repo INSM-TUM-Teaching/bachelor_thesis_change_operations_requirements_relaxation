@@ -107,14 +107,15 @@ BOTH       = Direction.BOTH
 
 # WCP 1 acceptance_sequences = [['A', 'B', 'C']]
 
-# WCP 2 
-acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
+# WCP 2 acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
 
-# WCP 3 
-# acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
+# WCP 3 acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
 
 # WCP 4 Exclusive coice 
 # acceptance_sequences = [['A'], ['B']]
+
+# WCP 5
+# acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
 
 # WCP 6 multi choice 
 """
@@ -159,6 +160,19 @@ acceptance_sequences = [
 """
 
 """
+# WCP 10 
+acceptance_sequences = [
+    ['A', 'B', 'C'],
+    ['A', 'B', 'C', 'B', 'C'],
+    ['A', 'B', 'C', 'B', 'C', 'B', 'C'],
+    ['C'],
+    ['B', 'C'],
+    ['B', 'C', 'B', 'C'],
+    ['B', 'C', 'B', 'C', 'B', 'C']
+]
+"""
+
+"""
 # WCP 17
 acceptance_sequences = [
     ['A', 'B', 'C'],
@@ -166,6 +180,10 @@ acceptance_sequences = [
     ['C', 'A', 'B'],
 ]
 """
+
+#WCP 19
+acceptance_sequences = [['A', 'B'], ['A']]
+
 """
 LOCKED_DEPENDENCIES: Dict[
     Tuple[str, str],
@@ -185,6 +203,8 @@ locked_dependencies = dict()
 # build the matrix
 matrix = variants_to_matrix(acceptance_sequences)
 
+# enable the debug mode 
+enable_debug_mode()
 
 print("\n" + "═" * 60)
 print("   Business Process Redesign : Console Tool")

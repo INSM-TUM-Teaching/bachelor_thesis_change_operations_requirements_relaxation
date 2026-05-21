@@ -101,9 +101,20 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     # using the standard algorithm, in the next step we need to check, that the modification really took place 
-    result, _ = modify_dependencies(matrix, modification)
-    print(result)
-    log("\nStandard algorithm used for the modify operation")
+    try: 
+        result, _ = modify_dependencies(matrix, modification)
+        print(result)
+        log("\nStandard algorithm used for the modify operation")
+
+    except Exception as e:
+        print("\nThe standard modification algorithm was unable to perform the modification. \nWe use the skeleton algorithm to perfom the modification")
+
+        # build the dictionary for the skeleton algorithm 
+        modified_dependencies = {(from_act, to_act): (temp, exist)}
+
+        result = perfom_skeleton_algorithm(matrix, modified_dependencies)
+        
+
 
     # initialize variables to store the violations of modifications 
     not_cor_temp = False

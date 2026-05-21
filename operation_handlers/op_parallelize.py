@@ -70,7 +70,16 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
 
     print(f"\n  Current activities: {matrix.activities}")
     raw = prompt("Activities to parallelize (comma-separated)")
-    activities_parallelization = [a.strip() for a in raw.split(",") if a.strip()]
+
+    while True:
+        activities_parallelization = [a.strip() for a in raw.split(",") if a.strip()]
+
+        if all(act in matrix.activities for act in activities_parallelization):
+            break
+
+        print(f"  Invalid activities. Please enter only activities from: {matrix.activities}")
+        raw = prompt("Activities to parallelize (comma-separated)")
+        
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  

@@ -19,10 +19,8 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
 
     # for the empty skeleton sequence, make a comparison 
     if skeleton_sequence == ['_'] and acceptence_sequence == []:
-        print("Both empty")
         return 1.0
     elif skeleton_sequence == ['_'] and acceptence_sequence != []: 
-        print("Skeleton empty and acceptance sequence non empty")
         return 0.0
 
     # define a list to store the unique activities in the provided skeleton 
@@ -84,10 +82,8 @@ def similarity_calculation_ordering(acceptence_sequence: List[str], skeleton_seq
 
     # for the empty skeleton sequence, make a comparison 
     if skeleton_sequence == [] and acceptence_sequence == []:
-        print("1")
         return 1.0
     elif skeleton_sequence == [] and acceptence_sequence != []:
-        print("0") 
         return 0.0
     
     # define a list to store the unique activities in the provided skeleton 

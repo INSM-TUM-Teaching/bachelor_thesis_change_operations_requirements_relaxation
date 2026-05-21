@@ -98,6 +98,9 @@ def adapt_process(matrix: AdjacencyMatrix,
     # create a list of all activities with locked existential dependencies 
     all_occurence_activities = []
 
+    # list to store all orderings 
+    all_ordering_pairs = []
+
     # define dictionaries to store the dependencies seperatly 
     temporal_deps: Dict[Tuple[str, str], TemporalDependency] = {}
     existential_deps: Dict[Tuple[str, str], ExistentialDependency] = {}     
@@ -117,10 +120,6 @@ def adapt_process(matrix: AdjacencyMatrix,
         
         if to_act not in all_occurence_activities: 
             all_occurence_activities.append(to_act)
-
-        # We skip all the pairs of activities, where only the temporal dependency is locked 
-        if exist_dep is None:
-            continue
 
         # Find the indices of all chain sets that contain either activity
         containing_indices = [
@@ -146,8 +145,22 @@ def adapt_process(matrix: AdjacencyMatrix,
                 chain_sets.pop(i)
             chain_sets.append(merged)
 
+        # build the ordering tuples 
+        if temp_dep: 
+            if temp_dep.direction == Direction.FORWARD: 
+                all_ordering_pairs.append((from_act, to_act))
+            elif temp_dep.direction == Direction.BACKWARD:
+                all_ordering_pairs.append((to_act, from_act))
+            else: 
+                all_ordering_pairs.append((to_act, from_act))
+                all_ordering_pairs.append((from_act, to_act))
+                
+        
     log("Build the chain sets")
     log(f"Chain sets: {chain_sets} \n")
+
+    log("Build the ordering tuples")
+    log(f"Ordering tuples: {all_ordering_pairs} \n")
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Form all possible occurence sets based on chain sets 
@@ -276,7 +289,9 @@ def adapt_process(matrix: AdjacencyMatrix,
     unused_chain_sets = list(chain_sets_combined)
 
     log(f"Chain occurence combinations which must be used: {unused_chain_sets} \n The rest is optional \n")
-    # ------------------------------
+
+    # define a list to keep track of the unused ordering pairs 
+    unused_ordering_pairs = all_ordering_pairs
 
     # copy in a list to keep track of the chain sets which were not yet used 
     unused_chain_sets = list(chain_sets_combined)
@@ -373,6 +388,15 @@ def adapt_process(matrix: AdjacencyMatrix,
         for contained_chain_occuence_set in contained_chain_occurence_sets: 
             if contained_chain_occuence_set in unused_chain_sets: 
                 unused_chain_sets.remove(contained_chain_occuence_set)
+        
+
+        # get the contained ordering pairs per skeleton sequence 
+        contained_pairs = contained_ordering_pairs(selected_skeleton_sequence, all_ordering_pairs)
+
+        # remove all the used pairs to get an overview of the unused pairs 
+        for pair in contained_pairs: 
+            if pair in unused_ordering_pairs: 
+                unused_ordering_pairs.remove(pair)
 
         if similarity_strategy == "occurence":
             used_score = max_sim_score_occurence
@@ -381,7 +405,7 @@ def adapt_process(matrix: AdjacencyMatrix,
         else:
             used_score = max_sim_score_combined
 
-        log(f"Occurence set: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
+        log(f"Skeleton sequence: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
         log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         
         # perfom the adaption of the acceptance sequence 
@@ -392,14 +416,13 @@ def adapt_process(matrix: AdjacencyMatrix,
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
 
-    log(f"Unsused chain occurence sets after phase 1: {unused_chain_sets} \n")
+    log(f"Unused chain occurence sets after phase 1: {unused_chain_sets} \n")
+    log(f"Unused ordering pairs after phase 1: {unused_ordering_pairs} \n")
 
 
     # ════════════════════════════════════════════════════════════════════════════
     #  For unused chain sets, find acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
-
-    adapted_sequences: List[List[str]] = []
 
     log("Phase 2: for unused chain occurnece sets find pair of acceptance and skeleton sequence")
 
@@ -477,6 +500,14 @@ def adapt_process(matrix: AdjacencyMatrix,
         for contained_chain_occuence_set in contained_chain_occurence_sets: 
             if contained_chain_occuence_set in unused_chain_sets: 
                 unused_chain_sets.remove(contained_chain_occuence_set)
+
+        # get the contained ordering pairs per skeleton sequence 
+        contained_pairs = contained_ordering_pairs(selected_skeleton_sequence, all_ordering_pairs)
+
+        # remove all the used pairs to get an overview of the unused pairs 
+        for pair in contained_pairs: 
+            if pair in unused_ordering_pairs: 
+                unused_ordering_pairs.remove(pair)
 
         if similarity_strategy == "occurence":
                 used_score = max_sim_score_occurence
@@ -576,7 +607,15 @@ def adapt_process(matrix: AdjacencyMatrix,
             else:
                 used_score = max_sim_score_combined
 
-            log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
+            log(f"Skeleton sequence: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
+
+            # get the contained ordering pairs per skeleton sequence 
+            contained_pairs = contained_ordering_pairs(best_skel_seq, all_ordering_pairs)
+
+            # remove all the used pairs to get an overview of the unused pairs 
+            for pair in contained_pairs: 
+                if pair in unused_ordering_pairs: 
+                    unused_ordering_pairs.remove(pair)
 
             # perfom the adaption of the acceptance sequence 
             modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
@@ -586,10 +625,164 @@ def adapt_process(matrix: AdjacencyMatrix,
                 if v not in acceptance_sequences_new: 
                     acceptance_sequences_new.append(v)
 
+    
+    # ════════════════════════════════════════════════════════════════════════════
+    #  For unused ordering pairs, find acceptance sequences 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    log("Phase 4: for unused ordering pairs find pair of acceptance and skeleton sequence")
+
+    for unused_ordering_pair in list(unused_ordering_pairs):  # create a copy, since the list is modified mid-loop
+
+        # already covered by a previously processed combined occurrence, we can skip it
+        if unused_ordering_pair not in unused_ordering_pairs:
+            continue
+
+        # find all combined occurrences that contain the unused chain occurrence
+        candidate_skeleton_sequences = sequences_containing_pairs(skeleton_sequences, unused_ordering_pair)
+
+        best_acceptance_sequence = []
+        best_skel_seq = []
+        max_sim_score_occurence = -10.0
+        max_sim_score_ordering = -10.0
+        max_sim_score_combined = -10.0
+
+        for candidate_skel_seq in candidate_skeleton_sequences:
+
+            # ── Select the best fitting acceptance sequence ───────────────────
+            for acceptance_sequence in acceptance_sequences:
+
+                # calculate the similarity score of occurence and ordering  
+                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
+                sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
+             
+                # based on the selected similarity startegy, select the skeleton sequence 
+                if similarity_strategy == "occurence": 
+                    # we search for the highest occurence sim score, if found also update the ordering 
+                    if sim_score_occurence > max_sim_score_occurence: 
+                        max_sim_score_occurence = sim_score_occurence
+                        best_acceptance_sequence = acceptance_sequence
+                        best_skel_seq = candidate_skel_seq
+                        max_sim_score_ordering = sim_score_ordering
+                    
+                    # if the same sim_score for occurence, use the sim_score of ordering for detrmination 
+                    elif sim_score_occurence == max_sim_score_occurence:  
+
+                        if sim_score_ordering > max_sim_score_ordering: 
+                            max_sim_score_ordering = sim_score_ordering
+                            best_acceptance_sequence = acceptance_sequence
+                            best_skel_seq = candidate_skel_seq
+                
+                elif similarity_strategy == "ordering": 
+                    # for the similarity score of ordering, select the skeleton sequence 
+                    if sim_score_ordering > max_sim_score_ordering: 
+                        max_sim_score_ordering = sim_score_ordering
+                        best_acceptance_sequence = acceptance_sequence
+                        best_skel_seq = candidate_skel_seq
+                        max_sim_score_occurence = sim_score_occurence
+                    
+                    # if the same sim_score for occurence, use the sim_score of ordering for detrmination 
+                    elif sim_score_ordering == max_sim_score_ordering:  
+
+                        if sim_score_occurence > max_sim_score_occurence: 
+                            max_sim_score_occurence = sim_score_occurence
+                            best_acceptance_sequence = acceptance_sequence
+                            best_skel_seq = candidate_skel_seq
+
+                else: 
+                    # combined
+                    sim_score_combined = (sim_score_occurence + sim_score_ordering) / 2
+
+                    if sim_score_combined > max_sim_score_combined: 
+                        max_sim_score_combined = sim_score_combined
+                        best_acceptance_sequence = acceptance_sequence
+                        best_skel_seq = candidate_skel_seq
+                
+
+        # get the contained ordering pairs per skeleton sequence 
+        contained_pairs = contained_ordering_pairs(selected_skeleton_sequence, all_ordering_pairs)
+
+        # remove all the used pairs to get an overview of the unused pairs 
+        for pair in contained_pairs: 
+            if pair in unused_ordering_pairs: 
+                unused_ordering_pairs.remove(pair)
+
+        if similarity_strategy == "occurence":
+                used_score = max_sim_score_occurence
+        elif similarity_strategy == "ordering":
+            used_score = max_sim_score_ordering
+        else:
+            used_score = max_sim_score_combined
+
+        log(f"Skeleton sequence: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
+
+        # perfom the adaption of the acceptance sequence 
+        modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
+
+        # ensure that we do not add duplicates 
+        for v in modified_variants: 
+            if v not in acceptance_sequences_new: 
+                acceptance_sequences_new.append(v)
+
+
+    log(f"Unused ordering pairs after phase 1: {unused_ordering_pairs} \n")
 
     log(f"\nAcceptance sequences after skeleton algorithm: {acceptance_sequences_new}")
     # return the final result 
     return acceptance_sequences_new
+
+
+def contained_ordering_pairs(sequence: List[str], 
+                             all_ordering_pairs: List
+                            ) -> List[(str)]: 
+    """
+    For a given sequence of activities, return the ordering pairs which are contained in it
+
+    Args: 
+        sequence: sequence of activities (ordered)
+        all_ordering_pairs: list of the possible pairs for the ordering
+    """
+
+    # define list to store the contained pairs 
+    contained_pairs = []
+
+    # iterate over all pairs and check which of these are contained in the correct ordering 
+    for (act_a, act_b) in all_ordering_pairs: 
+        if act_a in sequence and act_b in sequence: 
+            if sequence.index(act_a) < sequence.index(act_b): 
+                contained_pairs.append((act_a, act_b))
+
+    # return the result 
+    return contained_pairs
+
+
+def sequences_containing_pairs(all_sequences: List, 
+                               ordering_pair: (str)
+                               ) -> List[List[str]]: 
+    """
+    For a set of sequences find all sequences which contain a sepcific ordering pair. 
+
+    Args: 
+        all_seqeunces: list of all sequences, from which the sequences containing the pair should be selected 
+        ordering_pair: tuple of ordered activities 
+
+    Returns: 
+        list of sequences containing the ordering pair 
+    """
+    # define a list to store the sequences containing the pair
+    sequences_containing_pair = []
+
+    # extract the activities from the ordering pair 
+    (act_a, act_b) = ordering_pair
+
+    # iterate over all sequences and get the set of sequences which contain the ordering pair 
+    for sequence in all_sequences: 
+        if act_a in sequence and act_b in sequence: 
+            if sequence.index(act_a) < sequence.index(act_b): 
+                sequences_containing_pair.append(sequence)
+    
+    # return the result 
+    return sequences_containing_pair
 
 
 
@@ -627,6 +820,7 @@ def contained_occurence_chain_sets(
 
     return contained_occurences
 
+    
 
 def combined_occurrences_containing(
     chain_occurrence_indexed: Tuple[int, tuple],   # (cs_idx, activities)
@@ -664,7 +858,6 @@ def combined_occurrences_containing(
             result.append(combined_occ)
 
     return result
-
 
 # for a single acceptance sequence, adapt it to an occurenece set and in the second step ensure compliance with the temporal dependencies 
 def adapt_acceptance_sequence(
@@ -827,7 +1020,7 @@ def adapt_acceptance_sequence(
 
                     elif next_anchor_idx - missing_idx == 1:
                         # direct temoporal dependency, so add the missing_anchor directly before the activity   
-                        acceptance_sequence_current = acceptance_sequence[:(next_anchor_idx_acc)] + [missing_anchor] + acceptance_sequence[(next_anchor_idx_acc):]
+                        acceptance_sequence_current = acceptance_sequence[:next_anchor_idx_acc] + [missing_anchor] + acceptance_sequence[next_anchor_idx_acc:]
                         current_acceptance_sequences.append(acceptance_sequence_current)
                     
                     else: 
@@ -849,7 +1042,7 @@ def adapt_acceptance_sequence(
                     # check for a direct temporal dependency 
                     if next_anchor_idx - missing_idx == 1:
                         # direct temoporal dependency, so add the missing_anchor directly before the activity   
-                        acceptance_sequence_current = acceptance_sequence[:(next_anchor_idx_acc+1)] + [missing_anchor] + acceptance_sequence[(next_anchor_idx_acc+1):]
+                        acceptance_sequence_current = acceptance_sequence[:next_anchor_idx_acc] + [missing_anchor] + acceptance_sequence[next_anchor_idx_acc:]
                         current_acceptance_sequences.append(acceptance_sequence_current)
                     else: 
                         # no direct temporal dependency but only eventual, all positions before are possible 
@@ -1038,8 +1231,8 @@ def required_truth_values(dep_type: ExistentialType) -> dict:
         },
         ExistentialType.NAND: {
             "exists_both":    False,  # forbidden
-            "exists_only_a":  None,   # don't care
-            "exists_only_b":  None,   # don't care
+            "exists_only_a":  True,   # don't care
+            "exists_only_b":  True,   # don't care
             "exists_neither": None,   # don't care
         },
         ExistentialType.OR: {
