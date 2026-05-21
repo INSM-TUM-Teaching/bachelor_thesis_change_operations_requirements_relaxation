@@ -454,7 +454,7 @@ def adapt_process(matrix: AdjacencyMatrix,
 
         log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, sim score: {max_sim_score_occurence}")
         log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
-        # TODO - perform adaption 
+
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
 

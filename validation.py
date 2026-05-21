@@ -113,8 +113,56 @@ BOTH       = Direction.BOTH
 # acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
 
 # WCP 4 Exclusive coice 
-acceptance_sequences = [['A'], ['B']]
+# acceptance_sequences = [['A'], ['B']]
 
+# WCP 6 multi choice 
+"""
+acceptance_sequences = [
+    ['A', 'B'],
+    ['A', 'C'],
+    ['A', 'D'],
+    ['A', 'B', 'C'],
+    ['A', 'B', 'D'],
+    ['A', 'C', 'B'],
+    ['A', 'C', 'D'],
+    ['A', 'D', 'B'],
+    ['A', 'D', 'C'],
+    ['A', 'B', 'C', 'D'],
+    ['A', 'B', 'D', 'C'],
+    ['A', 'C', 'B', 'D'],
+    ['A', 'C', 'D', 'B'],
+    ['A', 'D', 'B', 'C'],
+    ['A', 'D', 'C', 'B'],
+]
+"""
+
+"""
+# WCP 7 structured synchronization merge 
+acceptance_sequences = [
+    ['A', 'D'],
+    ['B', 'D'],
+    ['C', 'D'],
+    ['A', 'B', 'D'],
+    ['A', 'C', 'D'],
+    ['B', 'A', 'D'],
+    ['B', 'C', 'D'],
+    ['C', 'A', 'D'],
+    ['C', 'B', 'D'],
+    ['A', 'B', 'C', 'D'],
+    ['A', 'C', 'B', 'D'],
+    ['B', 'A', 'C', 'D'],
+    ['B', 'C', 'A', 'D'],
+    ['C', 'A', 'B', 'D'],
+    ['C', 'B', 'A', 'D'],
+]
+"""
+
+# WCP 17
+acceptance_sequences = [
+    ['A', 'B', 'C'],
+    ['A', 'C', 'B'],
+    ['C', 'A', 'B'],
+]
 # build the matrix
 matrix = variants_to_matrix(acceptance_sequences)
 
@@ -140,7 +188,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_insert(matrix, locked_dependencies)
+result, locked_dependencies = op_parallelize(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:

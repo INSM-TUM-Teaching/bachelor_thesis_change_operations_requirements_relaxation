@@ -43,6 +43,8 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import log
 
 
 def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
@@ -98,7 +100,35 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     #  Step 2: Try performance of the change operation  
     # ════════════════════════════════════════════════════════════════════════════
 
+    # using the standard algorithm, in the next step we need to check, that the modification really took place 
     result, _ = modify_dependencies(matrix, modification)
+
+    # ask for the dependency after the modification 
+    mod_temp_dep, mod_exist_dep = result.get_dependency(from_act, to_act)
+
+    # initialize variables to store the violations of modifications 
+    not_cor_temp = False
+    not_cor_exist = False
+
+    # compare if the dependency types are correct 
+    if temp is not None: 
+        if temp != mod_temp_dep: 
+            not_cor_temp = True
+    
+    if exist is not None: 
+        if exist != mod_exist_dep: 
+            not_cor_exist = True 
+
+    # check if the new dependencies do not match the intended modification 
+    if not_cor_exist or not_cor_temp: 
+        print("\nThe standard modification algorithm was unable to perform the modification.")
+        print("We use the skeleton algorithm to perfom the modification")
+
+        # build the dictionary for the skeleton algorithm 
+        modified_dependencies = {(from_act, to_act): (temp, exist)}
+
+        result = perfom_skeleton_algorithm(matrix, modified_dependencies)
+
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 3: Check for violation of locked dependencies 
