@@ -28,7 +28,9 @@ from dependencies import TemporalType, Direction
 from utils.debug_mode import log
 
 
-def perfom_skeleton_algorithm(matrix, locked_dependencies): 
+def perfom_skeleton_algorithm(matrix: AdjacencyMatrix, 
+                              locked_dependencies: dict, 
+                              new_activity: Optional[str]): 
     """
     Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
 
@@ -56,7 +58,7 @@ def perfom_skeleton_algorithm(matrix, locked_dependencies):
         similarity_strategy = "combined"
 
     # if an error occurs, we use the new insert opportunity 
-    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy)
+    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy, new_activity)
 
     # get the result by translating the modified acceptance sequences in the matrix
     result = variants_to_matrix(modified_acceptance_sequences)
@@ -66,7 +68,8 @@ def perfom_skeleton_algorithm(matrix, locked_dependencies):
 
 def adapt_process(matrix: AdjacencyMatrix, 
                   locked_dependencies: dict, 
-                  similarity_strategy: str
+                  similarity_strategy: str,
+                  new_activity: Optional[str] = None
                 ): 
 #-> AdjacencyMatrix: 
     """
@@ -79,6 +82,7 @@ def adapt_process(matrix: AdjacencyMatrix,
         matrix: the adjacency matrix of the process 
         locked_dependencies: a dict of locked dependencies which must hold 
         similarity_strategy: str of the selected similarity strategy 
+        new_activity: if a new activity is inserted, provide it as optional, to ensure it is used even if only temporal dependencies are provided 
 
     Returns: 
         adapted_matrix 
@@ -214,12 +218,15 @@ def adapt_process(matrix: AdjacencyMatrix,
         forbidden = False
         required  = False
 
+        # iterate over all locked existential dependencies 
         for (act_a, act_b), exist_dep in existential_deps.items():
             cs_all = {a for occ in occurence_combinations_per_chain_set[cs_idx] for a in occ}
+            
+            # only consider existential dependencies if both activities are part of the chain set 
             if act_a not in cs_all or act_b not in cs_all:
                 continue
 
-            # Inline the flag derivation that was previously buried inside occurrence_is_needed
+            # get an overview of the occurence combinations in the current chain occurence 
             has_a = act_a in occ_set
             has_b = act_b in occ_set
 
@@ -232,26 +239,37 @@ def adapt_process(matrix: AdjacencyMatrix,
             else:
                 flag = "exists_neither"
 
+            # from the dict of required truth values, use the falg to get if the tuple is needed 
             tv = required_truth_values(exist_dep.type)[flag]
 
-            if tv is False:    # forbidden by the dependency type — drop immediately
+            # forbidden by the dependency type — drop immediately
+            if tv is False:    
                 forbidden = True
                 break
-            if tv is True:     # required by the dependency type — must be kept
+            
+            # required by the dependency type — must be kept
+            if tv is True:     
                 required = True
-            # tv is None → don't care, reachability decides below
 
+            # if tv is None, we don't care, since they do not have to occur, but can occur 
+
+        # if the occurence is forbidden, we continue 
         if forbidden:
             continue
 
+        # if the occurence is required, we add it to set of occurence combinations which must be used 
         if required:
             filtered.append((cs_idx, occ_tuple))
+
+        # if not required, we only keep the instances which 
+        """
         elif any(
             (act_a in seq) == (act_a in occ_set) and (act_b in seq) == (act_b in occ_set)
             for (act_a, act_b) in existential_deps
             for seq in acceptance_sequences
         ):
             filtered.append((cs_idx, occ_tuple))
+        """
 
     chain_sets_combined = filtered
     unused_chain_sets = list(chain_sets_combined)
@@ -355,7 +373,14 @@ def adapt_process(matrix: AdjacencyMatrix,
             if contained_chain_occuence_set in unused_chain_sets: 
                 unused_chain_sets.remove(contained_chain_occuence_set)
 
-        log(f"Skeleton sequence: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, sim score: {max_sim_score_occurence}")
+        if similarity_strategy == "occurence":
+            used_score = max_sim_score_occurence
+        elif similarity_strategy == "ordering":
+            used_score = max_sim_score_ordering
+        else:
+            used_score = max_sim_score_combined
+
+        log(f"Occurence set: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
         log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         
         # perfom the adaption of the acceptance sequence 
@@ -452,7 +477,14 @@ def adapt_process(matrix: AdjacencyMatrix,
             if contained_chain_occuence_set in unused_chain_sets: 
                 unused_chain_sets.remove(contained_chain_occuence_set)
 
-        log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, sim score: {max_sim_score_occurence}")
+        if similarity_strategy == "occurence":
+                used_score = max_sim_score_occurence
+        elif similarity_strategy == "ordering":
+            used_score = max_sim_score_ordering
+        else:
+            used_score = max_sim_score_combined
+
+        log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
         log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
 
         # perfom the adaption of the acceptance sequence 
@@ -462,6 +494,97 @@ def adapt_process(matrix: AdjacencyMatrix,
         for v in modified_variants: 
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  For unused chain new activities, find acceptance sequences 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # initilaize variable to track if new activity is used 
+    new_activity_used = False
+
+    # check if there is a new activity 
+    if new_activity is not None: 
+
+        # iterate over all acceptance sequences, to check if the new activity is used
+        for acceptance_sequence_new in acceptance_sequences_new: 
+            # check if the new activity is contained in the new acceptanec sequence 
+            if new_activity in acceptance_sequence_new: 
+                new_activity_used = True
+                break
+        
+        # if the new activity is not used, we need to find a combination for it to be used 
+        if not new_activity_used: 
+
+            log(f"\nThe new activity {new_activity} was not used in the skeleton startegy, to ensure insertion, we identify potential acceptance sequences")
+
+            # only consider skeleton sequences that actually contain this activity
+            candidate_skeletons = [s for s in skeleton_sequences if new_activity in s]
+
+            log(f"\nPotential skeleton sequences are: {candidate_skeletons}\n")
+
+            best_acceptance_sequence = []
+            best_skel_seq = []
+            max_sim_score_occurence = -10.0
+            max_sim_score_ordering  = -10.0
+            max_sim_score_combined  = -10.0
+
+            for candidate_skel_seq in candidate_skeletons:
+                for acceptance_sequence in acceptance_sequences:
+
+                    sim_score_occurence = similarity_score.similarity_calculation_occurence(
+                        acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
+                    sim_score_ordering = similarity_score.similarity_calculation_ordering(
+                        acceptance_sequence, candidate_skel_seq)
+
+                    if similarity_strategy == "occurence":
+                        if sim_score_occurence > max_sim_score_occurence:
+                            max_sim_score_occurence = sim_score_occurence
+                            best_acceptance_sequence = acceptance_sequence
+                            best_skel_seq = candidate_skel_seq
+                            max_sim_score_ordering = sim_score_ordering
+                        elif sim_score_occurence == max_sim_score_occurence:
+                            if sim_score_ordering > max_sim_score_ordering:
+                                max_sim_score_ordering = sim_score_ordering
+                                best_acceptance_sequence = acceptance_sequence
+                                best_skel_seq = candidate_skel_seq
+
+                    elif similarity_strategy == "ordering":
+                        if sim_score_ordering > max_sim_score_ordering:
+                            max_sim_score_ordering = sim_score_ordering
+                            best_acceptance_sequence = acceptance_sequence
+                            best_skel_seq = candidate_skel_seq
+                            max_sim_score_occurence = sim_score_occurence
+                        elif sim_score_ordering == max_sim_score_ordering:
+                            if sim_score_occurence > max_sim_score_occurence:
+                                max_sim_score_occurence = sim_score_occurence
+                                best_acceptance_sequence = acceptance_sequence
+                                best_skel_seq = candidate_skel_seq
+
+                    else:
+                        sim_score_combined = (sim_score_occurence + sim_score_ordering) / 2
+                        if sim_score_combined > max_sim_score_combined:
+                            max_sim_score_combined = sim_score_combined
+                            best_acceptance_sequence = acceptance_sequence
+                            best_skel_seq = candidate_skel_seq
+
+
+            if similarity_strategy == "occurence":
+                used_score = max_sim_score_occurence
+            elif similarity_strategy == "ordering":
+                used_score = max_sim_score_ordering
+            else:
+                used_score = max_sim_score_combined
+
+            log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
+
+            # perfom the adaption of the acceptance sequence 
+            modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
+
+            # ensure that we do not add duplicates 
+            for v in modified_variants: 
+                if v not in acceptance_sequences_new: 
+                    acceptance_sequences_new.append(v)
+
 
     # return the final result 
     return acceptance_sequences_new
@@ -841,10 +964,6 @@ def _valid_insertion_position(
         
     # if all the checks passed, the position is possible regarding the process structure 
     return True
-
-
-
-
 
 
 def required_truth_values(dep_type: ExistentialType) -> dict:
