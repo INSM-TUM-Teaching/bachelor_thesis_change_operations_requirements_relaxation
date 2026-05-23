@@ -67,16 +67,39 @@ def op_decollapse(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     print(f"\n  Current activities: {matrix.activities}")
-    collapsed_act = prompt("Activity to de-collapse")
+
+    # ensure the activity is in the process 
+    while True: 
+        collapsed_act = prompt("Activity to de-collapse")
+
+        if collapsed_act not in matrix.activities: 
+            print(f"  ✗  '{collapsed_act}' is not in the activity list of the process: {matrix.activities}")
+            continue
+    
+        break 
+
     print("\n  Provide the sub-process matrix for the collapsed activity:")
     sub_choice = choose(
         "Load sub-process model from:",
         ["YAML file", "Acceptance sequences (manual input)"],
     )
+    
     if sub_choice == "YAML file":
-        sub_matrix = load_from_yaml()
+        while True:
+            sub_matrix = load_from_yaml()
+            duplicates = [a for a in sub_matrix.activities if a in matrix.activities]
+            if not duplicates:
+                break
+            print(f"  ✗  Activities {duplicates} already exist in the main process; provide a sub-process with unique activities")
     else:
-        sub_matrix = load_from_sequences()    
+        while True:
+            sub_matrix = load_from_sequences()
+            duplicates = [a for a in sub_matrix.activities if a in matrix.activities]
+            if not duplicates:
+                break
+            print(f"  ✗  Activities {duplicates} already exist in the main process; provide a sub-process with unique activities")
+
+    
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  

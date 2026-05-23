@@ -75,6 +75,9 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
             print(f"  ✗  '{from_act}' is not in the activity list: {matrix.activities}")
             continue
 
+        break
+
+    while True:
         to_act = prompt("    To activity")
         if to_act not in matrix.activities:
             print(f"  ✗  '{to_act}' is not in the activity list: {matrix.activities}")
@@ -83,6 +86,10 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         if from_act == to_act:
             print(f"  ✗  From and To activity must be different.")
             continue
+
+        break
+
+    while True: 
 
         temp  = ask_temporal()
         exist = ask_existential()

@@ -64,7 +64,15 @@ def op_skip(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     print(f"\n  Current activities: {matrix.activities}")
-    activity = prompt("Activity to make optional (skip)")  
+
+    while True: 
+        activity = prompt("Activity to make optional (skip)")  
+
+        if activity not in matrix.activities: 
+            print(f"  ✗  Activity '{activity}' is not in the process")
+            continue
+
+        break
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  

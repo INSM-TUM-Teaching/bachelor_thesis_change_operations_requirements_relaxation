@@ -63,8 +63,24 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     print(f"\n  Current activities: {matrix.activities}")
-    act1 = prompt("First activity")
-    act2 = prompt("Second activity")
+
+    while True: 
+        act1 = prompt("First activity")
+
+        if act1 not in matrix.activities: 
+            print(f"  ✗  Activity '{act1}' is not in the process")
+            continue
+
+        break
+
+    while True: 
+        act2 = prompt("Second activity")
+
+        if act2 not in matrix.activities: 
+            print(f"  ✗  Activity '{act2}' is not in the process")
+            continue
+
+        break
     
 
     # ════════════════════════════════════════════════════════════════════════════

@@ -65,12 +65,28 @@ def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
     """
 
     # ════════════════════════════════════════════════════════════════════════════
-    #  Step 1: Get the reuqired input from teh user 
+    #  Step 1: Get the reuqired input from the user 
     # ════════════════════════════════════════════════════════════════════════════
 
     print(f"\n  Current activities: {matrix.activities}")
-    old_act = prompt("Activity to replace")
-    new_act = prompt("New activity name")
+
+    while True: 
+        old_act = prompt("Activity to replace")
+
+        if old_act not in matrix.activities: 
+            print(f"  ✗  Activity '{old_act}' is not in the process")
+            continue
+
+        break
+
+    while True:
+        new_act = prompt("New activity name")
+
+        if new_act in matrix.activities: 
+            print(f"  ✗  Activity '{new_act}' is already in the process")
+            continue
+
+        break
      
 
     # ════════════════════════════════════════════════════════════════════════════

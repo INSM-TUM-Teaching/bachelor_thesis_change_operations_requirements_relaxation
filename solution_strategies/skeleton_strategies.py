@@ -121,30 +121,37 @@ def adapt_process(matrix: AdjacencyMatrix,
         if to_act not in all_occurence_activities: 
             all_occurence_activities.append(to_act)
 
-        # Find the indices of all chain sets that contain either activity
-        containing_indices = [
-            i for i, cs in enumerate(chain_sets)
-            if from_act in cs or to_act in cs
-        ]
+        # -------------------------
+        # build chain sets 
 
-        if not containing_indices:
-            # Neither activity is known yet → open a new chain set
-            chain_sets.append({from_act, to_act})
+        # only consider the activity for the chain sets, if they have an existential dependency 
+        if exist_dep: 
+            # Find the indices of all chain sets that contain either activity
+            containing_indices = [
+                i for i, cs in enumerate(chain_sets)
+                if from_act in cs or to_act in cs
+            ]
 
-        elif len(containing_indices) == 1:
-            # One chain set already contains one activity → add the other
-            chain_sets[containing_indices[0]].update({from_act, to_act})
+            if not containing_indices:
+                # Neither activity is known yet → open a new chain set
+                chain_sets.append({from_act, to_act})
 
-        else:
-            # Activities sit in different chain sets → merge them all into one
-            # Iterate in reverse so that popping by index does not shift
-            # the positions of indices we have not yet removed
-            merged: Set[str] = {from_act, to_act}
-            for i in sorted(containing_indices, reverse=True):
-                merged.update(chain_sets[i])
-                chain_sets.pop(i)
-            chain_sets.append(merged)
+            elif len(containing_indices) == 1:
+                # One chain set already contains one activity → add the other
+                chain_sets[containing_indices[0]].update({from_act, to_act})
 
+            else:
+                # Activities sit in different chain sets → merge them all into one
+                # Iterate in reverse so that popping by index does not shift
+                # the positions of indices we have not yet removed
+                merged: Set[str] = {from_act, to_act}
+                for i in sorted(containing_indices, reverse=True):
+                    merged.update(chain_sets[i])
+                    chain_sets.pop(i)
+                chain_sets.append(merged)
+
+        
+        # -----------------------------------
         # build the ordering tuples 
         if temp_dep: 
             if temp_dep.direction == Direction.FORWARD: 
@@ -154,7 +161,10 @@ def adapt_process(matrix: AdjacencyMatrix,
             else: 
                 all_ordering_pairs.append((to_act, from_act))
                 all_ordering_pairs.append((from_act, to_act))
-                
+
+    # deduplicate the ordering pairs while preserving order
+    all_ordering_pairs = list(dict.fromkeys(all_ordering_pairs))
+        
         
     log("Build the chain sets")
     log(f"Chain sets: {chain_sets} \n")

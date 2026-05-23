@@ -72,7 +72,17 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     # ════════════════════════════════════════════════════════════════════════════
 
     # get the parameters for the change operation
-    activity = prompt("New activity name")
+
+    # get the name of the new activity - ensure it is not alreday part of the process
+    while True: 
+        activity = prompt("New activity name")
+
+        if activity in matrix.activities: 
+            print(f"  ✗  Activity '{activity}' already exists in the process") 
+            continue
+    
+        break
+
     print(f"\n  Current activities: {matrix.activities}")
 
     # TODO modify so that only dependencies including the activity for insertion can be provided

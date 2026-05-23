@@ -72,7 +72,17 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     print(f"\n  ── Parameters for: insert ──")
 
     print(f"\n  Current activities: {matrix.activities}")
-    activity = prompt("Activity to move")
+
+    # get the activity to move - ensure it is in the process 
+    while True: 
+        activity = prompt("Activity to move")
+
+        if activity not in matrix.activities: 
+            print(f"  ✗  Activity {activity} is not in the process.")
+            continue
+
+        break
+            
     print("\n  Specify the new dependencies that define the new position:")
     deps = ask_dependencies_insertion(matrix.activities, activity)
     

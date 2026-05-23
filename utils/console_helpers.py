@@ -179,6 +179,7 @@ def ask_existential() -> ExistentialDependency | None:
         direction = Direction.BOTH.name
     return ExistentialDependency(ExistentialType[e_type], Direction[direction])
 
+
 def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -> dict:
     """
     Ask the user to specify one or more (from, to, temporal, existential) tuples.
@@ -201,12 +202,12 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
         # ask the user to provide the second activity
         to_act = prompt("    To activity (or blank to finish) ")
 
-        
         if not to_act: 
 
-            # check that an existential dependency was provided 
+            # check that any dependency was provided
             has_existential = any(exist is not None for (_, exist) in deps.values())
             has_temporal = any(temp is not None for (temp, _) in deps.values())
+
             if not has_existential and not has_temporal:
                 print("  ✗  At least one dependency is required. Please add one before finishing.")
                 continue
@@ -228,8 +229,21 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
         temp  = ask_temporal()
         exist = ask_existential()
 
-        # add the dependencies to the dictionary 
-        deps[(from_act, to_act)] = (temp, exist)
+        # add the dependencies to the dictionary - if at least one dependency exists
+        if temp is None and exist is None: 
+            print(f"  ✗  For '({from_act}, {to_act})' no dependencies were provided.")
+            continue
+
+        # check if they are already in the dictionary 
+        if (from_act, to_act) in deps: 
+            print(f"  ✗  For '({from_act}, {to_act})' exists already an entry to specify dependencies.")
+            
+            # ask the user if the entry should be overwritten 
+            if confirm("Do you want to overwrite that entry?"): 
+                deps[(from_act, to_act)] = (temp, exist)
+
+        else: 
+            deps[(from_act, to_act)] = (temp, exist)
 
     # return the new dependencies 
     return deps

@@ -62,7 +62,17 @@ def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
     #  Step 1: Get the reuqired input from teh user 
     # ════════════════════════════════════════════════════════════════════════════
 
-    activity = prompt("Activity to delete")    
+    # verify that the activity is part of the process
+    while True: 
+        # get the activity 
+        activity = prompt("Activity to delete")   
+
+        if activity not in matrix.activities: 
+            print(f"  ✗  Activity '{activity}' is not part of the process") 
+            continue
+
+        break
+        
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  

@@ -182,7 +182,7 @@ acceptance_sequences = [
 """
 
 #WCP 19
-acceptance_sequences = [['A', 'B'], ['A']]
+# acceptance_sequences = [['A', 'B'], ['A']]
 
 """
 LOCKED_DEPENDENCIES: Dict[
@@ -198,7 +198,11 @@ LOCKED_DEPENDENCIES: Dict[
 }
 """
 
-locked_dependencies = dict()
+acceptance_sequences = [['A', 'B', 'C', 'D']]
+
+locked_dependencies = {
+    ("A", "B"): (None, ExistentialDependency(type=EQUIV, direction=BOTH))
+}
 
 # build the matrix
 matrix = variants_to_matrix(acceptance_sequences)
@@ -226,4 +230,6 @@ if result is not matrix:
     print_matrix(result, "Modified Matrix")
 else:
     print("\n  ℹ  Matrix unchanged : no modified matrix to display.")
+
+print(generate_acceptance_variants(result))
 

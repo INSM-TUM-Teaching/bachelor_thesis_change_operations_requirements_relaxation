@@ -162,7 +162,6 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
                     if (from_act, to_act) in combined: 
                         locked_temp, locked_exist = combined[(from_act, to_act)]
 
-
                         if locked_temp is not None and locked_temp.type != TemporalType.INDEPENDENCE:
                             print(
                                 f"  ✗  Conflict on temporal dependency ({from_act} → {to_act}): "
@@ -193,7 +192,7 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perfom_skeleton_algorithm(result, combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════

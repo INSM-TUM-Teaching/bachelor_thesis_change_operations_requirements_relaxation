@@ -68,8 +68,25 @@ def op_condition_update(matrix: AdjacencyMatrix, locked_dependencies):
     print(f"\n  Current activities: {matrix.activities}")
     print("\n  Specify the condition-update activities:")
 
-    condition_activity = prompt("Condition activity ")
-    depending_activity = prompt("Depending activity ")
+    while True:
+        condition_activity = prompt("Condition activity")
+        if condition_activity not in matrix.activities:
+            print(f"  ✗  '{condition_activity}' is not in the current activity list: {matrix.activities}")
+            continue
+
+        break
+
+    while True: 
+        depending_activity = prompt("Depending activity")
+        if depending_activity not in matrix.activities:
+            print(f"  ✗  '{depending_activity}' is not in the current activity list: {matrix.activities}")
+            continue
+        
+        if depending_activity == condition_activity: 
+            print(f"  ✗  '{depending_activity}' can not be defined as self-depending, please insert a differnt activity")
+            continue
+
+        break
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
