@@ -137,7 +137,7 @@ def op_decollapse(matrix: AdjacencyMatrix, locked_dependencies):
 
         else: 
             # if the user does not accept, change operation is not possible and we return an error 
-            raise Exception("'Collapse' can not be performed when there are locked dependencies which would be violated")
+            raise ValueError("'Collapse' can not be performed when there are locked dependencies which would be violated")
 
 
     # ════════════════════════════════════════════════════════════════════════════

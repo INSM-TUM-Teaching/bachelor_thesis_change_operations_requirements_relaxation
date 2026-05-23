@@ -113,7 +113,7 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
 
             else: 
                 # if the user does not accept, change operation is not possible and we return an error 
-                raise Exception("Swap can not be performed when there are locked dependencies which would be violated")
+                raise ValueError("Swap can not be performed when there are locked dependencies which would be violated")
      
     
 

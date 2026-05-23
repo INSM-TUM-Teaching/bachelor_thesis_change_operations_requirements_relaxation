@@ -134,7 +134,7 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
 
         else: 
             # if the user does not accept, change operation is not possible and we return an error 
-            raise Exception("Parallleize can not be performed when there are locked dependencies which would be violated")
+            raise ValueError("Parallleize can not be performed when there are locked dependencies which would be violated")
      
         
     # ════════════════════════════════════════════════════════════════════════════
