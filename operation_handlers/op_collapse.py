@@ -64,9 +64,6 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 from utils.dependency_relaxation import perform_dependency_relaxation
 
 
-
-
-
 def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
     """
     Collapse a fragment and perfom the check for violated locked dependencies
@@ -81,15 +78,22 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
     """
 
     # ════════════════════════════════════════════════════════════════════════════
-    #  Step 1: Get the reuqired input from teh user 
+    #  Step 1: Get the reuqired input from the user 
     # ════════════════════════════════════════════════════════════════════════════
 
     print(f"\n  Current activities: {matrix.activities}")
-    collapsed_name = prompt("Name of new collapsed activity")
-    raw = prompt("Activities to collapse (comma-separated)")
-    
 
+    while True: 
+        collapsed_name = prompt("Name of new collapsed activity")
+
+        if collapsed_name in matrix.activities: 
+            print(f"  ✗  Activity '{collapsed_name}' is already part of the process") 
+            continue
+
+        break
+    
     while True:
+        raw = prompt("Activities to collapse (comma-separated)")
         collapse_acts = [a.strip() for a in raw.split(",") if a.strip()]
 
         if all(act in matrix.activities for act in collapse_acts):
@@ -98,13 +102,63 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
         print(f"  Invalid activities. Please enter only activities from: {matrix.activities}")
         raw = prompt("Activities to collapse (comma-separated)")
 
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # define a set of involved locks for the set of activities affected 
+    involved_locks = [(from_act, to_act) for (from_act, to_act) in locked_dependencies if from_act in collapse_acts or to_act in collapse_acts]
+    
+    # inform the user with a banner 
+    if involved_locks: 
+        banner("Check for unresolvable violations to locked dependencies")
+
+    # for each of the involved locked dependencies, perfom the check
+    for (from_act, to_act) in involved_locks: 
+        
+        # get the effected dependencies 
+        temp, exist = locked_dependencies[(from_act, to_act)]
+
+        temp_str = dep_label_temp(temp) + " " if temp is not None else ""
+        exist_str = dep_label_exist(exist) + " " if exist is not None else ""
+
+        # if only one activity part of collapse, ask if to accept and remove dependency 
+        if (from_act in collapse_acts and to_act not in collapse_acts) or (from_act not in collapse_acts and to_act in collapse_acts): 
+            
+            str_act = from_act if from_act in collapse_acts else to_act
+
+            print(f"\nActivity '{str_act}' is in the set of activities to be collapsed and part of a locked dependency")
+            print("Collapsing would violate the locked dependency.")
+            print("If the locked dependency is uphold, the change operation becomes infesible.")
+            print(f"The affected dependency is ({from_act} {temp_str}, {exist_str} {to_act})")
+
+            # ask the user if the dependency should be deleted to perfom the change operation 
+            if confirm("Do you want to delete the locked dependency?"): 
+                # delete the entry from the locked dependencies 
+                del locked_dependencies[(from_act, to_act)]
+
+            else: 
+                # if the user does not accept, change operation is not possible and we return an error 
+                raise Exception("Collapse can not be performed when there are locked dependencies which would be violated")
+
+        # else both are part of collapse, inform the user and remove the locked dependency 
+        else:  
+            # inform the user about the deletion 
+            print(f"\nThe activities {from_act}, {to_act} are both part of the set to be collapsed and have the dependency ({from_act} {temp_str}{exist_str}{to_act})")
+            print("To perfom the collapse operation, the locked dependecies are getting removed - they can be seen as preserved in the collapsed process")
+            
+            # delete the activities 
+            del locked_dependencies[(from_act, to_act)]
+        
+
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
     # ════════════════════════════════════════════════════════════════════════════
 
     # perform the change operation, if activities in between catch the error and perform the alternative change operations 
     try: 
-        reult = collapse_operation(matrix, collapsed_name, collapse_acts)
+        result = collapse_operation(matrix, collapsed_name, collapse_acts)
     # check that we catch the correct error message 
     except ValueError as e:
         msg = str(e)
