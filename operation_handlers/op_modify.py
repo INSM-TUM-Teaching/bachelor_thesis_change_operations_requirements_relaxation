@@ -104,13 +104,67 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     modification = [(from_act, to_act, temp, exist)]
 
     # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # check if for the modified dependencies there are locked dependencies 
+    if (from_act, to_act) in locked_dependencies:
+
+        banner("Check for unresolvable violations to locked dependencies")
+        print("\nYou are trying to modify a locked dependency.")
+
+        temp_locked, exist_locked = locked_dependencies[(from_act, to_act)]
+
+        # ── Temporal component conflict ───────────────────────────────────────
+        if (temp_locked is not None) and (temp is not None) and (temp_locked != temp):
+
+            print(f"\nThe locked temporal dependency is:    ({from_act} {dep_label_temp(temp_locked)} {to_act})")
+            print(f"The requested temporal modification:  ({from_act} {dep_label_temp(temp)} {to_act})")
+
+            if confirm("Keep the locked temporal dependency? (temporal part of modification will be skipped)"):
+                # drop the temporal part of the modification, keep the lock intact
+                temp = None
+            else:
+                # user accepts overriding — remove only the temporal component from the lock
+                exist_locked_current = locked_dependencies[(from_act, to_act)][1]
+                if exist_locked_current is None:
+                    del locked_dependencies[(from_act, to_act)]
+                else:
+                    locked_dependencies[(from_act, to_act)] = (None, exist_locked_current)
+
+        # ── Existential component conflict ────────────────────────────────────
+        if (exist_locked is not None) and (exist is not None) and (exist_locked != exist):
+
+            print(f"\nThe locked existential dependency is:    ({from_act} {dep_label_exist(exist_locked)} {to_act})")
+            print(f"The requested existential modification:  ({from_act} {dep_label_exist(exist)} {to_act})")
+
+            if confirm("Keep the locked existential dependency? (existential part of modification will be skipped)"):
+                # drop the existential part of the modification, keep the lock intact
+                exist = None
+            else:
+                # user accepts overriding — remove only the existential component from the lock
+                temp_locked_current = locked_dependencies.get((from_act, to_act), (None, None))[0]
+                if temp_locked_current is None:
+                    del locked_dependencies[(from_act, to_act)]
+                else:
+                    locked_dependencies[(from_act, to_act)] = (temp_locked_current, None)
+
+    # ── Early exit if the user suppressed both components ────────────────────
+    if temp is None and exist is None:
+        print("\n  ℹ  All modifications were suppressed by locked dependencies. No changes applied.")
+        return matrix, locked_dependencies
+
+    # rebuild modification tuple with the (possibly narrowed) components
+    modification = [(from_act, to_act, temp, exist)]
+
+
+    # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
     # ════════════════════════════════════════════════════════════════════════════
 
     # using the standard algorithm, in the next step we need to check, that the modification really took place 
     try: 
         result, _ = modify_dependencies(matrix, modification)
-        print(result)
         log("\nStandard algorithm used for the modify operation")
 
     except Exception as e:

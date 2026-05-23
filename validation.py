@@ -200,10 +200,13 @@ LOCKED_DEPENDENCIES: Dict[
 
 acceptance_sequences = [['A', 'B', 'C', 'D']]
 
+
 locked_dependencies = {
     ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
+    ("B", "D"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
     ("C", "D"): (TemporalDependency(type=DIRECT, direction=FWD), None)
 }
+
 
 # build the matrix
 matrix = variants_to_matrix(acceptance_sequences)
@@ -216,7 +219,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_collapse(matrix, locked_dependencies)
+result, locked_dependencies = op_swap(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:

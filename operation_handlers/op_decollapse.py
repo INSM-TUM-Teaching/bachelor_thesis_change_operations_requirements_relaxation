@@ -100,6 +100,45 @@ def op_decollapse(matrix: AdjacencyMatrix, locked_dependencies):
             print(f"  ✗  Activities {duplicates} already exist in the main process; provide a sub-process with unique activities")
 
     
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # define a set of involved locks for the set of activities affected 
+    involved_locks = [(from_act, to_act) for (from_act, to_act) in locked_dependencies if from_act == collapsed_act or to_act == collapsed_act]
+    
+    # inform the user with a banner 
+    if involved_locks: 
+        banner("Check for unresolvable violations to locked dependencies")
+
+        # inform the user that the activity to de-collapse has locked dependencies
+        print(f"\nActivity '{collapsed_act}' has locked dependencies to other activities of the process")
+        print("De-collapsing would violate the locked dependencies.")
+        print("If the locked dependencies are uphold, the change operation becomes infesible.")
+        print("The following list provides an overview of the affected locked dependencies:")
+
+        # provide a list of the effected dependencies
+        for (from_act, to_act) in involved_locks: 
+            
+            # get the effected dependencies 
+            temp, exist = locked_dependencies[(from_act, to_act)]
+
+            temp_str = dep_label_temp(temp) + " " if temp is not None else ""
+            exist_str = dep_label_exist(exist) + " " if exist is not None else ""
+
+            print(f"   - ({from_act} {temp_str}, {exist_str} {to_act})")
+
+
+        # ask the user if the dependency should be deleted to perfom the change operation 
+        if confirm("\nDo you want to delete all the locked dependencies, to be able to perfom the change operation 'collapse'?"): 
+            # delete the entry from the locked dependencies 
+            for (from_act, to_act) in involved_locks: 
+                del locked_dependencies[(from_act, to_act)]
+
+        else: 
+            # if the user does not accept, change operation is not possible and we return an error 
+            raise Exception("'Collapse' can not be performed when there are locked dependencies which would be violated")
+
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  

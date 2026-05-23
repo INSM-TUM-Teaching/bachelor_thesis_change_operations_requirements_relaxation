@@ -81,6 +81,40 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
             continue
 
         break
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # check if the activities to be swapped have a locked dependency 
+    if (act1, act2) in locked_dependencies: 
+        locked_temp, locked_exist = locked_dependencies[(act1, act2)]
+
+        # check that the pair has a locked temp. dependency and that it is not indpendence; meaning swap must cause a violation 
+        if (locked_temp is not None) and (locked_temp.type != TemporalType.INDEPENDENCE):
+
+            # inform the user 
+            banner("Check for unresolvable violations to locked dependencies")
+
+            # inform the user that the activity to de-collapse has locked dependencies
+            print(f"\nThe activities to swap have a locked temporal dependency ({act1} {dep_label_temp(locked_temp)} {act2})")
+            print(f"To be able to perfom the swap, the locked temporal dependency must be deleted.")
+            
+            # ask the user if the dependency should be deleted to perfom the change operation 
+            if confirm("\nDo you want to delete the locked temporal dependency (otherwise the chnage operation can not be performed)?"): 
+                # delete the entry from the locked dependencies 
+                del locked_dependencies[(act1, act2)]
+
+                # if there is a locked existential dependency, reinsert it 
+                if locked_exist is not None: 
+                    locked_dependencies[(act1, act2)] = (None, locked_exist)
+
+                print(f"\n  ✓  The temporal dependency between activities '{act1}' and '{act2}' were deleted.")
+
+            else: 
+                # if the user does not accept, change operation is not possible and we return an error 
+                raise Exception("Swap can not be performed when there are locked dependencies which would be violated")
+     
     
 
     # ════════════════════════════════════════════════════════════════════════════

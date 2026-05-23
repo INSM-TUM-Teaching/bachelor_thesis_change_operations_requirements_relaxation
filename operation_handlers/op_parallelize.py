@@ -79,8 +79,64 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
 
         print(f"  Invalid activities. Please enter only activities from: {matrix.activities}")
         raw = prompt("Activities to parallelize (comma-separated)")
-        
 
+    
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # we only consider those locks, where both activities are in the set for parallelization 
+    involved_locks = [
+        (from_act, to_act)
+        for (from_act, to_act) in locked_dependencies
+        if from_act in activities_parallelization and to_act in activities_parallelization
+        if (
+            # temporal is locked and is not independence (ordering constraint exists)
+            (lambda t, _: t is not None and t.type != TemporalType.INDEPENDENCE)(
+                *locked_dependencies[(from_act, to_act)]
+            )
+            or
+            # existential is locked and is not equivalence (co-occurrence constraint differs)
+            (lambda _, e: e is not None and e.type != ExistentialType.EQUIVALENCE)(
+                *locked_dependencies[(from_act, to_act)]
+            )
+        )
+    ]
+    
+    # inform the user with a banner 
+    if involved_locks: 
+
+        # inform the user, provide a list of violations 
+        banner("Check for unresolvable violations to locked dependencies")
+
+        # inform the user that the activity to de-collapse has locked dependencies
+        print(f"Parallelization leads to temporal independence and existential equivalence for the activities or parallelization.")
+        print(f"The following locked dependencies would be violated by the parallelization, beacuse of dependency type enforcement:")
+       
+        # provide a list of the effected dependencies
+        for (from_act, to_act) in involved_locks: 
+            
+            # get the effected dependencies 
+            temp, exist = locked_dependencies[(from_act, to_act)]
+
+            temp_str = dep_label_temp(temp) + " " if temp is not None else ""
+            exist_str = dep_label_exist(exist) + " " if exist is not None else ""
+
+            print(f"   - ({from_act} {temp_str}, {exist_str} {to_act})")
+
+        # ask the user if the dependency should be deleted to perfom the change operation 
+        if confirm("\nDo you want to delete all the locked dependencies (otherwise parallelization is not possible)?"): 
+            # delete the entry from the locked dependencies 
+            for (from_act, to_act) in involved_locks: 
+                del locked_dependencies[(from_act, to_act)]
+
+            print(f"\n  ✓  Locked dependencies involving activity are deleted.")
+
+        else: 
+            # if the user does not accept, change operation is not possible and we return an error 
+            raise Exception("Parallleize can not be performed when there are locked dependencies which would be violated")
+     
+        
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
     # ════════════════════════════════════════════════════════════════════════════

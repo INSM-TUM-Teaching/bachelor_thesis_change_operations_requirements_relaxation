@@ -87,6 +87,58 @@ def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
             continue
 
         break
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # define a set of involved locks for the set of activities affected 
+    involved_locks = [(from_act, to_act) for (from_act, to_act) in locked_dependencies if from_act == old_act or to_act == old_act]
+    
+    # inform the user with a banner 
+    if involved_locks: 
+        banner("Check for unresolvable violations to locked dependencies")
+
+        # inform the user that the activity to de-collapse has locked dependencies
+        print(f"\nActivity '{old_act}' for replacement has locked dependencies to other activities of the process")
+        print(f"Replacement would violate the locked dependencies, if they are not deleted or transfered to the new activity '{new_act}'.")
+        print("The following list provides an overview of the affected locked dependencies:")
+
+        # provide a list of the effected dependencies
+        for (from_act, to_act) in involved_locks: 
+            
+            # get the effected dependencies 
+            temp, exist = locked_dependencies[(from_act, to_act)]
+
+            temp_str = dep_label_temp(temp) + " " if temp is not None else ""
+            exist_str = dep_label_exist(exist) + " " if exist is not None else ""
+
+            print(f"   - ({from_act} {temp_str}, {exist_str} {to_act})")
+
+        # ask the user if the dependency should be deleted to perfom the change operation 
+        if confirm("\nDo you want to delete all the locked dependencies (otherwise the dependencies will be transferred to the new activity)?"): 
+            # delete the entry from the locked dependencies 
+            for (from_act, to_act) in involved_locks: 
+                del locked_dependencies[(from_act, to_act)]
+
+            print(f"\n  ✓  Locked dependencies involving activity '{old_act}' are deleted.")
+
+        else: 
+            # transfer all the locked dependencies to the new activity 
+            for (from_act, to_act) in involved_locks: 
+                # get the dependencies
+                locked_temp, locked_exist = locked_dependencies[(from_act, to_act)]
+
+                # delete the old entry
+                del locked_dependencies[(from_act, to_act)]
+
+                # add the new entry with the new activity 
+                if from_act == old_act: 
+                    locked_dependencies[(new_act, to_act)] = (locked_temp, locked_exist)
+                else: 
+                    locked_dependencies[(from_act, new_act)] = (locked_temp, locked_exist)
+
+            print(f"\n  ✓  Locked dependencies from activity '{old_act}' are transfered to the new activity '{new_act}'.")
      
 
     # ════════════════════════════════════════════════════════════════════════════
