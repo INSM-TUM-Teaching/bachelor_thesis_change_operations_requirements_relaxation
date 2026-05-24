@@ -118,7 +118,7 @@ BOTH       = Direction.BOTH
 # acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
 
 # WCP 6 multi choice 
-"""
+
 acceptance_sequences = [
     ['A', 'B'],
     ['A', 'C'],
@@ -136,10 +136,11 @@ acceptance_sequences = [
     ['A', 'D', 'B', 'C'],
     ['A', 'D', 'C', 'B'],
 ]
-"""
 
-"""
+
+
 # WCP 7 structured synchronization merge 
+"""
 acceptance_sequences = [
     ['A', 'D'],
     ['B', 'D'],
@@ -180,10 +181,11 @@ acceptance_sequences = [
     ['C', 'A', 'B'],
 ]
 """
+"""
 
 #WCP 19
 # acceptance_sequences = [['A', 'B'], ['A']]
-
+"""
 """
 LOCKED_DEPENDENCIES: Dict[
     Tuple[str, str],
@@ -198,14 +200,18 @@ LOCKED_DEPENDENCIES: Dict[
 }
 """
 
-acceptance_sequences = [['A', 'B', 'C', 'D']]
+# acceptance_sequences = [['A', 'B', 'C']]
+
+# acceptance_sequences =[['A', 'B'], ['A']]
 
 
+"""
 locked_dependencies = {
-    ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
-    ("B", "D"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
-    ("C", "D"): (TemporalDependency(type=DIRECT, direction=FWD), None)
+    ("A", "B"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
 }
+"""
+
+locked_dependencies = dict()
 
 
 # build the matrix
@@ -219,7 +225,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_swap(matrix, locked_dependencies)
+result, locked_dependencies = op_insert(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:

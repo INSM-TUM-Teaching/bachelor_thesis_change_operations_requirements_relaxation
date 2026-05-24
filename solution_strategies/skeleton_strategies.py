@@ -536,105 +536,6 @@ def adapt_process(matrix: AdjacencyMatrix,
         for v in modified_variants: 
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
-
-    # ════════════════════════════════════════════════════════════════════════════
-    #  For unused chain new activities, find acceptance sequences 
-    # ════════════════════════════════════════════════════════════════════════════
-
-    # initilaize variable to track if new activity is used 
-    new_activity_used = False
-
-    # check if there is a new activity 
-    if new_activity is not None: 
-
-        # iterate over all acceptance sequences, to check if the new activity is used
-        for acceptance_sequence_new in acceptance_sequences_new: 
-            # check if the new activity is contained in the new acceptanec sequence 
-            if new_activity in acceptance_sequence_new: 
-                new_activity_used = True
-                break
-        
-        # if the new activity is not used, we need to find a combination for it to be used 
-        if not new_activity_used: 
-
-            log(f"\nThe new activity {new_activity} was not used in the skeleton startegy, to ensure insertion, we identify potential acceptance sequences")
-
-            # only consider skeleton sequences that actually contain this activity
-            candidate_skeletons = [s for s in skeleton_sequences if new_activity in s]
-
-            log(f"\nPotential skeleton sequences are: {candidate_skeletons}\n")
-
-            best_acceptance_sequence = []
-            best_skel_seq = []
-            max_sim_score_occurence = -10.0
-            max_sim_score_ordering  = -10.0
-            max_sim_score_combined  = -10.0
-
-            for candidate_skel_seq in candidate_skeletons:
-                for acceptance_sequence in acceptance_sequences:
-
-                    sim_score_occurence = similarity_score.similarity_calculation_occurence(
-                        acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
-                    sim_score_ordering = similarity_score.similarity_calculation_ordering(
-                        acceptance_sequence, candidate_skel_seq)
-
-                    if similarity_strategy == "occurence":
-                        if sim_score_occurence > max_sim_score_occurence:
-                            max_sim_score_occurence = sim_score_occurence
-                            best_acceptance_sequence = acceptance_sequence
-                            best_skel_seq = candidate_skel_seq
-                            max_sim_score_ordering = sim_score_ordering
-                        elif sim_score_occurence == max_sim_score_occurence:
-                            if sim_score_ordering > max_sim_score_ordering:
-                                max_sim_score_ordering = sim_score_ordering
-                                best_acceptance_sequence = acceptance_sequence
-                                best_skel_seq = candidate_skel_seq
-
-                    elif similarity_strategy == "ordering":
-                        if sim_score_ordering > max_sim_score_ordering:
-                            max_sim_score_ordering = sim_score_ordering
-                            best_acceptance_sequence = acceptance_sequence
-                            best_skel_seq = candidate_skel_seq
-                            max_sim_score_occurence = sim_score_occurence
-                        elif sim_score_ordering == max_sim_score_ordering:
-                            if sim_score_occurence > max_sim_score_occurence:
-                                max_sim_score_occurence = sim_score_occurence
-                                best_acceptance_sequence = acceptance_sequence
-                                best_skel_seq = candidate_skel_seq
-
-                    else:
-                        sim_score_combined = (sim_score_occurence + sim_score_ordering) / 2
-                        if sim_score_combined > max_sim_score_combined:
-                            max_sim_score_combined = sim_score_combined
-                            best_acceptance_sequence = acceptance_sequence
-                            best_skel_seq = candidate_skel_seq
-
-
-            if similarity_strategy == "occurence":
-                used_score = max_sim_score_occurence
-            elif similarity_strategy == "ordering":
-                used_score = max_sim_score_ordering
-            else:
-                used_score = max_sim_score_combined
-
-            log(f"Skeleton sequence: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
-
-            # get the contained ordering pairs per skeleton sequence 
-            contained_pairs = contained_ordering_pairs(best_skel_seq, all_ordering_pairs)
-
-            # remove all the used pairs to get an overview of the unused pairs 
-            for pair in contained_pairs: 
-                if pair in unused_ordering_pairs: 
-                    unused_ordering_pairs.remove(pair)
-
-            # perfom the adaption of the acceptance sequence 
-            modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
-
-            # ensure that we do not add duplicates 
-            for v in modified_variants: 
-                if v not in acceptance_sequences_new: 
-                    acceptance_sequences_new.append(v)
-
     
     # ════════════════════════════════════════════════════════════════════════════
     #  For unused ordering pairs, find acceptance sequences 
@@ -1243,19 +1144,19 @@ def required_truth_values(dep_type: ExistentialType) -> dict:
             "exists_both":    False,  # forbidden
             "exists_only_a":  True,   # don't care
             "exists_only_b":  True,   # don't care
-            "exists_neither": None,   # don't care
+            "exists_neither": True,   # don't care
         },
         ExistentialType.OR: {
-            "exists_both":    None,   # don't care
-            "exists_only_a":  None,   # don't care
-            "exists_only_b":  None,   # don't care
+            "exists_both":    True,   # don't care
+            "exists_only_a":  True,   # don't care
+            "exists_only_b":  True,   # don't care
             "exists_neither": False,  # forbidden — OR requires at least one always present
         },
         ExistentialType.INDEPENDENCE: {
-            "exists_both":    None,
-            "exists_only_a":  None,
-            "exists_only_b":  None,
-            "exists_neither": None,   # all don't care
+            "exists_both":    True,  # None
+            "exists_only_a":  True,  # None
+            "exists_only_b":  True,  # None
+            "exists_neither": True,   # all don't care
         },
     }[dep_type]
 
