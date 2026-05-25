@@ -10,8 +10,6 @@ from dependencies import (
     TemporalDependency, ExistentialDependency,
     TemporalType, ExistentialType, Direction,
 )
-from variants_to_matrix import variants_to_matrix
-from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.swap_operation      import swap_activities
@@ -42,6 +40,9 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
+
+# ── reverse dependency ─────────────────────────────────────────────────
+from utils.console_helpers import reverse_dependency
 
 
 
@@ -105,9 +106,16 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
                 # delete the entry from the locked dependencies 
                 del locked_dependencies[(act1, act2)]
 
+                # also delete the reverse
+                if (act2, act1) in locked_dependencies: 
+                    del locked_dependencies[(act1, act2)]
+
                 # if there is a locked existential dependency, reinsert it 
                 if locked_exist is not None: 
                     locked_dependencies[(act1, act2)] = (None, locked_exist)
+
+                    # reinsert the revers 
+                    locked_dependencies[(act2, act1)] = (None, reverse_dependency(locked_exist))
 
                 print(f"\n  ✓  The temporal dependency between activities '{act1}' and '{act2}' were deleted.")
 

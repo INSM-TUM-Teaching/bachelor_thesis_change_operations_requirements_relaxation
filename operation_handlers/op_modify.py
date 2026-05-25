@@ -46,6 +46,9 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 # ── Debug mode ─────────────────────────────────────────────────
 from utils.debug_mode import log
 
+# ── Reverse dependency function ─────────────────────────────────────────────────
+from utils.console_helpers import reverse_dependency
+
 
 def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     """
@@ -69,6 +72,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     modifications = []
     print("\n  Enter modification:")
     
+    # get the from activity and ensure it is part of the process 
     while True:
         from_act = prompt("    From activity")
         if from_act not in matrix.activities:
@@ -77,6 +81,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
         break
 
+    # get the to activit and ensure it is in the process 
     while True:
         to_act = prompt("    To activity")
         if to_act not in matrix.activities:
@@ -89,6 +94,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
         break
 
+    # get the dependencies for modification and ensure at least one of the dependencies is not None 
     while True: 
 
         temp  = ask_temporal()
@@ -101,13 +107,14 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         # valid input received
         break
 
+    # based on the input define the modification; modify operation handles the inverse automatically  
     modification = [(from_act, to_act, temp, exist)]
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Check for violations of locked dependencies, which can not be resolved 
     # ════════════════════════════════════════════════════════════════════════════
 
-    # check if for the modified dependencies there are locked dependencies 
+    # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
     if (from_act, to_act) in locked_dependencies:
 
         banner("Check for unresolvable violations to locked dependencies")
@@ -127,10 +134,21 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
             else:
                 # user accepts overriding — remove only the temporal component from the lock
                 exist_locked_current = locked_dependencies[(from_act, to_act)][1]
+
+                # modify the entry, by either deleting it if no exist dependency is locked, or modifying it 
                 if exist_locked_current is None:
                     del locked_dependencies[(from_act, to_act)]
+
+                    # also delete other direction 
+                    if (to_act, from_act) in locked_dependencies: 
+                        del locked_dependencies[(to_act, from_act)]
+
                 else:
                     locked_dependencies[(from_act, to_act)] = (None, exist_locked_current)
+
+                    # modify also the reverse entry 
+                    locked_dependencies[(to_act, from_act)] = (None, reverse_dependency(exist_locked_current))
+
 
         # ── Existential component conflict ────────────────────────────────────
         if (exist_locked is not None) and (exist is not None) and (exist_locked != exist):
@@ -146,15 +164,26 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
                 temp_locked_current = locked_dependencies.get((from_act, to_act), (None, None))[0]
                 if temp_locked_current is None:
                     del locked_dependencies[(from_act, to_act)]
+
+                    # delete also the reversed entry, if it exists 
+                    if (to_act, from_act) in locked_dependencies: 
+                        del locked_dependencies[(to_act, from_act)]
+
                 else:
                     locked_dependencies[(from_act, to_act)] = (temp_locked_current, None)
+
+                    # modify also the reverse entry 
+                    locked_dependencies[(to_act, from_act)] = (reverse_dependency(temp_locked_current), None)
+
+
+    print(locked_dependencies)
 
     # ── Early exit if the user suppressed both components ────────────────────
     if temp is None and exist is None:
         print("\n  ℹ  All modifications were suppressed by locked dependencies. No changes applied.")
         return matrix, locked_dependencies
 
-    # rebuild modification tuple with the (possibly narrowed) components
+    # rebuild modification tuple with the (possibly narrowed) components; modify operation builds teh inverse 
     modification = [(from_act, to_act, temp, exist)]
 
 
@@ -165,17 +194,16 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     # using the standard algorithm, in the next step we need to check, that the modification really took place 
     try: 
         result, _ = modify_dependencies(matrix, modification)
-        log("\nStandard algorithm used for the modify operation")
+        log("Standard algorithm used for the modify operation\n")
 
     except Exception as e:
         print("\nThe standard modification algorithm was unable to perform the modification. \nWe use the skeleton algorithm to perfom the modification")
 
         # build the dictionary for the skeleton algorithm 
-        modified_dependencies = {(from_act, to_act): (temp, exist)}
+        modified_dependencies = {(from_act, to_act): (temp, exist), 
+                                 (to_act, from_act): (reverse_dependency(temp), reverse_dependency(exist))}
 
         result = perfom_skeleton_algorithm(matrix, modified_dependencies)
-        
-
 
     # initialize variables to store the violations of modifications 
     not_cor_temp = False
@@ -206,7 +234,8 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         log("We use the skeleton algorithm to perfom the modification")
 
         # build the dictionary for the skeleton algorithm 
-        modified_dependencies = {(from_act, to_act): (temp, exist)}
+        modified_dependencies = {(from_act, to_act): (temp, exist), 
+                                 (to_act, from_act): (reverse_dependency(temp), reverse_dependency(exist))}
 
         result = perfom_skeleton_algorithm(matrix, modified_dependencies)
 
@@ -237,6 +266,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
             # we must check for overlaps, if they exist, we raise an error 
             if (from_act, to_act) not in locked_dependencies:
                 combined[(from_act, to_act)] = (temp, exist)
+                combined[(to_act, from_act)] = (reverse_dependency(temp), reverse_dependency(exist))
             else: 
                 # get the dependencies from the locked one 
                 locked_temp, locked_exist = locked_dependencies[(from_act, to_act)]

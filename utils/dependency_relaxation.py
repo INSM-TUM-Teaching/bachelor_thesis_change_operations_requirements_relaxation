@@ -31,6 +31,9 @@ from utils.utils_lock_dependencies import is_exist_relaxation
 from utils.utils_lock_dependencies import are_locked_dependencies_violated
 from utils.utils_lock_dependencies import is_violated
 
+# ── Reverse function for dependencies ─────────────────────────────────────────────────
+from utils.console_helpers import reverse_dependency
+
 
 def perform_dependency_relaxation(matrix, locked_dependencies):
     """
@@ -80,6 +83,9 @@ def perform_dependency_relaxation(matrix, locked_dependencies):
                     if confirm(f"Do you want to relax the existential dependency between activities {from_act, to_act} from dependency \n type {dep_label_exist(locked_exist_dep)} to the relaxed dependency type {dep_label_exist(new_exist_dep)}?"): 
                         # if the user agrees on the relaxation, adapt the locked dependencies accordingly 
                         locked_dependencies[(from_act, to_act)] = (locked_temp_dep, new_exist_dep)
+
+                        # also adapt the revrse 
+                        locked_dependencies[(to_act, from_act)] = (reverse_dependency(locked_temp_dep), reverse_dependency(new_exist_dep))
                         
                         # update the variable of the locked dependency, used for the relaxation of the temporal dependency
                         locked_exist_dep = new_exist_dep
@@ -97,6 +103,9 @@ def perform_dependency_relaxation(matrix, locked_dependencies):
                     if confirm(f"Do you want to relax the temporal dependency between activities {from_act, to_act} from the dependency type {dep_label_temp(locked_temp_dep)} to the relaxed dependency type {dep_label_temp(new_temp_dep)}?"): 
                         # if the user agrees on the relaxation, adapt the locked dependencies accordingly 
                         locked_dependencies[(from_act, to_act)] = (new_temp_dep, locked_exist_dep)
+
+                        # also relax the reverse dependency 
+                        locked_dependencies[(to_act, from_act)] = (reverse_dependency(new_temp_dep), reverse_dependency(locked_exist_dep))
                     
                     else: 
                         # there is a difference, which can be seen as a relaxation, but the user does not want to see it as a relxation 

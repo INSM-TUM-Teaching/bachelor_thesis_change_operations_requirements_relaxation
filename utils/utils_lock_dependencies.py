@@ -53,7 +53,7 @@ def get_locked_dependencies(matrix: AdjacencyMatrix) -> Dict[
     # ask the user to enter the dependnecies, he wants to lock, we can only lock what is in the process 
     print("\n  Enter dependencies (empty 'from' to stop) to be locked:")
     while True:
-        from_act = prompt("    From activity (or blank to finish)")
+        from_act = prompt("\n    From activity (or blank to finish)")
         if not from_act:
             break
         if from_act not in activities:
@@ -78,8 +78,45 @@ def get_locked_dependencies(matrix: AdjacencyMatrix) -> Dict[
         # insert the locked dependency in the dict
         deps[(from_act, to_act)] = (temp, exist)
 
-    # return the dictionary with all the locked dependencies 
+        # insert the opposite direction also 
+        deps[(to_act, from_act)] = (reverse_dependency(temp), reverse_dependency(exist))
+
+    
     return deps
+
+def reverse_dependency(dependency): 
+    """
+    For given depenency, reverse its direction. This method works for a dependency, regardless if existential or temporal 
+
+    Args: 
+        dependency: dependency (either temproal or existential)
+
+    Returns: 
+        dependency with reversed directions 
+    """
+
+    # filter the case, that the dependency is none (eg. for locked dependencies)
+    if dependency is None:
+        return None
+
+    # cretae a depency map dictionary, map every direction to its reversed direction 
+    direction_map = {
+        Direction.FORWARD: Direction.BACKWARD,
+        Direction.BACKWARD: Direction.FORWARD,
+        Direction.BOTH: Direction.BOTH,
+    }
+    
+    # get the reverse direction 
+    reversed_direction = direction_map[dependency.direction]
+
+    # return the dependency with the reversed direction
+    if isinstance(dependency, TemporalDependency):
+        return TemporalDependency(dependency.type, direction=reversed_direction)
+    elif isinstance(dependency, ExistentialDependency):
+        return ExistentialDependency(dependency.type, direction=reversed_direction)
+    else:
+        raise TypeError(f"Unsupported dependency type: {type(dependency)}")
+
 
 def is_violated(
     old_dependency: Tuple[TemporalDependency | None, ExistentialDependency | None] | None,

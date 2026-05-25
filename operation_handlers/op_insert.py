@@ -123,7 +123,6 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-
             # use the locked dependencies as a base 
             combined = dict(locked_dependencies)  
 

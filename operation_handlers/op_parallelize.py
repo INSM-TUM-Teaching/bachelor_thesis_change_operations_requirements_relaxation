@@ -243,6 +243,12 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
                         ExistentialDependency(type=ExistentialType.EQUIVALENCE, direction=Direction.BOTH),
                     )
 
+                    # add the reverse entry 
+                    combined[(to_act, from_act)] = (
+                        TemporalDependency(type=TemporalType.INDEPENDENCE, direction=Direction.BOTH),
+                        ExistentialDependency(type=ExistentialType.EQUIVALENCE, direction=Direction.BOTH),
+                    )
+
             
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")

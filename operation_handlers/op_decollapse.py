@@ -133,7 +133,13 @@ def op_decollapse(matrix: AdjacencyMatrix, locked_dependencies):
         if confirm("\nDo you want to delete all the locked dependencies, to be able to perfom the change operation 'collapse'?"): 
             # delete the entry from the locked dependencies 
             for (from_act, to_act) in involved_locks: 
-                del locked_dependencies[(from_act, to_act)]
+                # delete the entry 
+                if (from_act, to_act) in locked_dependencies: 
+                    del locked_dependencies[(from_act, to_act)]
+
+                    # delete the reverse 
+                    if (to_act, from_act) in locked_dependencies: 
+                        del locked_dependencies[(to_act, from_act)]
 
         else: 
             # if the user does not accept, change operation is not possible and we return an error 
@@ -164,9 +170,6 @@ def op_decollapse(matrix: AdjacencyMatrix, locked_dependencies):
 
         # in case dependency relaxation was unable to resolve violations of locked dependencies 
         if exist_violations: 
-            
-            # create a dict of combined dependencies 
-            # TODO
 
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")

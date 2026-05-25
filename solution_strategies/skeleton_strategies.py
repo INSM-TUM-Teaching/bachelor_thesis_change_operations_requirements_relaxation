@@ -264,7 +264,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                 flag = "exists_neither"
 
             # from the dict of required truth values, use the falg to get if the tuple is needed 
-            tv = required_truth_values(exist_dep.type)[flag]
+            tv = required_truth_values(exist_dep)[flag]
 
             # forbidden by the dependency type — drop immediately
             if tv is False:    
@@ -1114,14 +1114,18 @@ def _valid_insertion_position(
     return True
 
 
-def required_truth_values(dep_type: ExistentialType) -> dict:
+def required_truth_values(exist_dep: ExistentialDependency) -> dict:
     """
     Returns which truth values MUST be True for the discovery algorithm
     to correctly identify the given dependency type.
     Maps directly to get_existential_relation() in variants_to_matrix.py.
     """
+
+    # get the dependency type 
+    dep_type = exist_dep.type
+
     # Key: flag name → True = must appear, False = must NOT appear, None = don't care
-    return {
+    base = {
         ExistentialType.EQUIVALENCE: {
             "exists_both":    True,   # required
             "exists_only_a":  False,  # forbidden
@@ -1160,46 +1164,14 @@ def required_truth_values(dep_type: ExistentialType) -> dict:
         },
     }[dep_type]
 
+    # exception for the case that we have an implication and we must check the direction 
+    if dep_type == ExistentialType.IMPLICATION and exist_dep.direction == Direction.BACKWARD:
+        base = {  # direction Backward: a <- b
+            "exists_both":    True,   # required
+            "exists_only_a":  True,  # required
+            "exists_only_b":  False,   # forbidden
+            "exists_neither": None,   # don't care
+        }
 
-def occurrence_is_needed(
-    occ: List[str],
-    act_a: str,
-    act_b: str,
-    dep_type: ExistentialType,
-    original_acceptance_sequences: List[List[str]],
-) -> bool:
-    """
-    Using the discovery algorithm truth-value logic, decide whether
-    an occurrence combination must be kept in the chain set.
-
-    Rules:
-      - FORBIDDEN  → always drop
-      - REQUIRED   → always keep
-      - DON'T CARE → keep only if reachable in the original process
-    """
-    occ_set = set(occ)
-    has_a = act_a in occ_set
-    has_b = act_b in occ_set
-
-    # Map this occurrence to one of the four truth-value flags
-    if has_a and has_b:
-        flag = "exists_both"
-    elif has_a:
-        flag = "exists_only_a"
-    elif has_b:
-        flag = "exists_only_b"
-    else:
-        flag = "exists_neither"
-
-    tv = required_truth_values(dep_type)[flag]
-
-    if tv is False:   # forbidden by the dependency type
-        return False
-    if tv is True:    # required to identify the dependency type
-        return True
-
-    # tv is None → don't care: keep only if reachable in original process
-    return any(
-        (act_a in seq) == has_a and (act_b in seq) == has_b
-        for seq in original_acceptance_sequences
-    )
+    # return the final value 
+    return base 

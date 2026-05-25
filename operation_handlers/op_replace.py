@@ -49,6 +49,9 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
+# ── Dependency reverse ─────────────────────────────────────────────────
+from utils.console_helpers import reverse_dependency
+
 
 
 def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
@@ -121,6 +124,10 @@ def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
             for (from_act, to_act) in involved_locks: 
                 del locked_dependencies[(from_act, to_act)]
 
+                # delete also the reverse 
+                if (to_act, from_act) in locked_dependencies:
+                    del locked_dependencies[(to_act, from_act)] 
+
             print(f"\n  ✓  Locked dependencies involving activity '{old_act}' are deleted.")
 
         else: 
@@ -132,11 +139,21 @@ def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
                 # delete the old entry
                 del locked_dependencies[(from_act, to_act)]
 
+                # delete the reverse entry 
+                if (to_act, from_act) in locked_dependencies: 
+                    del locked_dependencies[(to_act, from_act)]
+
                 # add the new entry with the new activity 
                 if from_act == old_act: 
                     locked_dependencies[(new_act, to_act)] = (locked_temp, locked_exist)
+                    
+                    # insert the reverse also to the locked dependencies 
+                    locked_dependencies[(to_act, new_act)] = (reverse_dependency(locked_temp), reverse_dependency(locked_exist))
                 else: 
                     locked_dependencies[(from_act, new_act)] = (locked_temp, locked_exist)
+
+                    # insert the reveresed dependencies also to the locked dependnecies
+                    locked_dependencies[(new_act, from_act)] = (reverse_dependency(locked_temp), reverse_dependency(locked_exist))
 
             print(f"\n  ✓  Locked dependencies from activity '{old_act}' are transfered to the new activity '{new_act}'.")
      
@@ -165,9 +182,6 @@ def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
 
         # in case dependency relaxation was unable to resolve violations of locked dependencies 
         if exist_violations: 
-            
-            # create a dict of combined dependencies 
-            # TODO
 
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")

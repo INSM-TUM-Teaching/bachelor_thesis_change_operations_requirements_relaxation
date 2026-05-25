@@ -138,6 +138,10 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
                 # delete the entry from the locked dependencies 
                 del locked_dependencies[(from_act, to_act)]
 
+                # delete also the reverse entry, check that it exists first 
+                if (to_act, from_act) in locked_dependencies:  
+                    del locked_dependencies[(to_act, from_act)]
+
             else: 
                 # if the user does not accept, change operation is not possible and we return an error 
                 raise ValueError("Collapse can not be performed when there are locked dependencies which would be violated")
@@ -150,6 +154,10 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
             
             # delete the activities 
             del locked_dependencies[(from_act, to_act)]
+
+            # also delete the reverse entry, if it exists 
+            if (to_act, from_act) in locked_dependencies: 
+                del locked_dependencies[(to_act, from_act)]
         
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -218,9 +226,6 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
 
         # in case dependency relaxation was unable to resolve violations of locked dependencies 
         if exist_violations: 
-            
-            # create a dict of combined dependencies 
-            # TODO
 
             banner("Using skeleton algorithm to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")

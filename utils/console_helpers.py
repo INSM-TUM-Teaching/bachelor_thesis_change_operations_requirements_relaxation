@@ -185,6 +185,7 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
     Ask the user to specify one or more (from, to, temporal, existential) tuples.
     Returns a dict keyed by (from_act, to_act).
     At least one existential dependency must be provided and each tuple must contain the mandatory_activity 
+    Rteurns a dict with the dependencies in both directions 
 
     Args: 
         activities: list of all the activities contained
@@ -241,9 +242,11 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
             # ask the user if the entry should be overwritten 
             if confirm("Do you want to overwrite that entry?"): 
                 deps[(from_act, to_act)] = (temp, exist)
+                deps[(to_act, from_act)] = (reverse_dependency(temp), reverse_dependency(exist))
 
         else: 
             deps[(from_act, to_act)] = (temp, exist)
+            deps[(to_act, from_act)] = (reverse_dependency(temp), reverse_dependency(exist))
 
     # return the new dependencies 
     return deps
@@ -252,7 +255,7 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
 def ask_dependencies(activities: list[str]) -> dict:
     """
     Ask the user to specify one or more (from, to, temporal, existential) tuples.
-    Returns a dict keyed by (from_act, to_act).
+    Returns a dict keyed by (from_act, to_act), including always the reverse dependency. 
 
     Args: 
         activities: list of all the activities contained
@@ -272,7 +275,12 @@ def ask_dependencies(activities: list[str]) -> dict:
             continue
         temp  = ask_temporal()
         exist = ask_existential()
+
+        # insert them forward 
         deps[(from_act, to_act)] = (temp, exist)
+
+        # insert backwards 
+        deps[(to_act, from_act)] = (reverse_dependency(temp), reverse_dependency(exist))
     return deps
 
 
@@ -295,3 +303,36 @@ def deps_to_matrix(deps: dict) -> AdjacencyMatrix:
         matrix.add_dependency(from_act, to_act, temp_dep, exist_dep)
 
     return matrix
+
+def reverse_dependency(dependency): 
+    """
+    For given depenency, reverse its direction. This method works for a dependency, regardless if existential or temporal 
+
+    Args: 
+        dependency: dependency (either temproal or existential)
+
+    Returns: 
+        dependency with reversed directions 
+    """
+
+    # filter the case, that the dependency is none (eg. for locked dependencies)
+    if dependency is None:
+        return None
+
+    # cretae a depency map dictionary, map every direction to its reversed direction 
+    direction_map = {
+        Direction.FORWARD: Direction.BACKWARD,
+        Direction.BACKWARD: Direction.FORWARD,
+        Direction.BOTH: Direction.BOTH,
+    }
+    
+    # get the reverse direction 
+    reversed_direction = direction_map[dependency.direction]
+
+    # return the dependency with the reversed direction
+    if isinstance(dependency, TemporalDependency):
+        return TemporalDependency(dependency.type, direction=reversed_direction)
+    elif isinstance(dependency, ExistentialDependency):
+        return ExistentialDependency(dependency.type, direction=reversed_direction)
+    else:
+        raise TypeError(f"Unsupported dependency type: {type(dependency)}")
