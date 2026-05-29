@@ -122,7 +122,7 @@ def get_activities_happening_between(variants: List[List[str]],
                 # ensure that the y which happens in between is temporally independent to all of the elements of the activities to be parallelized
                 temporal_dep, _ = dependencies.get((activity, parallel_activity))
                 # check for dependency type 
-                if temporal_dep.type != TemporalType.INDEPENDENCE:
+                if (temporal_dep is not None) and (temporal_dep.type != TemporalType.INDEPENDENCE):
                     # then activity is temporally dependent, and we add it to the set for return 
                     if activity not in activities_in_between: 
                         activities_in_between.append(activity)

@@ -58,15 +58,17 @@ def perform_dependency_relaxation(matrix, locked_dependencies):
 
     # we know there are violations, check if they can be solved using dependency relaxation  
     for (from_act, to_act), locked_dep in locked_dependencies.items():
-        
+
+        # ensure that we only ask in one direction, so we only use the correcty ordered pair 
+        if from_act > to_act:
+            continue
+
         # get the dependency type from the modified matrix 
         new_dependency = matrix.get_dependency(from_act, to_act)
 
         # check if it is violated, if yes check for relaxation 
         if is_violated(locked_dep, new_dependency): 
 
-            ###########################################
-            # we reach this point 
             print(f"\n The locked dependency from activity {from_act} to activity {to_act} is violated")
 
             # check if the dependency is a relaxation and ask the user, if he accepts the relaxation

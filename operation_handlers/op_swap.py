@@ -108,7 +108,7 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
 
                 # also delete the reverse
                 if (act2, act1) in locked_dependencies: 
-                    del locked_dependencies[(act1, act2)]
+                    del locked_dependencies[(act2, act1)]
 
                 # if there is a locked existential dependency, reinsert it 
                 if locked_exist is not None: 
@@ -151,13 +151,43 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
         if exist_violations: 
             
             # create a dict of combined dependencies 
-            # TODO
+            # if they becirehand had temproal dependnecies, they should afterwards be changed 
+            modified_locked_dependencies = locked_dependencies
 
+            # get the temporal dependencies from the matrix 
+            deps = matrix.get_dependency(act1, act2)
+
+            if deps is not None: 
+                original_temp_dep, _ = deps
+
+                # check if the original temporal dependency is unequal to independence; if this is the case, we invert their order  
+                if (original_temp_dep is not None) and (original_temp_dep.type is not TemporalType.INDEPENDENCE): 
+
+                    # get the inverted dependency type 
+                    inverted_temp_dep = reverse_dependency(original_temp_dep)
+
+                    # if pair already in locked dependencies, we must only modify the temporal dependency component 
+                    if (act1, act2) in modified_locked_dependencies: 
+                        # get the locked existential dependency 
+                        _, exist_dep = modified_locked_dependencies[(act1, act2)]
+
+                        # overwrite the entries 
+                        modified_locked_dependencies[(act1, act2)] = (inverted_temp_dep, exist_dep)
+                        modified_locked_dependencies[(act2, act1)] = (original_temp_dep, reverse_dependency(exist_dep))
+
+                    # if not already part, we must add the entry oto the locked dependencies
+                    else: 
+                        
+                        # add the temporal dependencies to the modified locked dependencies, without an existential component 
+                        modified_locked_dependencies[(act1, act2)] = (inverted_temp_dep, None)
+                        modified_locked_dependencies[(act2, act1)] = (original_temp_dep, None)
+
+                
             banner("Using skeleton to resolve violations of locked dependencies")
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perfom_skeleton_algorithm(result, modified_locked_dependencies)
 
 
     # ════════════════════════════════════════════════════════════════════════════

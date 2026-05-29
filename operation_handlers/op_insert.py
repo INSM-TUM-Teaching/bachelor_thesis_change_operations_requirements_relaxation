@@ -44,6 +44,10 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import log
+
+
 
 
 
@@ -101,6 +105,29 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
 
         result = perfom_skeleton_algorithm(matrix, deps, activity)
+
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check that in result all activities are present, which were also part of the initial matrix
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # get the list of activities from the original matrix, add the inserted activity
+    original_activities = set(matrix.get_activities()) | {activity}
+
+    # get the list of activities from the new matrix
+    result_activities = set(result.get_activities())
+
+    # check if they contain the same activities 
+    not_cor_activities = original_activities != result_activities
+
+    # check if the new dependencies do not match the intended modification 
+    if not_cor_activities: 
+        print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
+
+        log("\nThe standard insertion algorithm was unable to perform the insertion.")
+        log("We use the skeleton algorithm to perfom the insertion")     
+
+        result = perfom_skeleton_algorithm(matrix, deps)
 
 
     # ════════════════════════════════════════════════════════════════════════════

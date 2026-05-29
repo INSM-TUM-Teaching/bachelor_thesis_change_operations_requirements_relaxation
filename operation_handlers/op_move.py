@@ -53,6 +53,9 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 # ── Dependency reversion ─────────────────────────────────────────────────
 from utils.console_helpers import reverse_dependency
 
+# ── Debug mode ─────────────────────────────────────────────────
+from utils.debug_mode import log
+
 
 def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     """
@@ -214,6 +217,34 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
         # return the modified matrix
         result = perfom_skeleton_algorithm(matrix, locked_dependencies)
 
+    
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check that in result all activities are present, which were also part of the initial matrix
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # get the list of activities from the original matrix
+    original_activities = matrix.get_activities()
+
+    # get the list of activities from the new matrix
+    result_activities = result.get_activities()
+
+    # check if they contain the same ativities 
+    if set(original_activities) != set(result_activities): 
+
+        # variable to indicate that there is a mismatch between the activities
+        not_cor_activities = True
+    else: 
+        not_cor_activities = False
+
+    # check if the new dependencies do not match the intended modification 
+    if not_cor_activities: 
+        print("\nFor the modify operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
+
+        log("\nThe standard modification algorithm was unable to perform the modification.")
+        log("We use the skeleton algorithm to perfom the modification")     
+
+        result = perfom_skeleton_algorithm(matrix, deps)
+
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 3: Check for violation of locked dependencies 
@@ -240,7 +271,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
             combined = dict(locked_dependencies)  
 
             # we must check for overlaps, if they exist, we raise an error
-            for (from_act, to_act), (temp_dep_move, exist_dep_move) in deps:  
+            for ((from_act, to_act), (temp_dep_move, exist_dep_move)) in deps.items():  
 
                 # without overlaps, we can just add the dependencies from the move operation  
                 if (from_act, to_act) not in locked_dependencies:
@@ -280,7 +311,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perfom_skeleton_algorithm(result, combined)
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 4: Return the reuslt to the user

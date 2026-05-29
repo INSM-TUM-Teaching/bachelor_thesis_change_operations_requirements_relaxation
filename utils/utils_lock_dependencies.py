@@ -178,6 +178,9 @@ def is_temp_relaxation(old_temp_dep: TemporalDependency, new_temp_dep: TemporalD
     """
     For temporal dependencies, check if it is a relaxation (old is direct and new is eventual)
     """
+    if new_temp_dep is None:
+        return False
+    
     return (
         old_temp_dep.type == TemporalType.DIRECT
         and new_temp_dep.type == TemporalType.EVENTUAL

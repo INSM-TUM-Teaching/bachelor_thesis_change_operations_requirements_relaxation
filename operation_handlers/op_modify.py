@@ -176,8 +176,6 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
                     locked_dependencies[(to_act, from_act)] = (reverse_dependency(temp_locked_current), None)
 
 
-    print(locked_dependencies)
-
     # ── Early exit if the user suppressed both components ────────────────────
     if temp is None and exist is None:
         print("\n  ℹ  All modifications were suppressed by locked dependencies. No changes applied.")
@@ -210,6 +208,8 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     not_cor_exist = False
     act_in_result = True
 
+    # --------- Check 1: the new dependencies match the intended result of the modification 
+
     # ask for the dependency after the modification 
     deps = result.get_dependency(from_act, to_act)
 
@@ -228,8 +228,25 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
             if exist != mod_exist_dep: 
                 not_cor_exist = True 
 
+
+    # --------- Check 2: all activities are still present in the new result 
+
+    # get the list of activities from the original matrix
+    original_activities = matrix.get_activities()
+
+    # get the list of activities from the new matrix
+    result_activities = result.get_activities()
+
+    # check if they contain the same ativities 
+    if set(original_activities) != set(result_activities): 
+
+        # variable to indicate that there is a mismatch between the activities
+        not_cor_activities = True
+    else: 
+        not_cor_activities = False
+
     # check if the new dependencies do not match the intended modification 
-    if not_cor_exist or not_cor_temp or not act_in_result: 
+    if not_cor_exist or not_cor_temp or not_cor_activities or not act_in_result: 
         log("\nThe standard modification algorithm was unable to perform the modification.")
         log("We use the skeleton algorithm to perfom the modification")
 

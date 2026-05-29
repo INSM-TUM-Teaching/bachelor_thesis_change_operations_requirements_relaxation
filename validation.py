@@ -210,6 +210,7 @@ LOCKED_DEPENDENCIES: Dict[
 # Validation Phase II
 # ----------------------------------------------
 
+"""
 # case I
 acceptance_sequences = [
     ['X', 'Y', 'Z', 'D'],
@@ -221,14 +222,96 @@ acceptance_sequences = [
     ['B', 'D'],
     ['C', 'D'],
 ]
+"""
+
+
+# case II
+acceptance_sequences = [['A', 'Y', 'Z'],
+    ['A', 'Z', 'Y'],
+    ['Y', 'A', 'Z'],
+    ['Y', 'Z', 'A'],
+    ['Z', 'Y', 'A'],
+    ['Z', 'A', 'Y'],
+    ['B', 'Y', 'Z'],
+    ['B', 'Z', 'Y'],
+    ['Y', 'B', 'Z'],
+    ['Y', 'Z', 'B'],
+    ['Z', 'Y', 'B'],
+    ['Z', 'B', 'Y']
+]
+
+
+# case III
+"""
+acceptance_sequences = [['X', 'Y', 'Z', 'A'],
+                        ['X', 'Z', 'Y', 'A'],
+                        ['Y', 'X', 'Z', 'A'],
+                        ['Y', 'Z', 'X', 'A'],
+                        ['Z', 'Y', 'X', 'A'],
+                        ['Z', 'X', 'Y', 'A'],
+
+                        ['X', 'Y', 'Z', 'B'],
+                        ['X', 'Z', 'Y', 'B'],
+                        ['Y', 'X', 'Z', 'B'],
+                        ['Y', 'Z', 'X', 'B'],
+                        ['Z', 'Y', 'X', 'B'],
+                        ['Z', 'X', 'Y', 'B'],
+
+                        ['X', 'Y', 'Z', 'C'],
+                        ['X', 'Z', 'Y', 'C'],
+                        ['Y', 'X', 'Z', 'C'],
+                        ['Y', 'Z', 'X', 'C'],
+                        ['Z', 'Y', 'X', 'C'],
+                        ['Z', 'X', 'Y', 'C'],
+                    ]
+"""
+
+# case IV
+"""
+acceptance_sequences = [['A', 'B', 'X'],
+                        ['A', 'X', 'B'],
+                        ['X', 'A', 'B'],
+
+                        ['A', 'B', 'Y'],
+                        ['A', 'Y', 'B'],
+                        ['Y', 'A', 'B'],
+
+                        ['A', 'B', 'X', 'Y'],
+                        ['A', 'X', 'Y', 'B'],
+                        ['X', 'Y', 'A', 'B'],
+
+                        ['A', 'B', 'Y', 'X'],
+                        ['A', 'Y', 'X', 'B'],
+                        ['Y', 'X', 'A', 'B'],
+                    ]
+"""
+
+# case V
+"""
+acceptance_sequences = [['A', 'X'],
+                        ['A', 'Y'],
+                        ['A', 'Z'],
+
+                        ['B', 'X'],
+                        ['B', 'Y'],
+                        ['B', 'Z'],
+
+                        ['C', 'X'],
+                        ['C', 'Y'],
+                        ['C', 'Z']
+                    ]
+"""
+
+
+locked_dependencies = dict()
 
 """
 locked_dependencies = {
-    ("A", "B"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
+    ("A", "X"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
+    ("X", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
 }
 """
 
-locked_dependencies = dict()
 
 
 # build the matrix
@@ -244,7 +327,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_move(matrix, locked_dependencies)
+result, locked_dependencies = op_insert(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:
