@@ -118,7 +118,7 @@ BOTH       = Direction.BOTH
 # acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
 
 # WCP 6 multi choice 
-
+"""
 acceptance_sequences = [
     ['A', 'B'],
     ['A', 'C'],
@@ -136,6 +136,7 @@ acceptance_sequences = [
     ['A', 'D', 'B', 'C'],
     ['A', 'D', 'C', 'B'],
 ]
+"""
 
 
 
@@ -205,6 +206,22 @@ LOCKED_DEPENDENCIES: Dict[
 # acceptance_sequences =[['A', 'B'], ['A']]
 
 
+# ----------------------------------------------
+# Validation Phase II
+# ----------------------------------------------
+
+# case I
+acceptance_sequences = [
+    ['X', 'Y', 'Z', 'D'],
+    ['X', 'Z', 'Y', 'D'],
+    ['Y', 'X', 'Z', 'D'],
+    ['Y', 'Z', 'X', 'D'],
+    ['Z', 'Y', 'X', 'D'],
+    ['Z', 'X', 'Y', 'D'],
+    ['B', 'D'],
+    ['C', 'D'],
+]
+
 """
 locked_dependencies = {
     ("A", "B"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
@@ -217,6 +234,8 @@ locked_dependencies = dict()
 # build the matrix
 matrix = variants_to_matrix(acceptance_sequences)
 
+print_matrix(matrix, "Initial Matrix")
+
 # enable the debug mode 
 enable_debug_mode()
 
@@ -225,7 +244,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_insert(matrix, locked_dependencies)
+result, locked_dependencies = op_move(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:

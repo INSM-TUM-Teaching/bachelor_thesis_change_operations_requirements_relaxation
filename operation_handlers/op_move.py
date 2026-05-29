@@ -72,7 +72,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     # ════════════════════════════════════════════════════════════════════════════
 
     # get the parameters for the change operation
-    print(f"\n  ── Parameters for: insert ──")
+    print(f"\n  ── Parameters for: move ──")
 
     print(f"\n  Current activities: {matrix.activities}")
 
