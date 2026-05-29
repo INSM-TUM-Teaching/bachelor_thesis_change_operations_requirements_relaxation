@@ -30,7 +30,6 @@ from utils.debug_mode import log
 
 def perfom_skeleton_algorithm(matrix: AdjacencyMatrix, 
                               locked_dependencies: dict, 
-                              new_activity: Optional[str] = None
                               ): 
     """
     Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
@@ -70,7 +69,6 @@ def perfom_skeleton_algorithm(matrix: AdjacencyMatrix,
 def adapt_process(matrix: AdjacencyMatrix, 
                   locked_dependencies: dict, 
                   similarity_strategy: str,
-                  new_activity: Optional[str] = None
                 ): 
 #-> AdjacencyMatrix: 
     """
@@ -83,7 +81,6 @@ def adapt_process(matrix: AdjacencyMatrix,
         matrix: the adjacency matrix of the process 
         locked_dependencies: a dict of locked dependencies which must hold 
         similarity_strategy: str of the selected similarity strategy 
-        new_activity: if a new activity is inserted, provide it as optional, to ensure it is used even if only temporal dependencies are provided 
 
     Returns: 
         adapted_matrix 

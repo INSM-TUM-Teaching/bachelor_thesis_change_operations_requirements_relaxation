@@ -104,7 +104,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         # indicate to the user that the standard insert method does not work here 
         print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
 
-        result = perfom_skeleton_algorithm(matrix, deps, activity)
+        result = perfom_skeleton_algorithm(matrix, deps)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -159,7 +159,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
                 combined[(from_act, to_act)] = (ins_temp, ins_exist)
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, combined, activity)
+            result = perfom_skeleton_algorithm(result, combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════
