@@ -8,13 +8,11 @@ from dependencies import (
     Direction,
 )
 from adjacency_matrix import AdjacencyMatrix
-from constraint_logic import check_temporal_relationship, check_existential_relationship
 
 # import acceptance variants, since we can reuse most of the functions
 from acceptance_variants import satisfies_existential_constraints
 from acceptance_variants import satisfies_temporal_constraints
 from acceptance_variants import build_permutations
-from acceptance_variants import generate_acceptance_variants
 
 
 def add_placeholder_activities(acceptance_skeleton: List[List[str]],

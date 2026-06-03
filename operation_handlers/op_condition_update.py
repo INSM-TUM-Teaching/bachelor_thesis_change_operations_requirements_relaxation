@@ -1,15 +1,5 @@
-import os
-import sys
-import copy
-import yaml
-from typing import List, Tuple, Dict, Optional
-
 # ── Core imports ────────────────────────────────────────────────────────────
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
-from dependencies import (
-    TemporalDependency, ExistentialDependency,
-    TemporalType, ExistentialType, Direction,
-)
+from adjacency_matrix import AdjacencyMatrix
 
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.condition_update    import condition_update
@@ -26,9 +16,6 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
-
-
-
 
 
 def op_condition_update(matrix: AdjacencyMatrix, 

@@ -1,11 +1,5 @@
-from typing import List, Tuple, Dict, Optional
-
 # ── Core imports ────────────────────────────────────────────────────────────
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
-from dependencies import (
-    TemporalDependency, ExistentialDependency,
-    TemporalType, ExistentialType, Direction,
-)
+from adjacency_matrix import AdjacencyMatrix
 from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
@@ -18,7 +12,6 @@ from solution_strategies.collapse_strategies import collapse_move_activities
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
 from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
-
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner

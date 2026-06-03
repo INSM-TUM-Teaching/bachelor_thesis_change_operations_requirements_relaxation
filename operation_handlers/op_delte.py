@@ -1,17 +1,5 @@
-import os
-import sys
-import copy
-import yaml
-from typing import List, Tuple, Dict, Optional
-
 # ── Core imports ────────────────────────────────────────────────────────────
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
-from dependencies import (
-    TemporalDependency, ExistentialDependency,
-    TemporalType, ExistentialType, Direction,
-)
-from variants_to_matrix import variants_to_matrix
-from acceptance_variants import generate_acceptance_variants
+from adjacency_matrix import AdjacencyMatrix
 
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.delete_operation    import delete_activity
@@ -22,27 +10,15 @@ from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
 from utils.console_helpers import prompt
-from utils.console_helpers import choose
 from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
 from utils.console_helpers import dep_label_temp
 from utils.console_helpers import dep_label_exist
-from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
-from utils.utils_lock_dependencies import get_locked_dependencies
-from utils.utils_lock_dependencies import is_relaxation
-from utils.utils_lock_dependencies import is_temp_relaxation
-from utils.utils_lock_dependencies import is_exist_relaxation
 from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
-
 
 
 def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
