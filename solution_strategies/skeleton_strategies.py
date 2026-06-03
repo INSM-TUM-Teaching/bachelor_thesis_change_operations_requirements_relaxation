@@ -28,9 +28,8 @@ from dependencies import TemporalType, Direction
 from utils.debug_mode import log
 
 
-def perfom_skeleton_algorithm(matrix: AdjacencyMatrix, 
-                              locked_dependencies: dict, 
-                              ): 
+def perform_skeleton_algorithm(matrix: AdjacencyMatrix, 
+                              locked_dependencies: dict): 
     """
     Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
 

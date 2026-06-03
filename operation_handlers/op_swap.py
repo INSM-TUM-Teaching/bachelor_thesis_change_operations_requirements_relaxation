@@ -15,7 +15,7 @@ from dependencies import (
 from change_operations.swap_operation      import swap_activities
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
-from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
+from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -187,7 +187,7 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, modified_locked_dependencies)
+            result = perform_skeleton_algorithm(result, modified_locked_dependencies)
 
 
     # ════════════════════════════════════════════════════════════════════════════

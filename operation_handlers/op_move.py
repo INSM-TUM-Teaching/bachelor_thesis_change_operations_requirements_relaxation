@@ -23,7 +23,7 @@ from solution_strategies.collapse_strategies import collapse_expand_set
 from solution_strategies.collapse_strategies import collapse_move_activities
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
-from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
+from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -215,7 +215,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
         print("\nThe move operation is ambigous, we use the new skeleton approach to adapt the acceptance sequences")
 
         # return the modified matrix
-        result = perfom_skeleton_algorithm(matrix, locked_dependencies)
+        result = perform_skeleton_algorithm(matrix, locked_dependencies)
 
     
     # ════════════════════════════════════════════════════════════════════════════
@@ -243,7 +243,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
         log("\nThe standard modification algorithm was unable to perform the modification.")
         log("We use the skeleton algorithm to perfom the modification")     
 
-        result = perfom_skeleton_algorithm(matrix, deps)
+        result = perform_skeleton_algorithm(matrix, deps)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -311,7 +311,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, combined)
+            result = perform_skeleton_algorithm(result, combined)
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 4: Return the reuslt to the user

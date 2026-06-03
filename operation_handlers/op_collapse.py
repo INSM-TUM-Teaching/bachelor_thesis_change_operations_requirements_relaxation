@@ -36,7 +36,7 @@ from solution_strategies.collapse_strategies import collapse_expand_set
 from solution_strategies.collapse_strategies import collapse_move_activities
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
-from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
+from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
 
 # ── Helper functions ─────────────────────────────────────────────────
@@ -231,7 +231,7 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
             
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perform_skeleton_algorithm(result, locked_dependencies)
 
 
     # ════════════════════════════════════════════════════════════════════════════

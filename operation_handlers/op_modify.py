@@ -17,7 +17,7 @@ from acceptance_variants import generate_acceptance_variants
 from change_operations.modify_operation    import modify_dependencies
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
-from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
+from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -201,7 +201,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         modified_dependencies = {(from_act, to_act): (temp, exist), 
                                  (to_act, from_act): (reverse_dependency(temp), reverse_dependency(exist))}
 
-        result = perfom_skeleton_algorithm(matrix, modified_dependencies)
+        result = perform_skeleton_algorithm(matrix, modified_dependencies)
 
     # initialize variables to store the violations of modifications 
     not_cor_temp = False
@@ -254,7 +254,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         modified_dependencies = {(from_act, to_act): (temp, exist), 
                                  (to_act, from_act): (reverse_dependency(temp), reverse_dependency(exist))}
 
-        result = perfom_skeleton_algorithm(matrix, modified_dependencies)
+        result = perform_skeleton_algorithm(matrix, modified_dependencies)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -314,7 +314,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, combined)
+            result = perform_skeleton_algorithm(result, combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════

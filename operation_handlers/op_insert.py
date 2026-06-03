@@ -17,7 +17,7 @@ from acceptance_variants import generate_acceptance_variants
 from change_operations.insert_operation    import insert_activity
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
-from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
+from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -104,7 +104,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         # indicate to the user that the standard insert method does not work here 
         print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
 
-        result = perfom_skeleton_algorithm(matrix, deps)
+        result = perform_skeleton_algorithm(matrix, deps)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -127,7 +127,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         log("\nThe standard insertion algorithm was unable to perform the insertion.")
         log("We use the skeleton algorithm to perfom the insertion")     
 
-        result = perfom_skeleton_algorithm(matrix, deps)
+        result = perform_skeleton_algorithm(matrix, deps)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -159,7 +159,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
                 combined[(from_act, to_act)] = (ins_temp, ins_exist)
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, combined)
+            result = perform_skeleton_algorithm(result, combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════

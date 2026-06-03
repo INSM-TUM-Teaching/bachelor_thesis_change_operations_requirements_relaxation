@@ -17,7 +17,7 @@ from acceptance_variants import generate_acceptance_variants
 from change_operations.skip_operation      import skip_activity
 
 # ── Skeleton algorithm ─────────────────────────────────────────────────
-from solution_strategies.skeleton_strategies import perfom_skeleton_algorithm
+from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
@@ -106,7 +106,7 @@ def op_skip(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perfom_skeleton_algorithm(result, locked_dependencies)
+            result = perform_skeleton_algorithm(result, locked_dependencies)
 
 
     # ════════════════════════════════════════════════════════════════════════════
