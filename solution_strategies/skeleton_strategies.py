@@ -58,7 +58,7 @@ def perfom_skeleton_algorithm(matrix: AdjacencyMatrix,
         similarity_strategy = "combined"
 
     # if an error occurs, we use the new insert opportunity 
-    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy, new_activity)
+    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy)
 
     # get the result by translating the modified acceptance sequences in the matrix
     result = variants_to_matrix(modified_acceptance_sequences)
