@@ -106,7 +106,7 @@ def op_skip(matrix: AdjacencyMatrix, locked_dependencies):
             print("\nUsing dependency relaxation was unable to resolve (all) violations.")
 
             # perfom the skeleton approach
-            result = perform_skeleton_algorithm(result, locked_dependencies)
+            result = perform_skeleton_algorithm(result, locked_dependencies, activity)
 
 
     # ════════════════════════════════════════════════════════════════════════════

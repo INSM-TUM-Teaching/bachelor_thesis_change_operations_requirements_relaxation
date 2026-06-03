@@ -29,13 +29,15 @@ from utils.debug_mode import log
 
 
 def perform_skeleton_algorithm(matrix: AdjacencyMatrix, 
-                              locked_dependencies: dict): 
+                              locked_dependencies: dict, 
+                              skip_activity: Optional[str] = None): 
     """
     Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
 
     Args: 
         matrix: Adjacency matrix for midfication 
         locked_dependencies: Dict of locked dependencies 
+        skip_activity: Activity to be skipped (optional)  
 
     Return: 
         modified adjacency matrix 
@@ -57,7 +59,7 @@ def perform_skeleton_algorithm(matrix: AdjacencyMatrix,
         similarity_strategy = "combined"
 
     # if an error occurs, we use the new insert opportunity 
-    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy)
+    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy, skip_activity)
 
     # get the result by translating the modified acceptance sequences in the matrix
     result = variants_to_matrix(modified_acceptance_sequences)
@@ -68,6 +70,7 @@ def perform_skeleton_algorithm(matrix: AdjacencyMatrix,
 def adapt_process(matrix: AdjacencyMatrix, 
                   locked_dependencies: dict, 
                   similarity_strategy: str,
+                  skip_activity: Optional[str] = None
                 ): 
 #-> AdjacencyMatrix: 
     """
@@ -80,9 +83,10 @@ def adapt_process(matrix: AdjacencyMatrix,
         matrix: the adjacency matrix of the process 
         locked_dependencies: a dict of locked dependencies which must hold 
         similarity_strategy: str of the selected similarity strategy 
+        skip_activity: str of an activity to be skipped (optional) 
 
     Returns: 
-        adapted_matrix 
+        modified acceptance sequences 
     """
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -161,7 +165,8 @@ def adapt_process(matrix: AdjacencyMatrix,
     # deduplicate the ordering pairs while preserving order
     all_ordering_pairs = list(dict.fromkeys(all_ordering_pairs))
         
-        
+
+    # log the chain sets and ordering pairs (structures which must occur)
     log("Build the chain sets")
     log(f"Chain sets: {chain_sets} \n")
 
@@ -292,6 +297,49 @@ def adapt_process(matrix: AdjacencyMatrix,
         """
 
     chain_sets_combined = filtered
+
+    # -------- Skipped activity --------------------------
+
+    # variable to keep track if the skip_activity is in a chain set (so part of a locked dependency)
+    skip_activity_in_chainset = False
+
+    # if we have a skip_activity, we need adaptions 
+    if skip_activity:
+
+        # enumerate all chain sets to check if skip_activity is in a chain set 
+        for cs_idx, chain_set in enumerate(chain_sets):
+
+            if skip_activity in chain_set:
+                skip_activity_in_chainset = True
+                skip_activity_cs_idx = cs_idx
+                break
+
+        # if it is in a chain set, we either manipulate the chain set or add anempty sequence to the chain set 
+        if skip_activity_in_chainset:
+
+            log("The activity to be skipped is in a chain set")
+
+            # check if any required combination already excludes the skip_activity
+            # i.e. there is already a required variant where it is absent
+            already_skippable = any(
+                idx == skip_activity_cs_idx and skip_activity not in occ_tuple
+                for (idx, occ_tuple) in chain_sets_combined
+            )
+
+            if not already_skippable:
+                # add empty set to occurence_combinations_per_chain_set so that
+                # combined_occurrences_containing can find matching skeleton sequences
+                occurence_combinations_per_chain_set[skip_activity_cs_idx].append([])
+
+                # inject the empty combination as required, so Phase 2 generates
+                # at least one variant where the skip_activity is absent
+                empty_entry = (skip_activity_cs_idx, ())
+                chain_sets_combined.append(empty_entry)
+
+                log("Inserted an empty entry in the combined chain sets")
+
+    # ----------------------------------------------------
+
     unused_chain_sets = list(chain_sets_combined)
 
     log(f"Chain occurence combinations which must be used: {unused_chain_sets} \n The rest is optional \n")
@@ -301,6 +349,7 @@ def adapt_process(matrix: AdjacencyMatrix,
 
     # copy in a list to keep track of the chain sets which were not yet used 
     unused_chain_sets = list(chain_sets_combined)
+
 
     # ════════════════════════════════════════════════════════════════════════════
     #  For each acceptance sequence find the best occurnce set & adapt & keep track of used chain sets 
