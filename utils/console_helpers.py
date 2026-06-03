@@ -63,11 +63,17 @@ def _dep_label(temporal, existential) -> str:
 
     if temporal: 
         temporal_name = dep_label_temp(temporal)
-        parts.append(temporal_name.center(_W))
+    else: 
+        temporal_name = "-"
+
+    parts.append(temporal_name.center(_W))
 
     if existential: 
         existential_name = dep_label_exist(existential)
-        parts.append(existential_name.center(_W))
+    else: 
+        existential_name = "-"
+        
+    parts.append(existential_name.center(_W))
 
     return " , ".join(parts) if parts else "—".center(_W)
 
