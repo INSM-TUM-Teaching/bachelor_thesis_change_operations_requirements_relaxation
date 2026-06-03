@@ -1,34 +1,15 @@
-import os
-import sys
-import copy
-import yaml
 from typing import List, Tuple, Dict, Optional
 
 # ── Core imports ────────────────────────────────────────────────────────────
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
+from adjacency_matrix import AdjacencyMatrix
 from dependencies import (
     TemporalDependency, ExistentialDependency,
     TemporalType, ExistentialType, Direction,
 )
-from variants_to_matrix import variants_to_matrix
-from acceptance_variants import generate_acceptance_variants
 
 # ── Helper functions ─────────────────────────────────────────────────
-from utils.console_helpers import banner
 from utils.console_helpers import prompt
-from utils.console_helpers import choose
 from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
-from utils.console_helpers import dep_label_temp
-from utils.console_helpers import dep_label_exist
-from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
-
-# TODO
-# allow to import locked dependencies using a YAML file 
 
 def get_locked_dependencies(matrix: AdjacencyMatrix) -> Dict[
         Tuple[str, str],

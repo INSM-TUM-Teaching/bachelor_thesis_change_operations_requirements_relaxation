@@ -1,4 +1,4 @@
-from typing import List, Tuple, Dict, Set
+from typing import List
 from itertools import combinations
 
 def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_sequence: List[str], all_skeleton_activities: List[str]) -> float: 

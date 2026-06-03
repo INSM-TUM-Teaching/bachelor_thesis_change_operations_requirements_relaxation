@@ -53,7 +53,16 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 
 def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
     """
-    Parallelize a set of activities and perfom the check for violated locked dependencies
+    Operation handler for parallelizing a set of activities 
+
+    1) get the required input from the user and validate it 
+    2) Check for violations which can not be resolved 
+    3) Try to perform the change operation 
+        3.1) use solution startegies for activities happening in between 
+    4) Check for violations of locked dependencies 
+        4.1) Apply dependency relaxation 
+        4.2) Apply the skeleton strategy 
+    5) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 

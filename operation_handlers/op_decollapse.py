@@ -51,7 +51,14 @@ from utils.load_process_models import load_from_yaml
 
 def op_decollapse(matrix: AdjacencyMatrix, locked_dependencies):
     """
-    Decollapse an activity and perfom the check for violated locked dependencies
+    Operation handler for decollapse an activity 
+
+    1) get the required input from the user and validate it 
+    2) Perform the change operation 
+    3) Check for violations of locked dependencies 
+        3.1) Apply dependency relaxation 
+        3.2) Apply the skeleton strategy 
+    4) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 

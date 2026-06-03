@@ -48,7 +48,14 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 
 def op_skip(matrix: AdjacencyMatrix, locked_dependencies):
     """
-    An activity becomes skippable and perfom the check for violated locked dependencies
+    Operation handler for skipping an activity 
+
+    1) get the required input from the user and validate it 
+    2) Perform the change operation
+    3) Check for violations of locked dependencies 
+        3.1) Apply dependency relaxation 
+        3.2) Apply the skeleton strategy 
+    4) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 

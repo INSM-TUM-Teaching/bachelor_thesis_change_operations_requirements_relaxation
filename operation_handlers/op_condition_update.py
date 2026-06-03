@@ -10,8 +10,6 @@ from dependencies import (
     TemporalDependency, ExistentialDependency,
     TemporalType, ExistentialType, Direction,
 )
-from variants_to_matrix import variants_to_matrix
-from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.condition_update    import condition_update
@@ -22,22 +20,8 @@ from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import banner
 from utils.console_helpers import prompt
-from utils.console_helpers import choose
-from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
-from utils.console_helpers import dep_label_temp
-from utils.console_helpers import dep_label_exist
-from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
-from utils.utils_lock_dependencies import get_locked_dependencies
-from utils.utils_lock_dependencies import is_relaxation
-from utils.utils_lock_dependencies import is_temp_relaxation
-from utils.utils_lock_dependencies import is_exist_relaxation
 from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
@@ -47,16 +31,26 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 
 
 
-def op_condition_update(matrix: AdjacencyMatrix, locked_dependencies):
+def op_condition_update(matrix: AdjacencyMatrix, 
+                        locked_dependencies
+):
     """
-    An activity can only occur if another activity occurs (conditional activity) and perform the check for violations of 
+    Operation handler for cconditional update: an activity can only occur if another activity occurs (conditional activity) and perform the check for violations of 
     locked dependencies 
+
+    1. get the required input from the user and validate it 
+    2. Check for violations which can not be resolved 
+    3. Perform the change operation 
+    4. Check for violations of locked dependencies 
+    4.1. Apply dependency relaxation 
+    4.2. Apply the skeleton strategy 
+    5. return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 
         locked_dependencies: dict of locked dependencies
 
-    Return: 
+    Returns: 
         modified matrix 
         locked_dependencies after potential relaxations
     """

@@ -48,7 +48,15 @@ from utils.console_helpers import reverse_dependency
 
 def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
     """
-    Swap a pair of activities and perfom the check for violated locked dependencies
+    Operation handler for swap a pair of activities
+
+    1) get the required input from the user and validate it 
+    2) Check for violations which can not be resolved 
+    3) Perform the change operation 
+    4) Check for violations of locked dependencies 
+        4.1) Apply dependency relaxation 
+        4.2) Apply the skeleton strategy 
+    5) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 

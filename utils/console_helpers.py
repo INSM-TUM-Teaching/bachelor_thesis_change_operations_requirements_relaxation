@@ -22,11 +22,21 @@ SEP = "─" * 60
 
 
 def banner(text: str) -> None:
-    print(f"\n{SEP}\n  {text}\n{SEP}")
+    """
+    Print a banner to the console 
+
+    Args: 
+        text: Text to be shown in the console 
+    """
+
+    print(f"\n{SEP}\n {text}\n{SEP}")
 
 
 def prompt(msg: str, default: str = "") -> str:
-    # Show a prompt and return stripped input.  Ctrl-C exits gracefully.
+    """
+    Show a prompt and return stripped input.  
+    Ctrl-C exits.
+    """
     suffix = f" [{default}]" if default else ""
     try:
         value = input(f"  {msg}{suffix}: ").strip()
@@ -37,7 +47,9 @@ def prompt(msg: str, default: str = "") -> str:
 
 
 def choose(msg: str, options: list[str]) -> str:
-    """Present a numbered menu and return the chosen option string."""
+    """
+    Present a numbered menu and return the chosen option string.
+    """
     print(f"\n  {msg}")
     for i, opt in enumerate(options, 1):
         print(f"    [{i}] {opt}")
@@ -46,10 +58,14 @@ def choose(msg: str, options: list[str]) -> str:
         if raw.isdigit() and 1 <= int(raw) <= len(options):
             print("\n")
             return options[int(raw) - 1]
-        print("  ✗  Invalid choice – try again.")
+        print("  ✗  Invalid choice : try again.")
 
 
 def confirm(msg: str) -> bool:
+    """
+    Show a prompt and ask the user to confirm. 
+    False by default. 
+    """
     return prompt(f"{msg} (y/n)", "n").lower() == "y"
 
 
@@ -57,9 +73,13 @@ def confirm(msg: str) -> bool:
 #  Matrix display
 # ════════════════════════════════════════════════════════════════════════════
 
-_W = 6  # fixed width for all symbols
+# fixed width for all symbols
+_W = 6  
 
 def _dep_label(temporal, existential) -> str:
+    """
+    For a pair of temporal and existential dependencies, return the string represneting them 
+    """
     parts = []
 
     if temporal: 
@@ -78,7 +98,11 @@ def _dep_label(temporal, existential) -> str:
 
     return " , ".join(parts) if parts else "—".center(_W)
 
+
 def dep_label_temp(temporal) -> str: 
+    """
+    For a temporal dependency, get the String representing the dependency. 
+    """
     if temporal:
         if temporal.type == TemporalType.INDEPENDENCE:
             temporal_name = "-"
@@ -103,6 +127,9 @@ def dep_label_temp(temporal) -> str:
 
         
 def dep_label_exist(existential) -> str: 
+    """
+    For an existential dependency, get the String representing the dependency. 
+    """
     if existential:
         if existential.type == ExistentialType.INDEPENDENCE:
             existential_name = "-"
@@ -128,6 +155,13 @@ def dep_label_exist(existential) -> str:
 
 
 def print_matrix(matrix: AdjacencyMatrix, title: str = "Adjacency Matrix") -> None:
+    """
+    Print the matrix to the console 
+
+    Args: 
+        matrix: matrix to be printed 
+        title: title of the matrix to be shown, "Adjacency Matrix" by default
+    """
     banner(title)
     activities = matrix.activities
     col_w = 22
@@ -164,7 +198,11 @@ DIRECTIONS       = [d.name for d in Direction]
 
 
 def ask_temporal() -> TemporalDependency | None:
-    """Interactively ask for an optional temporal dependency."""
+    """
+    Interactively ask for an optional temporal dependency.
+    Returns None if not provided.
+    """
+
     if not confirm("  Specify temporal dependency?"):
         return None
     t_type = choose("Temporal type:", TEMPORAL_TYPES)
@@ -176,7 +214,11 @@ def ask_temporal() -> TemporalDependency | None:
 
 
 def ask_existential() -> ExistentialDependency | None:
-    """Interactively ask for an optional existential dependency."""
+    """
+    Interactively ask for an optional existential dependency.
+    Returns None if not provided. 
+    """
+
     if not confirm("  Specify existential dependency?"):
         return None
     e_type = choose("Existential type:", EXISTENTIAL_TYPES)
@@ -201,6 +243,7 @@ def ask_dependencies_insertion(activities: list[str], mandatory_activity: str) -
     Returns: 
         dict of dependencies 
     """
+
     deps: dict = {}
     print("\n  Enter dependencies (empty 'to' to stop):")
     while True:
@@ -266,7 +309,11 @@ def ask_dependencies(activities: list[str]) -> dict:
 
     Args: 
         activities: list of all the activities contained
+
+    Returns: 
+        dict: dictionary of the provided dependnecies 
     """
+
     deps: dict = {}
     print("\n  Enter dependencies (empty 'from' to stop):")
     while True:
@@ -313,7 +360,7 @@ def deps_to_matrix(deps: dict) -> AdjacencyMatrix:
 
 def reverse_dependency(dependency): 
     """
-    For given depenency, reverse its direction. This method works for a dependency, regardless if existential or temporal 
+    For given depenency, reverse its direction. This method works for any dependency, regardless if existential or temporal 
 
     Args: 
         dependency: dependency (either temproal or existential)

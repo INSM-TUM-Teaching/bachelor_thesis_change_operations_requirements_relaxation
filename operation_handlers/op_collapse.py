@@ -1,7 +1,3 @@
-import os
-import sys
-import copy
-import yaml
 from typing import List, Tuple, Dict, Optional
 
 # ── Core imports ────────────────────────────────────────────────────────────
@@ -14,24 +10,9 @@ from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
 # ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
-from change_operations.insert_operation    import insert_activity
-from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
 from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
-from change_operations.parallelize_operation import parallelize_activities
-from change_operations.condition_update    import condition_update
-
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
 
 # ── Change-operation solution strategies imports ─────────────────────────────────────────────────
-from solution_strategies.parallelization_strategies import parallelize_expand_set
-from solution_strategies.parallelization_strategies import parallelize_move_activities
 from solution_strategies.collapse_strategies import collapse_expand_set
 from solution_strategies.collapse_strategies import collapse_move_activities
 
@@ -44,20 +25,10 @@ from utils.console_helpers import banner
 from utils.console_helpers import prompt
 from utils.console_helpers import choose
 from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
 from utils.console_helpers import dep_label_temp
 from utils.console_helpers import dep_label_exist
-from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
-from utils.utils_lock_dependencies import get_locked_dependencies
-from utils.utils_lock_dependencies import is_relaxation
-from utils.utils_lock_dependencies import is_temp_relaxation
-from utils.utils_lock_dependencies import is_exist_relaxation
 from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
 # ── Dependency relaxation ─────────────────────────────────────────────────
@@ -66,7 +37,16 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 
 def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
     """
-    Collapse a fragment and perfom the check for violated locked dependencies
+    Operation handler to collapse a fragment
+
+    1) get the required input from the user and validate it 
+    2) Check for violations which can not be resolved 
+    3) Try to perform the change operation 
+        3.1) use solution startegies for activities happening in between 
+    4) Check for violations of locked dependencies 
+        4.1) Apply dependency relaxation 
+        4.2) Apply the skeleton strategy 
+    5) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 

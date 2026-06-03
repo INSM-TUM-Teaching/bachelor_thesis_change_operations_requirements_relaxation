@@ -47,7 +47,15 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 
 def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
     """
-    Delete an activity from the process
+    Operation handler for deleting an activity from the process
+
+    1) get the required input from the user and validate it 
+    2) Check for violations which can not be resolved 
+    3) Perform the change operation 
+    4) Check for violations of locked dependencies 
+        4.1) Apply dependency relaxation 
+        4.2) Apply the skeleton strategy 
+    5) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: Adacency of the matrix to perform the change operation on 

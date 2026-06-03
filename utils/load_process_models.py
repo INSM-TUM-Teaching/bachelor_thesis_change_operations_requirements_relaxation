@@ -11,24 +11,22 @@ from dependencies import (
     TemporalType, ExistentialType, Direction,
 )
 from variants_to_matrix import variants_to_matrix
-from acceptance_variants import generate_acceptance_variants
 
 # ── Helper functions ─────────────────────────────────────────────────
-from utils.console_helpers import banner
 from utils.console_helpers import prompt
-from utils.console_helpers import choose
-from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
-from utils.console_helpers import dep_label_temp
-from utils.console_helpers import dep_label_exist
-from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
 
 
 def load_from_yaml() -> AdjacencyMatrix:
+    """
+    Load a process model from a YAML file. 
+
+    1) Ask the user to provide the path for the YAML file 
+    2) Try to load the file 
+    3) Return the matrix derived from the YAML file 
+
+    Returns: 
+        AdjacencyMatrix: matrix loaded from the file 
+    """
     while True:
         path = prompt("Path to YAML file")
         if not path:
@@ -51,6 +49,9 @@ def load_from_sequences() -> AdjacencyMatrix:
     Each sequence is a comma-separated list of activity names, e.g.:
         A, B, C
         A, C, B
+
+    Returns: 
+        AdjacencyMatrix: matrix derived from the acceptance sequences
     """
     print("\n  Enter acceptance sequences, one per line.")
     print("  Each line: comma-separated activity names, e.g.  A, B, C")

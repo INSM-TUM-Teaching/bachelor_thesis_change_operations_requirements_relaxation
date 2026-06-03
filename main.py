@@ -1,44 +1,8 @@
-"""
-Business Process Redesign : Console Interface
-=============================================
-Run with:  python main.py
-
-Workflow
---------
-1. Load a process model (YAML file OR raw acceptance sequences)
-2. Inspect the resulting adjacency matrix
-3. Pick a change operation and supply its parameters
-4. Inspect the modified matrix
-5. Optionally export it as YAML and/or apply further operations
-"""
-
 import os
-import sys
-import copy
 import yaml
-from typing import List, Tuple, Dict, Optional
 
 # ── Core imports ────────────────────────────────────────────────────────────
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
-from dependencies import (
-    TemporalDependency, ExistentialDependency,
-    TemporalType, ExistentialType, Direction,
-)
-from variants_to_matrix import variants_to_matrix
-from acceptance_variants import generate_acceptance_variants
-
-# ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
-from change_operations.insert_operation    import insert_activity
-from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
-from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
-from change_operations.parallelize_operation import parallelize_activities
-from change_operations.condition_update    import condition_update
+from adjacency_matrix import AdjacencyMatrix
 
 # ── Change-operation helper functions imports ─────────────────────────────────────────────────
 from change_operations.parallelize_operation import get_activities_happening_between
@@ -48,25 +12,10 @@ from utils.console_helpers import banner
 from utils.console_helpers import prompt
 from utils.console_helpers import choose
 from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
-from utils.console_helpers import dep_label_temp
-from utils.console_helpers import dep_label_exist
 from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
 from utils.utils_lock_dependencies import get_locked_dependencies
-from utils.utils_lock_dependencies import is_relaxation
-from utils.utils_lock_dependencies import is_temp_relaxation
-from utils.utils_lock_dependencies import is_exist_relaxation
-from utils.utils_lock_dependencies import are_locked_dependencies_violated
-from utils.utils_lock_dependencies import is_violated
-
-# ── dependency relaxation ─────────────────────────────────────────────────
-from utils.dependency_relaxation import perform_dependency_relaxation
 
 # ── Change operation handlers ─────────────────────────────────────────────────
 from operation_handlers.op_insert import op_insert
@@ -207,6 +156,19 @@ def export_matrix_to_yaml(matrix: AdjacencyMatrix) -> None:
 # ════════════════════════════════════════════════════════════════════════════
 
 def main() -> None:
+    """
+    Business Process Redesign : Console Interface
+    Run with:  python main.py
+
+    Workflow
+    --------
+    1. Load a process model (YAML file OR raw acceptance sequences)
+    2. Inspect the resulting adjacency matrix
+    3. Pick a change operation and supply its parameters
+    4. Inspect the modified matrix
+    5. Optionally export it as YAML and/or apply further operations
+    """
+    
     print("\n" + "═" * 60)
     print("   Business Process Redesign : Console Tool")
     print("═" * 60)

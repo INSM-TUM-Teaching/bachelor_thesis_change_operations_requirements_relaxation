@@ -4,7 +4,6 @@ from dependencies import (
     ExistentialDependency,
 )
 
-
 def split_dependencies(
     dependencies: Dict[
         Tuple[str, str],

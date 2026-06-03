@@ -3,9 +3,8 @@ from typing import List, Optional, Tuple, Dict, Set
 
 import utils.similarity_score as similarity_score
 
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
+from adjacency_matrix import AdjacencyMatrix
 
-from utils.console_helpers import banner
 from utils.console_helpers import choose
 
 from variants_to_matrix import variants_to_matrix
@@ -15,12 +14,6 @@ from utils.console_helpers import deps_to_matrix
 from dependencies import ExistentialDependency, TemporalDependency, ExistentialType
 
 from acceptance_variants import satisfies_existential_constraints
-from acceptance_variants import satisfies_temporal_constraints
-
-from itertools import product as cartesian_product
-
-from utils.similarity_score import similarity_calculation_occurence
-from utils.similarity_score import similarity_calculation_ordering
 
 from dependencies import TemporalType, Direction
 
@@ -30,19 +23,24 @@ from utils.debug_mode import log
 
 def perform_skeleton_algorithm(matrix: AdjacencyMatrix, 
                               locked_dependencies: dict, 
-                              skip_activity: Optional[str] = None): 
+                              skip_activity: Optional[str] = None
+) -> AdjacencyMatrix: 
     """
-    Using the skeleton staretgy perfom the adaption of the matrix, including all the communication with the user 
+    Handler for perfoming the skeleton solution staretgy. 
+
+    1. Ask the user to select a similarity score 
+    2. Adapt the process based on the selected similarity score 
+    3. return the matrix  
 
     Args: 
         matrix: Adjacency matrix for midfication 
         locked_dependencies: Dict of locked dependencies 
         skip_activity: Activity to be skipped (optional)  
 
-    Return: 
+    Returns: 
         modified adjacency matrix 
-    """
 
+    """
 
     # we offer the user the option to choose the method to calculate the similarity score
     options = ["Pure occurence similarity score - focus on preserving existential dependencies", 
@@ -71,13 +69,19 @@ def adapt_process(matrix: AdjacencyMatrix,
                   locked_dependencies: dict, 
                   similarity_strategy: str,
                   skip_activity: Optional[str] = None
-                ): 
-#-> AdjacencyMatrix: 
+                ) -> AdjacencyMatrix: 
     """
     For a provided process adapt it to the locked dependencies and ensure they hold. 
 
-    1) Build chain sets 
-    2) 
+    1) Build all chain sets and ordering tuples
+    2) Build the occurrence sets based on the chain sets 
+    3) Sekect the chain occurrences which are required for the discovery of the dependency 
+    4) If there is an activity to be skipped 
+        4.1) If part of a chain set, ensure reflected in chain occurrence combinations 
+    5) For each acceptance sequence find the most similar skeleton sequence and adapt it 
+    6) For unused chain sets, find acceptance sequences and adapt it
+    7) For unused ordering pairs, find acceptance sequences and adapt it
+    8) translate the modified acceptance sequences to the matrix and return it 
 
     Args: 
         matrix: the adjacency matrix of the process 
@@ -698,6 +702,9 @@ def contained_ordering_pairs(sequence: List[str],
     Args: 
         sequence: sequence of activities (ordered)
         all_ordering_pairs: list of the possible pairs for the ordering
+
+    Returns: 
+        List[(str)]: list with the contained ordering pairs 
     """
 
     # define list to store the contained pairs 
@@ -724,7 +731,7 @@ def sequences_containing_pairs(all_sequences: List,
         ordering_pair: tuple of ordered activities 
 
     Returns: 
-        list of sequences containing the ordering pair 
+        List[List[str]]: list of sequences containing the ordering pair 
     """
     # define a list to store the sequences containing the pair
     sequences_containing_pair = []
@@ -740,7 +747,6 @@ def sequences_containing_pairs(all_sequences: List,
     
     # return the result 
     return sequences_containing_pair
-
 
 
 def contained_occurence_chain_sets(
@@ -778,7 +784,6 @@ def contained_occurence_chain_sets(
     return contained_occurences
 
     
-
 def combined_occurrences_containing(
     chain_occurrence_indexed: Tuple[int, tuple],   # (cs_idx, activities)
     all_combined_occurrences: List[List[str]],
@@ -816,7 +821,7 @@ def combined_occurrences_containing(
 
     return result
 
-# for a single acceptance sequence, adapt it to an occurenece set and in the second step ensure compliance with the temporal dependencies 
+
 def adapt_acceptance_sequence(
     acceptance_sequence: List[str],
     skeleton_sequence: List[str],
@@ -1162,9 +1167,14 @@ def _valid_insertion_position(
 
 def required_truth_values(exist_dep: ExistentialDependency) -> dict:
     """
-    Returns which truth values MUST be True for the discovery algorithm
-    to correctly identify the given dependency type.
+    Returns which truth values MUST be True for the discovery algorithm to correctly identify the given dependency type.
     Maps directly to get_existential_relation() in variants_to_matrix.py.
+
+    Args: 
+        exist_dep: existential dependency consisting of a type and direction 
+
+    Returns: 
+        dict: dictionary with truth values if an occurrence combination is required 
     """
 
     # get the dependency type 

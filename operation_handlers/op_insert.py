@@ -53,14 +53,16 @@ from utils.debug_mode import log
 
 def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     """
-    Logic applied in muliple steps to perform the change operation insert 
+    Operation handler for inserting an activity 
 
-    1. Get the required input from the user 
-    2. Try to perfom the change operation 
-    3. Check for violation of locked dependencies 
-        3.1. Try dependency relaxation 
-        3.2. Use skeleton approach 
-    4. Return the result to the user 
+    1) get the required input from the user and validate it 
+    2) Check for violations which can not be resolved 
+    3) Try to perform the change operation 
+        3.1) use the skeleton approach for contradictions between inputs 
+    4) Check for violations of locked dependencies 
+        4.1) Apply dependency relaxation 
+        4.2) Apply the skeleton strategy 
+    5) return the new matrix and the (modified) locked dependencies 
 
     Args: 
         matrix: adjacency matrix of the process for insertion 
