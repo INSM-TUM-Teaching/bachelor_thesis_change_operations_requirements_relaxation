@@ -342,7 +342,8 @@ def adapt_process(matrix: AdjacencyMatrix,
 
     unused_chain_sets = list(chain_sets_combined)
 
-    log(f"Chain occurence combinations which must be used: {unused_chain_sets} \n The rest is optional \n")
+    log(f"Chain occurence combinations which must be used: {unused_chain_sets}")
+    log("The remaining occurrence combinations are optional \n")
 
     # define a list to keep track of the unused ordering pairs 
     unused_ordering_pairs = all_ordering_pairs
@@ -586,7 +587,7 @@ def adapt_process(matrix: AdjacencyMatrix,
     #  For unused ordering pairs, find acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
 
-    log("Phase 4: for unused ordering pairs find pair of acceptance and skeleton sequence")
+    log("Phase 3: for unused ordering pairs find pair of acceptance and skeleton sequence")
 
     for unused_ordering_pair in list(unused_ordering_pairs):  # create a copy, since the list is modified mid-loop
 
@@ -683,7 +684,7 @@ def adapt_process(matrix: AdjacencyMatrix,
 
     log(f"Unused ordering pairs after phase 1: {unused_ordering_pairs} \n")
 
-    log(f"\nAcceptance sequences after skeleton algorithm: {acceptance_sequences_new}")
+    log(f"Acceptance sequences after skeleton algorithm: {acceptance_sequences_new}")
     # return the final result 
     return acceptance_sequences_new
 

@@ -44,6 +44,7 @@ def choose(msg: str, options: list[str]) -> str:
     while True:
         raw = prompt("Enter number")
         if raw.isdigit() and 1 <= int(raw) <= len(options):
+            print("\n")
             return options[int(raw) - 1]
         print("  ✗  Invalid choice – try again.")
 
