@@ -1,5 +1,9 @@
 # ── Core imports ────────────────────────────────────────────────────────────
 from adjacency_matrix import AdjacencyMatrix
+from dependencies import (
+    TemporalDependency, ExistentialDependency,
+    TemporalType, ExistentialType, Direction,
+)
 
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.swap_operation      import swap_activities
