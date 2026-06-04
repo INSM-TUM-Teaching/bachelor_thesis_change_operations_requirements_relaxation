@@ -77,12 +77,15 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     #  Check if insertion conditions, violate locked dependencies  
     # ════════════════════════════════════════════════════════════════════════════
 
-    # TODO define where the banner must occur 
     banner("Check for unresolvable violations to locked dependencies")
-    print("\nYou are trying to modify a locked dependency.")
+    print("\nYou are trying to modify a locked dependency. \n")
     
     # iterate over all dependencies for insertion and check if there exists a locked dependency for it 
-    for (from_act, to_act), (temp_dep, exist_dep) in deps.items():
+    for (from_act, to_act), (temp_dep, exist_dep) in list(deps.items()):
+
+        # ensure we only cover each pair once
+        if to_act < from_act: 
+            continue
 
         # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
         if (from_act, to_act) in locked_dependencies:
@@ -174,12 +177,11 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
                         locked_dependencies[(to_act, from_act)] = (reverse_dependency(temp_locked_current), None)
 
 
-    print(locked_dependencies)
-
     # ── Early exit if the user suppressed both components ────────────────────
-    if temp_dep is None and exist_dep is None:
+    if not deps:
         print("\n  ℹ  All modifications were suppressed by locked dependencies. No changes applied.")
         return matrix, locked_dependencies
+    
     
 
     # ════════════════════════════════════════════════════════════════════════════

@@ -85,10 +85,14 @@ def op_collapse(matrix: AdjacencyMatrix, locked_dependencies):
     
     # inform the user with a banner 
     if involved_locks: 
-        banner("Check for unresolvable violations to locked dependencies")
+        banner("Check for the requierement to alter a locked dependency")
 
     # for each of the involved locked dependencies, perfom the check
     for (from_act, to_act) in involved_locks: 
+
+        # if we access the reversed entry and it was already deleted, skip this entry 
+        if (from_act, to_act) not in locked_dependencies:
+            continue
         
         # get the effected dependencies 
         temp, exist = locked_dependencies[(from_act, to_act)]

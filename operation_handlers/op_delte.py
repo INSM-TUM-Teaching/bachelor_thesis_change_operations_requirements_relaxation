@@ -67,7 +67,7 @@ def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
     
     # inform the user with a banner 
     if involved_locks: 
-        banner("Check for unresolvable violations to locked dependencies")
+        banner("Check for requierement of changing locked dependency")
 
         # inform the user that the activity to de-collapse has locked dependencies
         print(f"\nActivity '{activity}' for deletion has locked dependencies to other activities of the process")
@@ -84,7 +84,9 @@ def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
         temp_str = dep_label_temp(temp) + " " if temp is not None else ""
         exist_str = dep_label_exist(exist) + " " if exist is not None else ""
 
-        print(f"   - ({from_act} {temp_str}, {exist_str} {to_act})")
+        # ensure that beacuse of commutativity, each pair is only printed once 
+        if from_act < to_act: 
+            print(f"   - ({from_act} {temp_str}, {exist_str} {to_act})")
 
     # ask the user if the dependency should be deleted to perfom the change operation 
     if confirm("\nDo you want to delete all the locked dependencies, to be able to perfom the change operation 'delete'?"): 

@@ -140,6 +140,7 @@ acceptance_sequences = [
 
 
 
+
 # WCP 7 structured synchronization merge 
 """
 acceptance_sequences = [
@@ -183,7 +184,6 @@ acceptance_sequences = [
 ]
 """
 """
-
 #WCP 19
 # acceptance_sequences = [['A', 'B'], ['A']]
 """
@@ -210,7 +210,7 @@ LOCKED_DEPENDENCIES: Dict[
 # Validation Phase II
 # ----------------------------------------------
 
-"""
+
 # case I
 acceptance_sequences = [
     ['X', 'Y', 'Z', 'D'],
@@ -222,10 +222,11 @@ acceptance_sequences = [
     ['B', 'D'],
     ['C', 'D'],
 ]
-"""
+
 
 
 # case II
+"""
 acceptance_sequences = [['A', 'Y', 'Z'],
     ['A', 'Z', 'Y'],
     ['Y', 'A', 'Z'],
@@ -239,6 +240,7 @@ acceptance_sequences = [['A', 'Y', 'Z'],
     ['Z', 'Y', 'B'],
     ['Z', 'B', 'Y']
 ]
+"""
 
 
 # case III
@@ -305,12 +307,11 @@ acceptance_sequences = [['A', 'X'],
 
 locked_dependencies = dict()
 
-"""
+
 locked_dependencies = {
-    ("A", "X"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
-    ("X", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
+    ("Y", "X"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
+    ("X", "Y"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
 }
-"""
 
 
 
@@ -327,7 +328,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_insert(matrix, locked_dependencies)
+result, locked_dependencies = op_move(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:

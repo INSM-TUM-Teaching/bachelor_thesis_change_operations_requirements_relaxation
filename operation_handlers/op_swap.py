@@ -91,7 +91,7 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
             print(f"To be able to perfom the swap, the locked temporal dependency must be deleted.")
             
             # ask the user if the dependency should be deleted to perfom the change operation 
-            if confirm("\nDo you want to delete the locked temporal dependency (otherwise the chnage operation can not be performed)?"): 
+            if confirm("\nDo you want to delete the locked temporal dependency (otherwise the change operation can not be performed)?"): 
                 # delete the entry from the locked dependencies 
                 del locked_dependencies[(act1, act2)]
 
