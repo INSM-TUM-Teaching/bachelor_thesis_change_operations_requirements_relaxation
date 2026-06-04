@@ -51,6 +51,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     # ════════════════════════════════════════════════════════════════════════════
 
     # get the parameters for the change operation
+    perform_skeleton = False 
 
     # get the name of the new activity - ensure it is not alreday part of the process
     while True: 

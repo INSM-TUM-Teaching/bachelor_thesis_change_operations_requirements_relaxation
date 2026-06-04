@@ -84,7 +84,7 @@ def op_swap(matrix: AdjacencyMatrix, locked_dependencies):
         if (locked_temp is not None) and (locked_temp.type != TemporalType.INDEPENDENCE):
 
             # inform the user 
-            banner("Check for unresolvable violations to locked dependencies")
+            banner("Check for the requierement to alter a locked dependency")
 
             # inform the user that the activity to de-collapse has locked dependencies
             print(f"\nThe activities to swap have a locked temporal dependency ({act1} {dep_label_temp(locked_temp)} {act2})")

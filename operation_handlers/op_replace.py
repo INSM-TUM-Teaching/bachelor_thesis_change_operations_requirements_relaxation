@@ -79,7 +79,7 @@ def op_replace(matrix: AdjacencyMatrix, locked_dependencies):
     
     # inform the user with a banner 
     if involved_locks: 
-        banner("Check for unresolvable violations to locked dependencies")
+        banner("Check for the requierement to alter a locked dependency")
 
         # inform the user that the activity to de-collapse has locked dependencies
         print(f"\nActivity '{old_act}' for replacement has locked dependencies to other activities of the process")

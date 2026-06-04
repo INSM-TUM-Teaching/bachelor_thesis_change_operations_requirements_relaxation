@@ -105,7 +105,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
     if (from_act, to_act) in locked_dependencies:
 
-        banner("Check for unresolvable violations to locked dependencies")
+        banner("Check for the requierement to alter a locked dependency")
         print("\nYou are trying to modify a locked dependency.")
 
         temp_locked, exist_locked = locked_dependencies[(from_act, to_act)]

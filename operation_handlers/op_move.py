@@ -77,7 +77,7 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     #  Check if insertion conditions, violate locked dependencies  
     # ════════════════════════════════════════════════════════════════════════════
 
-    banner("Check for unresolvable violations to locked dependencies")
+    banner("Check for the requierement to alter a locked dependency")
     print("\nYou are trying to modify a locked dependency. \n")
     
     # iterate over all dependencies for insertion and check if there exists a locked dependency for it 

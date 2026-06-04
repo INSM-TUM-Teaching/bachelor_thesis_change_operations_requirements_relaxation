@@ -67,7 +67,7 @@ def op_delete(matrix: AdjacencyMatrix, locked_dependencies):
     
     # inform the user with a banner 
     if involved_locks: 
-        banner("Check for requierement of changing locked dependency")
+        banner("Check for the requierement to alter a locked dependency")
 
         # inform the user that the activity to de-collapse has locked dependencies
         print(f"\nActivity '{activity}' for deletion has locked dependencies to other activities of the process")

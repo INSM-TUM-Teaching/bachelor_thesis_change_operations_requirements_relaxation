@@ -98,7 +98,7 @@ def op_parallelize(matrix: AdjacencyMatrix, locked_dependencies):
     if involved_locks: 
 
         # inform the user, provide a list of violations 
-        banner("Check for unresolvable violations to locked dependencies")
+        banner("Check for the requierement to alter a locked dependency")
 
         # inform the user that the activity to de-collapse has locked dependencies
         print(f"Parallelization leads to temporal independence and existential equivalence for the activities or parallelization.")
