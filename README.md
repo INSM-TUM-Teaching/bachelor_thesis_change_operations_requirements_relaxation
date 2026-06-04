@@ -1,149 +1,155 @@
 # Relaxing Change Operation Requirements Through Human-In-The-Loop Variant Selection
 
-TODO
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Framework](https://img.shields.io/badge/Framework-Flask-black.svg)](https://flask.palletsprojects.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project provides a console based application for the automated redesign of business processes. It offers a modeling language-independent approach to apply behavioral change operations, addressing the challenges of manual redesign which is often labor-intensive, error-prone, and difficult to scale. Compared to the application presented by Andree et al. it expands the scope of action by including human in the loop principles to resolve ambiguities.
+This project provides a console-based application for automated business process redesign (BPR). It extends the baseline approach by Andree et al. to handle cases where change operations are rejected as infeasible due to unsatisfied structural requirements — even when the operations themselves are semantically valid. Rather than rejecting such operations, the application detects the failure condition, applies an appropriate solution strategy, and guides the user through any remaining decisions via a human-in-the-loop interface.
 
-The core of the application lies in its use of **activity relations** (represented as an adjacency matrix) and **acceptance sequences** (all possible execution paths) to systematically apply changes and automatically capture all secondary behavioral effects.
+The application is modeling-language independent, operating on an **activity relationships matrix** and **acceptance sequences** as its central process representation.
 
-![Application Screenshot](images/ui_screenshot.png)
+## Background
 
-## Core Concepts
+Change operations can only be implemented if a set of operation-specific structural requirements hold. For example, parallelizing activities `{A, C}` in a sequential process `A → B → C` fails because activity `B` lies between them, making the placement of the parallelized fragment ambiguous. A human modeler would resolve this by either moving `B` outside the set or expanding the set to `{A, B, C}`. This work automates exactly that resolution step.
 
-This tool is built on a two-step process transformation approach:
+Failure conditions are classified into three types:
 
-1.  **Adjacency Matrix to Acceptance Sequences:** A business process, defined by pairwise activity relations in an adjacency matrix, is first translated into a complete set of its acceptance sequences. This representation enumerates all valid execution traces allowed by the process model.
+| Failure Condition                    | Affected Operations   | Description                                                        |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------ |
+| **Activities happening in between**  | Parallelize, Collapse | Interfering activities block placement of the new fragment         |
+| **Contradictions between inputs**    | Insert, Modify, Move  | Provided dependencies conflict with the existing process structure |
+| **Violation of locked dependencies** | All operations        | The change operation alters a dependency designated as locked      |
 
-2.  **Applying Change Operations:** The redesign operations are applied directly to this simple list-based representation of acceptance sequences. This simplifies complex structural changes into straightforward list manipulations.
+For each failure condition, the application applies a dedicated solution strategy and, where multiple structural variants are possible, presents them to the user for selection.
 
-3.  **Acceptance Sequences back to Adjacency Matrix:** The modified set of acceptance sequences is then converted back into an adjacency matrix. This final step automatically discovers and reflects all primary and secondary changes to the process's temporal and existential dependencies.
+## Solution Strategies
 
-This workflow ensures that even complex, cascading changes are captured consistently and correctly, a significant advantage over manual redesign.
+### Activities Happening In Between
+
+Two strategies are offered:
+
+- **Move activities**: All activities in the target set are moved to a single anchor position chosen by the user, eliminating any activities in between.
+- **Expand the set**: The interfering activities are included in the parallelization/collapse set. This option is only offered when five or fewer activities are in between.
+
+### Contradictions Between Inputs & Locked Dependency Violations
+
+Both conditions are resolved using the **skeleton solution strategy**:
+
+1. A set of _skeleton sequences_ is derived from the required dependencies (change operation inputs and locked dependencies). Each skeleton sequence is a valid structural template encoding the required ordering and co-occurrence of constrained activities.
+2. Each acceptance sequence of the process is matched to the most similar skeleton sequence using a configurable **similarity score** (occurrence-based, ordering-based, or combined).
+3. Acceptance sequences are adapted to conform to their matched skeleton sequence, preserving as much of the original process structure as possible while guaranteeing all required dependencies are satisfied.
+
+For locked dependency violations, **dependency relaxation** is also offered: if the new dependency type after a change operation is a valid relaxation of the locked type (e.g., equivalence `⟺` relaxed to implication `⇒`), the user is asked whether to accept the relaxation before the skeleton strategy is applied.
 
 ## Key Features
 
-- **Modeling Notation Independent:** By using an abstract representation (activity relations matrix), the tool can work with any process modeling language.
-- **11 Automated Change Operations:** Implements a comprehensive set of basic and composite redesign operations.
-- **Custom YAML Format:** A clean, human-readable YAML format for defining and exporting process models.
-- **Dependency Locking:** Allows users to "lock" critical dependencies, preventing them from being altered by change operations and ensuring process integrity.
-- **Extended set of supported cases:** Compared to the application by Andree et al. this version provides automated support for more cases.
+- **Modeling language independent**: Operates on an abstract activity relationships matrix, not tied to any specific notation.
+- **11 supported change operations**: Full coverage of basic and composite behavioral redesign operations.
+- **Three failure condition handlers**: Automated detection and resolution of all identified structural failure conditions.
+- **Human-in-the-loop variant selection**: Where multiple structural adaptations are valid, the user selects the preferred variant.
+- **Locked dependencies**: Critical activity dependencies can be designated as locked and are preserved (or relaxed with user confirmation) across all change operations.
+- **Configurable similarity scoring**: Users choose whether to prioritize preserving existential dependencies (occurrence similarity), temporal dependencies (ordering similarity), or a balanced combination.
+- **YAML import/export**: Process models can be loaded from and exported to a human-readable `.yaml` format.
 
-### Supported Change Operations
+## Supported Change Operations
 
-The application supports 11 distinct behavioral change operations:
+**Basic operations:**
 
-**Basic Operations:**
+- **Insert**: Add a new activity with specified temporal and/or existential dependencies.
+- **Remove**: Remove an existing activity from the process.
+- **Modify**: Change the temporal and/or existential dependencies between two activities.
 
-- **Insert:** Add a new activity to the process with specified dependencies.
-- **Remove:** Remove an existing activity from the process.
-- **Modify:** Change the temporal and/or existential dependencies between two activities.
+**Composite operations:**
 
-**Composite Operations:**
+- **Move** (Insert + Remove): Move an activity to a new position.
+- **Replace** (Remove + Insert): Replace an existing activity with a new one.
+- **Parallelize** (Modify): Make a set of activities executable in any order.
+- **Collapse** (Remove + Insert): Abstract a set of activities into a single sub-process activity.
+- **De-collapse** (Remove + Insert): Expand a sub-process activity into its constituent activities.
+- **Swap** (Insert + Remove): Swap the positions and dependencies of two activities.
+- **Skip** (Modify): Make an activity optional.
+- **Condition update** (Modify): Make an activity's execution conditional on another activity.
 
-- **Move:** Move an activity to a new position.
-- **Replace:** Replace an existing activity with a new one, inheriting its dependencies.
-- **Parallelize:** Make a set of activities executable in any order (concurrently).
-- **Collapse:** Abstract a set of activities into a single sub-process activity.
-- **De-collapse:** Expand a sub-process activity back into its constituent activities.
-- **Swap:** Swap the positions and dependencies of two activities.
-- **Skip:** Make an existing activity optional.
-- **Condition Update:** Make an activity's execution conditional on the occurrence of another.
+## How It Works
+
+The application follows a three-step transformation cycle:
+
+1. **Matrix → Acceptance sequences**: The activity relationships matrix is translated into the complete set of valid execution traces (acceptance sequences).
+2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a structural requirement is not met, the appropriate solution strategy is triggered.
+3. **Acceptance sequences → Matrix**: The modified acceptance sequences are translated back into an activity relationships matrix, automatically capturing all primary and secondary dependency changes.
 
 ## Technology Stack
 
-- Python
-- **Data Format:** YAML (using PyYAML library)
+- **Language**: Python 3.10+
+- **Interface**: Console application
+- **Data format**: YAML (via PyYAML)
 
 ## Getting Started
-
-Follow these instructions to get the application running on your local machine.
-
-TOOD -> adapt everything following from here
 
 ### Prerequisites
 
 - Python 3.10 or newer
-- A virtual environment tool like `venv` (recommended)
 
 ### Installation & Setup
 
-1.  **Clone the repository:**
+1. **Clone the repository:**
 
-    ```bash
-    git clone https://github.com/INSM-TUM-Teaching/business-process-redesign.git
-    cd business-process-redesign
-    ```
+   ```bash
+   git clone https://github.com/thecodeflo/thesis_redesign_relaxation.git
+   cd thesis_redesign_relaxation
+   ```
 
-2.  **Create and activate a virtual environment:**
+2. **Create and activate a virtual environment:**
 
-    ```bash
-    # For macOS/Linux
-    python3 -m venv .venv
-    source .venv/bin/activate
+   ```bash
+   # macOS/Linux
+   python3 -m venv .venv
+   source .venv/bin/activate
 
-    # For Windows
-    python -m venv .venv
-    .venv\Scripts\activate
-    ```
+   # Windows
+   python -m venv .venv
+   .venv\Scripts\activate
+   ```
 
-3.  **Install the required dependencies:**
+3. **Install dependencies:**
 
-    ```bash
-    pip install -r requirements.txt
-    ```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-4.  **Run the application:**
+4. **Run the application:**
+   ```bash
+   python main.py
+   ```
 
-    ```bash
-    python run.py
-    ```
+## Using the Application
 
-5.  **Access the web interface:**
-    Open your browser and navigate to `http://127.0.0.1:5000`.
+The application guides the user through the following steps:
 
-## How to Use the Application
+**Step 1 — Load a process model**
 
-1.  **Load a Process Model:**
-    - **Option A (Traces):** Paste process traces into the text area (one per line, activities separated by commas) and click "Generate Matrix".
-    - **Option B (YAML):** Click "Choose File" to upload a process model defined in the specified YAML format. The matrix will be generated automatically.
+Choose to provide the process as a `.yaml` file or by entering acceptance sequences manually. Acceptance sequences are derived from the input to build the activity relationships matrix.
 
-2.  **Configure a Change Operation:**
-    - In the "Change Operations" panel, select the desired operation from the dropdown menu.
-    - The required input fields for the selected operation will appear. Fill them out according to your redesign goal.
+**Step 2 — Lock dependencies (optional)**
 
-3.  **Lock Dependencies (Optional):**
-    - If certain relationships in your process must not be changed, use the "Lock Dependencies" panel.
-    - Select the "From" and "To" activities, check whether to lock the "Temporal" or "Existential" dependency (or both), and click "Add Lock".
-    - If a change operation violates a lock, it will be aborted with an error message.
+Specify activity pairs whose temporal and/or existential dependencies must not be altered. The application will either refuse the change operation or apply a solution strategy to preserve the locks.
 
-4.  **Apply the Operation:**
-    - Choose whether to apply the operation to the "Initial Matrix" or the last "Modified Matrix".
-    - Click "Perform Operation".
+**Step 3 — Select and configure a change operation**
 
-5.  **Review the Results:**
-    - The application will display the source matrix and the newly modified matrix side-by-side.
-    - Changes are highlighted: green for additions, red for removals, and yellow for modifications, similar to a `git diff`.
+Choose one of the 11 supported change operations and provide the required input parameters (e.g., activity names, dependency types).
 
-6.  **Export the Result:**
-    - Click the "Export Modified Matrix (YAML)" button to download the new process model.
+**Step 4 — Review and confirm**
+
+If a failure condition is detected, the application presents available solution strategies or structural variants for user selection. For dependency relaxation, explicit confirmation is required before the lock is loosened.
+
+**Step 5 — Export (optional)**
+
+The resulting activity relationships matrix can be exported to a `.yaml` file. Further change operations can then be applied to the modified or original matrix.
 
 ## YAML File Format
 
-The application uses a simple YAML format to represent the adjacency matrix.
-
-- `metadata`: Contains a list of all unique `activities` in the process.
-- `dependencies`: A list where each item defines the relationship between a `from` and `to` activity.
-  - `temporal`: Defines the ordering constraint (e.g., `direct`, `eventual`) and `direction`.
-  - `existential`: Defines the occurrence constraint (e.g., `implication`, `equivalence`) and `direction`.
-
-**Example (`sample-matrices/first_prototype.yaml`):**
-
 ```yaml
 metadata:
-  activities: [A, B, C, D, E]
+  activities: [A, B, C]
 dependencies:
   - from: A
     to: B
@@ -151,35 +157,39 @@ dependencies:
       type: direct
       direction: forward
     existential:
-      type: implication
-      direction: forward
+      type: equivalence
+      direction: both
   - from: B
     to: C
     temporal:
-      type: eventual
+      type: direct
       direction: forward
     existential:
       type: equivalence
       direction: both
 ```
 
-## Testing
+Each entry in `dependencies` defines the pairwise relationship between two activities. Temporal types include `direct` and `eventual`; existential types include `equivalence`, `negated_equivalence`, `implication`, `or`, and `nand`.
 
-The project includes a suite of tests to verify the correctness of the core algorithms and change operations.
+## Evaluation
 
-To run the tests, install the development dependencies and run `pytest`:
+The solution strategies were validated against all failure cases identified during development (10 workflow control-flow patterns, 11 change operations) and evaluated for generalizability on five unseen process structures composed from combinations of workflow patterns. Key results:
 
-```bash
-pip install -r dev-requirements.txt
-pytest
-```
+- **Activities in between**: 11/11 cases resolved (100%).
+- **Contradictions between inputs**: 61/64 cases resolved (three cases involve activity elimination treated as out of scope).
+- **Locked dependency violations**: 11/11 cases resolved (100%).
+- **Generalizability**: All applicable failure conditions resolved across all five unseen process structures.
 
 ## Project Context
 
-This project was developed as part of the "Practical Course" in the Summer Term of 2025 at the Chair for Information Systems, Technical University of Munich.
+This application was developed as part of a Bachelor's thesis at the Chair for Information Systems, Technical University of Munich.
 
-- **Team Members:** Fabian Deigner, Ivan Kuzmin, Florian Stupp
-- **Supervisor:** Kerstin Andree
+- **Author**: Florian Alexander Stupp
+- **Supervisor**: M.Sc. Kerstin Andree
+- **Examiner**: Prof. Dr. Luise Pufahl
+- **Submission**: June 2026
+
+The baseline change operation algorithms this work extends are available at [INSM-TUM/business-process-redesign](https://github.com/INSM-TUM/business-process-redesign).
 
 ## License
 
