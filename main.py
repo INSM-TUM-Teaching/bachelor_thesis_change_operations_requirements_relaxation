@@ -87,7 +87,7 @@ OP_HANDLERS = {
 }
 
 
-def step_apply_operation(matrix: AdjacencyMatrix, locked_dependencies) -> AdjacencyMatrix | None:
+def step_apply_operation(matrix: AdjacencyMatrix, locked_dependencies):
     """
     Returns the modified matrix, or None if the user chose to exit.
     """
@@ -100,20 +100,19 @@ def step_apply_operation(matrix: AdjacencyMatrix, locked_dependencies) -> Adjace
     handler = OP_HANDLERS.get(operation)
     if handler is None:
         print(f"  ✗  Handler for '{operation}' not found.")
-        return matrix
+        return matrix, locked_dependencies
 
     print(f"\n  ── Parameters for: {operation.upper()} ──")
     try:
         # try to perform the change operation
         result, locked_dependencies = handler(matrix, locked_dependencies)
-        # print(f"\n  ✓  Operation '{operation}' applied successfully.")
-        return result, locked_dependencies
+        return result, locked_dependencies, True
     except ValueError as e:
-        print(f"\n  ✗  Operation failed: {e}")
-        return matrix, locked_dependencies
+        print(f"\n  ✗  Operation failed: {e} \n")
+        return matrix, locked_dependencies, False
     except Exception as e:
-        print(f"\n  ✗  Unexpected error: {e}")
-        return matrix, locked_dependencies
+        print(f"\n  ✗  Unexpected error: {e} \n")
+        return matrix, locked_dependencies, False
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -187,32 +186,43 @@ def main() -> None:
 
     # ── 3. Operation loop ────────────────────────────────────────────────────
     while True:
-        result, locked_dependencies = step_apply_operation(current_matrix, locked_dependencies)
+        result, locked_dependencies, operation_successful = step_apply_operation(current_matrix, locked_dependencies)
 
         # check if the user wants to end the application 
         if result is None:
             print("\n  No further operations selected.  Exiting.\n")
             break
 
-        # inform the user that the change operation was applied succesfully 
-        print(f"\n  ✓  Change operation applied successfully.")
-        
-        # if the matrix did not change, display this information 
-        if result is not current_matrix:
-            print_matrix(result, "Modified Matrix")
-        else:
-            print("\n  ℹ  Matrix unchanged – no modified matrix to display.")
+        # if no error occurred while implementing the change operation 
+        if operation_successful: 
+            # if the matrix did not change, display this information 
+            if result is not current_matrix:
+                # inform the user that the change operation was applied succesfully 
+                print(f"\n  ✓  Change operation applied successfully.")
+                print_matrix(result, "Modified Matrix")
 
-        if confirm("Export this matrix to YAML?"):
-            export_matrix_to_yaml(result)
+                if confirm("Export this matrix to YAML?"):
+                    export_matrix_to_yaml(result)
 
-        if confirm("Apply another operation to the MODIFIED matrix?"):
-            current_matrix = result
-            continue
+                if confirm("Apply another operation to the MODIFIED matrix?"):
+                    current_matrix = result
+                    continue
 
-        if confirm("Apply another operation to the ORIGINAL matrix?"):
-            # current_matrix is still the original – just loop again
-            continue
+                if confirm("Apply another operation to the ORIGINAL matrix?"):
+                    # current_matrix is still the original – just loop again
+                    continue
+             
+            else:
+                # if the matrix remained unchanged 
+                print("\n  ℹ  Matrix unchanged : no modified matrix to display.")
+
+                if confirm("Apply another operation to the original matrix?"):
+                    continue
+
+        else: 
+            # if the change operation failed 
+            if confirm("Apply another operation to the original matrix?"):
+                continue
 
         # No further work
         print("\n  Done.  Goodbye!\n")
