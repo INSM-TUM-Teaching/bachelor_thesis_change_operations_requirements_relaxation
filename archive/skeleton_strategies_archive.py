@@ -73,13 +73,15 @@ def adapt_process(matrix: AdjacencyMatrix,
     """
     For a provided process adapt it to the locked dependencies and ensure they hold. 
 
-    1) Build occurrence combinations and ordering tuples
-    2) If there is an activity to be skipped 
-        2.1) If part of a locked existential dependency, ensure reflected in occurrence combinations 
-    3) For each acceptance sequence find the most similar skeleton sequence and adapt it 
-    4) For unused occurrence combinations, find acceptance sequences and adapt it
-    5) For unused ordering pairs, find acceptance sequences and adapt it
-    6) Translate the modified acceptance sequences to the matrix and return it 
+    1) Build all chain sets and ordering tuples
+    2) Build the occurrence sets based on the chain sets 
+    3) Sekect the chain occurrences which are required for the discovery of the dependency 
+    4) If there is an activity to be skipped 
+        4.1) If part of a chain set, ensure reflected in chain occurrence combinations 
+    5) For each acceptance sequence find the most similar skeleton sequence and adapt it 
+    6) For unused chain sets, find acceptance sequences and adapt it
+    7) For unused ordering pairs, find acceptance sequences and adapt it
+    8) translate the modified acceptance sequences to the matrix and return it 
 
     Args: 
         matrix: the adjacency matrix of the process 
@@ -92,17 +94,16 @@ def adapt_process(matrix: AdjacencyMatrix,
     """
 
     # ════════════════════════════════════════════════════════════════════════════
-    #  Build occurrence combinations and ordering pairs
+    #  Build chain sets 
     # ════════════════════════════════════════════════════════════════════════════
+
+    chain_sets: List[Set[str]] = []
 
     # create a list of all activities with locked existential dependencies 
     all_occurence_activities = []
 
     # list to store all orderings 
     all_ordering_pairs = []
-
-    # defines the set of combinations which are valid (does not mean, that we need all of them)
-    all_occurrence_combinations = []
 
     # define dictionaries to store the dependencies seperatly 
     temporal_deps: Dict[Tuple[str, str], TemporalDependency] = {}
@@ -125,34 +126,37 @@ def adapt_process(matrix: AdjacencyMatrix,
             all_occurence_activities.append(to_act)
 
         # -------------------------
-        # build the occurrence combinations, if an existential depenency is provided 
+        # build chain sets 
+
+        # only consider the activity for the chain sets, if they have an existential dependency 
         if exist_dep: 
+            # Find the indices of all chain sets that contain either activity
+            containing_indices = [
+                i for i, cs in enumerate(chain_sets)
+                if from_act in cs or to_act in cs
+            ]
 
-            # get which truth values are required by the discovery algorithm 
-            truth_values = required_truth_values(exist_dep)
+            if not containing_indices:
+                # Neither activity is known yet → open a new chain set
+                chain_sets.append({from_act, to_act})
 
-            # define a dict for the mapping of occurrence combinations 
-            flag_to_occ = {
-                            "exists_both":    [from_act, to_act],
-                            "exists_only_a":  [from_act],
-                            "exists_only_b":  [to_act],
-                            "exists_neither": [],
-                        }
+            elif len(containing_indices) == 1:
+                # One chain set already contains one activity → add the other
+                chain_sets[containing_indices[0]].update({from_act, to_act})
 
-            # for each occurrence combination, check if it is required, if this is the case 
-            for flag, occ in flag_to_occ.items():
-                if truth_values[flag]:
-
-                    # define the entry of required occurrence combinations and add it 
-                    entry = ((min(from_act, to_act), max(from_act, to_act)), occ)
-
-                    # ensure no duplicates are added 
-                    if entry not in all_occurrence_combinations:
-                        all_occurrence_combinations.append(entry)
+            else:
+                # Activities sit in different chain sets → merge them all into one
+                # Iterate in reverse so that popping by index does not shift
+                # the positions of indices we have not yet removed
+                merged: Set[str] = {from_act, to_act}
+                for i in sorted(containing_indices, reverse=True):
+                    merged.update(chain_sets[i])
+                    chain_sets.pop(i)
+                chain_sets.append(merged)
 
         
         # -----------------------------------
-        # build the ordering tuples, if a temporal dependency is provided  
+        # build the ordering tuples 
         if temp_dep: 
             if temp_dep.direction == Direction.FORWARD: 
                 all_ordering_pairs.append((from_act, to_act))
@@ -166,72 +170,193 @@ def adapt_process(matrix: AdjacencyMatrix,
     all_ordering_pairs = list(dict.fromkeys(all_ordering_pairs))
         
 
-    # log the occurrence combinations and ordering pairs (structures which must occur)
-    log("Build the occurrence combinations")
-    log(f"Occurrence combinations: {all_occurrence_combinations} \n")
+    # log the chain sets and ordering pairs (structures which must occur)
+    log("Build the chain sets")
+    log(f"Chain sets: {chain_sets} \n")
 
     log("Build the ordering tuples")
     log(f"Ordering tuples: {all_ordering_pairs} \n")
 
     # ════════════════════════════════════════════════════════════════════════════
+    #  Form all possible occurence sets based on chain sets 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    # define a list to store all possible occurence combinations per chain set for all chain sets 
+    # defines the set of combinations which are valid (does not mean, that we need all of them)
+    occurence_combinations_per_chain_set = []
+
+    # iterate through all the chain sets 
+    for chain_set in chain_sets:
+
+        # define a list, to store for this chain set the occurence combinations
+        occurence_combinations_chain_set = []
+
+        # from the existential deps, filter the relevant ones 
+        relevant_existential_deps = {
+            (s, t): dep
+            for (s, t), dep in existential_deps.items()
+            if s in chain_set and t in chain_set
+        }
+
+        # build all possible permutations for each chain_set 
+        chain_set = list(chain_set)
+
+        n = len(chain_set)
+
+        for i in range(0, 1 << n):  
+            current_subset_indices = []
+            for j in range(n):
+                if (i >> j) & 1:  
+                    current_subset_indices.append(j)
+
+            # create the subset 
+            current_subset_activities = {chain_set[k] for k in current_subset_indices}
+
+            # check if the existential constraints hold for the given subset 
+            if satisfies_existential_constraints(current_subset_activities, chain_set, relevant_existential_deps):
+                occurence_combinations_chain_set.append(list(current_subset_activities))
+
+        occurence_combinations_per_chain_set.append(occurence_combinations_chain_set)
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Mark the chain sets with IDs to keep track of them (used for empyt sets)
+    #  Filter the occurences which are required and which are optional  
     #  Generate the needed acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
 
     # based on the matrix generate the acceptance sequences 
     acceptance_sequences = generate_acceptance_variants(matrix)
 
+    # create a list of all chain sets, and mark each with a unique ID
+    # allows to distinguish between empty sets 
+    chain_sets_combined = []
+    for cs_idx, chain_set_occs in enumerate(occurence_combinations_per_chain_set):
+        for occurence_chain_set in chain_set_occs:
+            entry = (cs_idx, tuple(occurence_chain_set))   # tagged with cs_idx
+            if entry not in chain_sets_combined:
+                chain_sets_combined.append(entry)
 
-    # ════════════════════════════════════════════════════════════════════════════
-    #  Cover skipped activities
-    # ════════════════════════════════════════════════════════════════════════════
+    # ------------------------------
+    # FILTER 
+
+    # After building chain_sets_combined, before copying to unused_chain_sets:
+    filtered = []
+    for (cs_idx, occ_tuple) in chain_sets_combined:
+        occ_list  = list(occ_tuple)
+        occ_set   = set(occ_list)
+        forbidden = False
+        required  = False
+
+        # iterate over all locked existential dependencies 
+        for (act_a, act_b), exist_dep in existential_deps.items():
+            cs_all = {a for occ in occurence_combinations_per_chain_set[cs_idx] for a in occ}
+            
+            # only consider existential dependencies if both activities are part of the chain set 
+            if act_a not in cs_all or act_b not in cs_all:
+                continue
+
+            # get an overview of the occurence combinations in the current chain occurence 
+            has_a = act_a in occ_set
+            has_b = act_b in occ_set
+
+            if has_a and has_b:
+                flag = "exists_both"
+            elif has_a:
+                flag = "exists_only_a"
+            elif has_b:
+                flag = "exists_only_b"
+            else:
+                flag = "exists_neither"
+
+            # from the dict of required truth values, use the falg to get if the tuple is needed 
+            tv = required_truth_values(exist_dep)[flag]
+
+            # forbidden by the dependency type — drop immediately
+            if tv is False:    
+                forbidden = True
+                break
+            
+            # required by the dependency type — must be kept
+            if tv is True:     
+                required = True
+
+            # if tv is None, we don't care, since they do not have to occur, but can occur 
+
+        # if the occurence is forbidden, we continue 
+        if forbidden:
+            continue
+
+        # if the occurence is required, we add it to set of occurence combinations which must be used 
+        if required:
+            filtered.append((cs_idx, occ_tuple))
+
+    chain_sets_combined = filtered
+
+    # -------- Skipped activity --------------------------
+
+    # variable to keep track if the skip_activity is in a chain set (so part of a locked dependency)
+    skip_activity_in_chainset = False
 
     # if we have a skip_activity, we need adaptions 
     if skip_activity:
 
-        # check if the skip activity has a locked existential dependnecy 
-        if skip_activity in all_occurence_activities:  
+        # enumerate all chain sets to check if skip_activity is in a chain set 
+        for cs_idx, chain_set in enumerate(chain_sets):
 
-            log("The activity to be skipped has locked existential dependencies")
+            if skip_activity in chain_set:
+                skip_activity_in_chainset = True
+                skip_activity_cs_idx = cs_idx
+                break
 
-            # iterate over all existential dependencies involving the skip_activity
-            for (act_a, act_b), exist_dep in existential_deps.items():
+        # if it is in a chain set, we either manipulate the chain set or add an empty sequence to the chain set 
+        # if the activity is not in a chain set, we do not care 
+        if skip_activity_in_chainset:
 
-                # only consider the canonical direction to avoid processing both directions 
-                # and only consider pairs that involve the skip_activity
-                if act_a > act_b or skip_activity not in (act_a, act_b):
-                    continue
+            log("The activity to be skipped is in a chain set")
 
-                # check if any required combination for this pair already excludes the skip_activity
-                already_skippable = any(
-                    pair == (act_a, act_b) and skip_activity not in occ_comb
-                    for (pair, occ_comb) in all_occurrence_combinations
-                )
+            # check if any required combination already excludes the skip_activity
+            # i.e. there is already a required variant where it is absent
+            already_skippable = any(
+                idx == skip_activity_cs_idx and skip_activity not in occ_tuple
+                for (idx, occ_tuple) in chain_sets_combined
+            )
 
-                if not already_skippable:
-                    # add the empty entry, which was optional beforehand 
-                    empty_entry = ((act_a, act_b), [])
+            if not already_skippable:
+                # add empty set to occurence_combinations_per_chain_set so that
+                # combined_occurrences_containing can find matching skeleton sequences
+                occurence_combinations_per_chain_set[skip_activity_cs_idx].append([])
 
-                    if empty_entry not in all_occurrence_combinations:
-                        all_occurrence_combinations.append(empty_entry)
+                # inject the empty combination as required, so Phase 2 generates
+                # at least one variant where the skip_activity is absent
+                empty_entry = (skip_activity_cs_idx, ())
+                chain_sets_combined.append(empty_entry)
 
-                        log(f"Inserted skip entry {empty_entry} for pair ({act_a}, {act_b})")
+                log("Inserted an empty entry in the combined chain sets")
 
+    # ----------------------------------------------------
 
-    # ---------------------------------------------------    
+    unused_chain_sets = list(chain_sets_combined)
+
+    log(f"Chain occurence combinations which must be used: {unused_chain_sets}")
+    log("The remaining occurrence combinations are optional \n")
 
     # define a list to keep track of the unused ordering pairs 
-    unused_ordering_pairs = list(all_ordering_pairs)
+    unused_ordering_pairs = all_ordering_pairs
 
-    # copy in a list to keep track of the occurrence combinations which were not yet used 
-    unused_occurrence_combinations = list(all_occurrence_combinations)
+    # copy in a list to keep track of the chain sets which were not yet used 
+    unused_chain_sets = list(chain_sets_combined)
 
 
     # ════════════════════════════════════════════════════════════════════════════
-    #  For each acceptance sequence find the best occurnce set & adapt & keep track of used occurrence combinations 
+    #  For each acceptance sequence find the best occurnce set & adapt & keep track of used chain sets 
     # ════════════════════════════════════════════════════════════════════════════
-  
+
+    # start by generating the skeleton sequences 
     # generate the skeleton sequences 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(locked_dependencies))
+    # we use the skeleton sequences, since they present all cases
+    # we do not have to use all skeleton sequences, but use chain occurneces for filtering 
+    locked_deps_matrix = deps_to_matrix(locked_dependencies)
+    skeleton_sequences = generate_skeleton(locked_deps_matrix)
 
     log(f"Skeleton sequences: {skeleton_sequences}")
     print(skeleton_sequences)
@@ -311,12 +436,12 @@ def adapt_process(matrix: AdjacencyMatrix,
 
         # ----------------------------
 
-        # get the contained occurrence combinations per combined occurence set  
-        contained_occurence_combinations = get_contained_occurence_combinations(selected_skeleton_sequence, all_occurrence_combinations)
+        # get the contained chain sets per combined occurence set  
+        contained_chain_occurence_sets = contained_occurence_chain_sets(selected_skeleton_sequence, occurence_combinations_per_chain_set)
 
-        for contained_occurence_combination in contained_occurence_combinations: 
-            if contained_occurence_combination in unused_occurrence_combinations: 
-                unused_occurrence_combinations.remove(contained_occurence_combination)
+        for contained_chain_occuence_set in contained_chain_occurence_sets: 
+            if contained_chain_occuence_set in unused_chain_sets: 
+                unused_chain_sets.remove(contained_chain_occuence_set)
         
 
         # get the contained ordering pairs per skeleton sequence 
@@ -335,7 +460,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             used_score = max_sim_score_combined
 
         log(f"Skeleton sequence: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
-        log(f"Contained occurence combinations: {contained_occurence_combinations} \n")
+        log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
         
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(acceptance_sequence, selected_skeleton_sequence, activities_in_skeleton, matrix)
@@ -345,25 +470,25 @@ def adapt_process(matrix: AdjacencyMatrix,
             if v not in acceptance_sequences_new: 
                 acceptance_sequences_new.append(v)
 
-    log(f"Unused occurrence combinations after phase 1: {unused_occurrence_combinations} \n")
+    log(f"Unused chain occurence sets after phase 1: {unused_chain_sets} \n")
     log(f"Unused ordering pairs after phase 1: {unused_ordering_pairs} \n")
 
 
     # ════════════════════════════════════════════════════════════════════════════
-    #  For unused occurrence combinations, find acceptance sequences 
+    #  For unused chain sets, find acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
 
-    log("Phase 2: for unused occurrence combinations find pair of acceptance and skeleton sequence")
+    log("Phase 2: for unused chain occurnece sets find pair of acceptance and skeleton sequence")
 
-    for unused_occurrence_combination in list(unused_occurrence_combinations):  # create a copy, since the list is modified mid-loop
+    for unused_chain_occurrence in list(unused_chain_sets):  # create a copy, since the list is modified mid-loop
 
         # already covered by a previously processed combined occurrence, we can skip it
-        if unused_occurrence_combination not in unused_occurrence_combinations:
+        if unused_chain_occurrence not in unused_chain_sets:
             continue
 
-        # find all combined occurrences that contain the unused occurrence combinations
-        candidate_skeleton_sequences = get_combined_occurrences_containing(
-            unused_occurrence_combination, skeleton_sequences
+        # find all combined occurrences that contain the unused chain occurrence
+        candidate_skeleton_sequences = combined_occurrences_containing(
+            unused_chain_occurrence, skeleton_sequences, occurence_combinations_per_chain_set
         )
 
         best_acceptance_sequence = []
@@ -422,17 +547,16 @@ def adapt_process(matrix: AdjacencyMatrix,
                         max_sim_score_combined = sim_score_combined
                         best_acceptance_sequence = acceptance_sequence
                         best_skel_seq = candidate_skel_seq
+                
 
+        contained_chain_occurence_sets = contained_occurence_chain_sets(best_skel_seq, occurence_combinations_per_chain_set)
 
-        # get the contained occurrence combinations per combined occurence set  
-        contained_occurence_combinations = get_contained_occurence_combinations(best_skel_seq, all_occurrence_combinations)
-
-        for contained_occurence_combination in contained_occurence_combinations: 
-            if contained_occurence_combination in unused_occurrence_combinations: 
-                unused_occurrence_combinations.remove(contained_occurence_combination)
+        for contained_chain_occuence_set in contained_chain_occurence_sets: 
+            if contained_chain_occuence_set in unused_chain_sets: 
+                unused_chain_sets.remove(contained_chain_occuence_set)
 
         # get the contained ordering pairs per skeleton sequence 
-        contained_pairs = contained_ordering_pairs(best_skel_seq, all_ordering_pairs)
+        contained_pairs = contained_ordering_pairs(selected_skeleton_sequence, all_ordering_pairs)
 
         # remove all the used pairs to get an overview of the unused pairs 
         for pair in contained_pairs: 
@@ -447,7 +571,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             used_score = max_sim_score_combined
 
         log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
-        log(f"Contained occurence combinations: {contained_occurence_combinations} \n")
+        log(f"Contained chain occurence sets: {contained_chain_occurence_sets} \n")
 
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
@@ -469,7 +593,7 @@ def adapt_process(matrix: AdjacencyMatrix,
         if unused_ordering_pair not in unused_ordering_pairs:
             continue
 
-        # find all combined occurrences that contain the unused occurrence combination
+        # find all combined occurrences that contain the unused chain occurrence
         candidate_skeleton_sequences = sequences_containing_pairs(skeleton_sequences, unused_ordering_pair)
 
         best_acceptance_sequence = []
@@ -531,7 +655,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                 
 
         # get the contained ordering pairs per skeleton sequence 
-        contained_pairs = contained_ordering_pairs(best_skel_seq, all_ordering_pairs)
+        contained_pairs = contained_ordering_pairs(selected_skeleton_sequence, all_ordering_pairs)
 
         # remove all the used pairs to get an overview of the unused pairs 
         for pair in contained_pairs: 
@@ -619,81 +743,77 @@ def sequences_containing_pairs(all_sequences: List,
     return sequences_containing_pair
 
 
-def get_contained_occurence_combinations(
-    sequence: List[str],
-    all_occurrence_combinations: List[Tuple[Tuple[str, str], List[str]]]
-) -> List[Tuple[Tuple[str, str], List[str]]]:
+def contained_occurence_chain_sets(
+    occurence_combination: List[str],
+    occurence_combinations_per_chain_set: List[List[List[str]]]
+) -> List[Tuple[int, tuple]]:
     
     """
-    For a given sequence, return for each pair of activities, 
-    the maximum contained occurrence combination.
+    For a given occurrence combination, return for each chain set the largest
+    occurrence that is fully contained in the combination.
+
+    'Contained' means every activity in the occurrence appears in the combination.
+    Per chain set only the largest fitting occurrence is returned, so if both
+    [A, C] and [A] fit, only [A, C] is included in the result.
 
     Args:
-        sequence: the selected combined occurrence
-        all_occurrence_combinations: all valid occurrences by pair of activities
+        occurence_combination:              the selected combined occurrence
+        occurence_combinations_per_chain_set: valid occurrences grouped by chain set
 
     Returns:
-        list with one entry per occurrence pair with the max contained occurrence combination
+        list with one entry per chain set: the largest fitting occurrence,
+        or nothing for that chain set if no occurrence fits.
     """
+    contained_occurences = []
 
-    # initilaize list to collect all contained occurrence combinations 
-    contained = []
-
-    # collect all unique pairs
-    all_pairs = list(dict.fromkeys(pair for (pair, _) in all_occurrence_combinations))
-
-    # iterate all the pairs of activities (comparable to all required existential dependnecies)
-    for pair in all_pairs:
-
-        # get the activities from the pair 
-        act1, act2 = pair 
-
-        # get all valid occurrence combinations for the pair
-        occurrence_combination_pair = [
-            occ_comb for (p, occ_comb) in all_occurrence_combinations
-            if p == pair
+    for cs_idx, chain_set_occs in enumerate(occurence_combinations_per_chain_set):
+        fitting = [
+            occ for occ in chain_set_occs
+            if all(a in occurence_combination for a in occ)
         ]
+        if fitting:
+            largest = max(fitting, key=len)
+            contained_occurences.append((cs_idx, tuple(largest)))  # tagged
 
-        # for each of the valid occurrence combination, identify the pair which is contained 
-        for occ_comb in occurrence_combination_pair: 
-            if (((act1 in occ_comb and act1 in sequence) 
-                or (act1 not in occ_comb and act1 not in sequence)) 
-            and ((act2 in occ_comb and act2 in sequence) 
-                or (act2 not in occ_comb and act2 not in sequence))):
-
-                # append the occurrence combination 
-                contained.append((pair, occ_comb))
-
-    return contained
+    return contained_occurences
 
     
-def get_combined_occurrences_containing(
-    unused_occurrence_combination: Tuple[Tuple[str, str], List[str]],  
-    sequences: List[List[str]]
+def combined_occurrences_containing(
+    chain_occurrence_indexed: Tuple[int, tuple],   # (cs_idx, activities)
+    all_combined_occurrences: List[List[str]],
+    occurence_combinations_per_chain_set: List[List[List[str]]]
 ) -> List[List[str]]:
     """
-    For an unused occurrence combination, from a list of sequences return all sequences which contain this occurrence combination 
+    Return all combined occurrences where the slice belonging to the same
+    chain set as chain_occurrence is *exactly* chain_occurrence — not a superset.
 
     Args:
-        unused_occurrence_combination: the unused occurrence combination to match
-        sequences: the set of sequences to filter from the sequences containing the unused occurrence combination 
+        chain_occurrence_indexed:                     the unused chain set occurrence to match
+        all_combined_occurrences:             every possible combined occurrence
+        occurence_combinations_per_chain_set: valid occurrences grouped by chain set,
+                                              used to identify which chain set the
+                                              occurrence belongs to and which activities
+                                              that chain set owns
 
     Returns:
-        list of sequences, which contain the unused occurrence combination exactly
+        combined occurrences whose chain-set slice equals chain_occurrence exactly
     """
 
-    # define a list for the candidate sequences 
-    candidate_sequences = []
+    cs_idx, chain_occurrence_tuple = chain_occurrence_indexed
+    chain_occurrence_set = frozenset(chain_occurrence_tuple)
 
-    # extract the values from the unused occurrence combination
-    (act1, act2), occ_comb = unused_occurrence_combination
+    # All activities owned by this chain set (union of all its valid occurrences)
+    cs_activities: Set[str] = set()
+    for occ in occurence_combinations_per_chain_set[cs_idx]:
+        cs_activities.update(occ)
 
-    # create the list of valid sequences and return it 
-    return [
-        sequence for sequence in sequences
-        if (act1 in occ_comb) == (act1 in sequence)
-        and (act2 in occ_comb) == (act2 in sequence)
-    ]
+    result = []
+    for combined_occ in all_combined_occurrences:
+        cs_slice = frozenset(act for act in combined_occ if act in cs_activities)
+        if cs_slice == chain_occurrence_set:
+            result.append(combined_occ)
+
+    return result
 
 
 def adapt_acceptance_sequence(
