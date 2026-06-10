@@ -367,6 +367,9 @@ def adapt_process(matrix: AdjacencyMatrix,
     locked_deps_matrix = deps_to_matrix(locked_dependencies)
     skeleton_sequences = generate_skeleton(locked_deps_matrix)
 
+    log(f"Skeleton sequences: {skeleton_sequences}")
+    print(skeleton_sequences)
+
     # check that the provided input does not have a contradiction in itself, preventing the creation of the skeleton sequences 
     if skeleton_sequences == [[]] or skeleton_sequences is None: 
         raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")

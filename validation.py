@@ -27,6 +27,8 @@ from dependencies import (
 from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
+from acceptance_skeleton import generate_skeleton
+
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.delete_operation    import delete_activity
 from change_operations.insert_operation    import insert_activity
@@ -109,13 +111,14 @@ BOTH       = Direction.BOTH
 
 # WCP 2 acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
 
-# WCP 3 acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
+# WCP 3 
+# acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
 
 # WCP 4 Exclusive coice 
 # acceptance_sequences = [['A'], ['B']]
 
 # WCP 5
-# acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
+acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
 
 # WCP 6 multi choice 
 """
@@ -212,6 +215,7 @@ LOCKED_DEPENDENCIES: Dict[
 
 
 # case I
+"""
 acceptance_sequences = [
     ['X', 'Y', 'Z', 'D'],
     ['X', 'Z', 'Y', 'D'],
@@ -222,6 +226,7 @@ acceptance_sequences = [
     ['B', 'D'],
     ['C', 'D'],
 ]
+"""
 
 
 
@@ -304,14 +309,26 @@ acceptance_sequences = [['A', 'X'],
                     ]
 """
 
+"""
+# example for thesis 
+acceptance_sequences = [['A', 'B', 'C', 'D'], ['B', 'A', 'C', 'D']]
+"""
 
 locked_dependencies = dict()
 
 
 locked_dependencies = {
-    ("Y", "X"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
-    ("X", "Y"): (None, ExistentialDependency(type=EQUIV, direction=BOTH)), 
+    ("X", "D"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
+    ("D", "X"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
+
+    ("X", "A"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
+    ("A", "X"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
 }
+
+print(generate_skeleton(deps_to_matrix(locked_dependencies)))
+
+
+
 
 
 
@@ -328,7 +345,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_move(matrix, locked_dependencies)
+result, locked_dependencies = op_insert(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:
