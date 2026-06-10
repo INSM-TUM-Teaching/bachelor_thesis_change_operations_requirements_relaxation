@@ -82,7 +82,7 @@ def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
         if exist_dep:
             existential_deps[(source, target)] = exist_dep
 
-    temporal_deps = compute_transitive_closure(temporal_deps, activities)
+    temporal_deps = compute_transitive_closure(temporal_deps)
 
     acceptance_variants = []
     n = len(activities)

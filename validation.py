@@ -107,7 +107,8 @@ BOTH       = Direction.BOTH
 #  Step 1 – Define the input for the change operation 
 # ════════════════════════════════════════════════════════════════════════════
 
-# WCP 1 acceptance_sequences = [['A', 'B', 'C']]
+# WCP 1 
+acceptance_sequences = [['A', 'B', 'C']]
 
 # WCP 2 acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
 
@@ -118,7 +119,7 @@ BOTH       = Direction.BOTH
 # acceptance_sequences = [['A'], ['B']]
 
 # WCP 5
-acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
+# acceptance_sequences = [['A', 'D'], ['B', 'D'], ['C', 'D']]
 
 # WCP 6 multi choice 
 """
@@ -316,7 +317,7 @@ acceptance_sequences = [['A', 'B', 'C', 'D'], ['B', 'A', 'C', 'D']]
 
 locked_dependencies = dict()
 
-
+"""
 locked_dependencies = {
     ("X", "D"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
     ("D", "X"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
@@ -324,8 +325,7 @@ locked_dependencies = {
     ("X", "A"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
     ("A", "X"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
 }
-
-print(generate_skeleton(deps_to_matrix(locked_dependencies)))
+"""
 
 
 

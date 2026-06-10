@@ -133,11 +133,11 @@ def adapt_process(matrix: AdjacencyMatrix,
 
             # define a dict for the mapping of occurrence combinations 
             flag_to_occ = {
-                            "exists_both":    [from_act, to_act],
-                            "exists_only_a":  [from_act],
-                            "exists_only_b":  [to_act],
-                            "exists_neither": [],
-                        }
+                "exists_both":    [min(from_act, to_act), max(from_act, to_act)],
+                "exists_only_a":  [from_act],
+                "exists_only_b":  [to_act],
+                "exists_neither": [],
+            }
 
             # for each occurrence combination, check if it is required, if this is the case 
             for flag, occ in flag_to_occ.items():
