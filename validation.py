@@ -108,9 +108,10 @@ BOTH       = Direction.BOTH
 # ════════════════════════════════════════════════════════════════════════════
 
 # WCP 1 
-acceptance_sequences = [['A', 'B', 'C', 'D']]
+# acceptance_sequences = [['A', 'B', 'C', 'D']]
 
-# WCP 2 acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
+# WCP 2 
+# acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
 
 # WCP 3 
 # acceptance_sequences = [['A', 'B', 'C'], ['B', 'A', 'C']]
@@ -179,14 +180,14 @@ acceptance_sequences = [
 ]
 """
 
-"""
+
 # WCP 17
 acceptance_sequences = [
     ['A', 'B', 'C'],
     ['A', 'C', 'B'],
     ['C', 'A', 'B'],
 ]
-"""
+
 """
 #WCP 19
 # acceptance_sequences = [['A', 'B'], ['A']]
@@ -232,6 +233,7 @@ acceptance_sequences = [
 
 
 # case II
+"""
 acceptance_sequences = [['A', 'Y', 'Z'],
     ['A', 'Z', 'Y'],
     ['Y', 'A', 'Z'],
@@ -245,7 +247,7 @@ acceptance_sequences = [['A', 'Y', 'Z'],
     ['Z', 'Y', 'B'],
     ['Z', 'B', 'Y']
 ]
-
+"""
 
 
 # case III
