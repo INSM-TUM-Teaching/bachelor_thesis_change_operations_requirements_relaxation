@@ -108,7 +108,7 @@ BOTH       = Direction.BOTH
 # ════════════════════════════════════════════════════════════════════════════
 
 # WCP 1 
-acceptance_sequences = [['A', 'B', 'C']]
+acceptance_sequences = [['A', 'B', 'C', 'D']]
 
 # WCP 2 acceptance_sequences = [['A', 'B', 'C'],['A', 'C', 'B'],['B', 'A', 'C'],['B', 'C', 'A'],['C', 'A', 'B'],['C', 'B', 'A']]
 
@@ -232,7 +232,6 @@ acceptance_sequences = [
 
 
 # case II
-"""
 acceptance_sequences = [['A', 'Y', 'Z'],
     ['A', 'Z', 'Y'],
     ['Y', 'A', 'Z'],
@@ -246,7 +245,7 @@ acceptance_sequences = [['A', 'Y', 'Z'],
     ['Z', 'Y', 'B'],
     ['Z', 'B', 'Y']
 ]
-"""
+
 
 
 # case III
@@ -310,12 +309,13 @@ acceptance_sequences = [['A', 'X'],
                     ]
 """
 
-"""
-# example for thesis 
-acceptance_sequences = [['A', 'B', 'C', 'D'], ['B', 'A', 'C', 'D']]
-"""
-
 locked_dependencies = dict()
+
+# example for thesis 
+# acceptance_sequences = [['A', 'B', 'C', 'D'], ['B', 'A', 'C', 'D']]
+
+
+
 
 """
 locked_dependencies = {
