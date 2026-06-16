@@ -77,6 +77,12 @@ The application follows a three-step transformation cycle:
 2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a structural requirement is not met, the appropriate solution strategy is triggered.
 3. **Acceptance sequences → Matrix**: The modified acceptance sequences are translated back into an activity relationships matrix, automatically capturing all primary and secondary dependency changes.
 
+## Tests
+
+The tests folder provides some basic test cases for the implementataion, they can be used using TODO
+
+Additionally during development we used the cases from the validtaion for the testing to validate the implementation.
+
 ## Technology Stack
 
 - **Language**: Python 3.10+

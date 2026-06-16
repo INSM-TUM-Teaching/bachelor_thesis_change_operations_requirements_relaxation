@@ -15,11 +15,22 @@ from dependencies import (
 from utils.console_helpers import deps_to_matrix
 
 
-# Re-use shorthand constructors from the shared test setup
-from tests.test_setup import DIRECT, EVENTUAL, INDEP, EQUIV, IMPL, NEG_EQUIV, OR, NAND, FWD, BWD, BOTH 
+# define shorthand constructors for the dependnecy types 
+DIRECT     = TemporalType.DIRECT
+EVENTUAL   = TemporalType.EVENTUAL
+INDEP      = TemporalType.INDEPENDENCE
+EQUIV      = ExistentialType.EQUIVALENCE
+IMPL       = ExistentialType.IMPLICATION
+NEG_EQUIV  = ExistentialType.NEGATED_EQUIVALENCE
+OR         = ExistentialType.OR
+NAND       = ExistentialType.NAND
+FWD        = Direction.FORWARD
+BWD        = Direction.BACKWARD
+BOTH       = Direction.BOTH
 
 
 def test_direct_temp_sequence(): 
+    # test direct temporal dependnecies, ensuring that no placeholder is positioned between the activities 
 
     # define a dict with required dependencies 
     dependencies = {
@@ -33,6 +44,7 @@ def test_direct_temp_sequence():
 
 
 def test_direct_temp_sequence_two(): 
+    # ensure with direct temporal deps, no activity happens in between 
 
     # define a dict with required dependencies 
     dependencies = {
@@ -50,6 +62,7 @@ def test_direct_temp_sequence_two():
 
 
 def test_temp_transitive_closure(): 
+    # ensure that we filter the skeleton sequences correctly using transitive closure of temporal dependencies 
 
     # define a dict with required dependencies 
     dependencies = {
@@ -67,31 +80,9 @@ def test_temp_transitive_closure():
     assert ["_", "C", "A", "_"] not in skeleton_sequences
 
 
-def test_temp_transitive_closure(): 
-
-    # define a dict with required dependencies 
-    dependencies = {
-        ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
-        ("B", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
-
-        ("B", "C"): (TemporalDependency(type=DIRECT, direction=FWD), None), 
-        ("C", "B"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
-    }
-
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
-
-    # check no ordering which violates the trsnaitive closure 
-    assert ["_", "C", "_", "A", "_"] not in skeleton_sequences
-    assert ["_", "C", "A", "_"] not in skeleton_sequences
-
-
-# -------------------------
 def test_eventual_temp_allows_intermediary():
-    """
-    An eventual temporal dependency A ≺ B permits other activities between A
-    and B. The skeleton must therefore insert a placeholder '_' between them,
-    and both orderings (A then B, A … _ … B) must be present.
-    """
+    # test eventual ordering, leaving space and not allowing other cases 
+
     dependencies = {
         ("A", "B"): (TemporalDependency(type=EVENTUAL, direction=FWD), None),
         ("B", "A"): (TemporalDependency(type=EVENTUAL, direction=BWD), None),
@@ -105,91 +96,11 @@ def test_eventual_temp_allows_intermediary():
     assert ["_", "B", "_", "A", "_"] not in skeleton_sequences
  
  
-def test_direct_temp_no_placeholder_between_pair():
-    """
-    A direct temporal dependency A ≺_d B means nothing may occur between A
-    and B. The skeleton must emit ['_', 'A', 'B', '_'] without an intervening
-    placeholder.
-    """
-    dependencies = {
-        ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None),
-        ("B", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None),
-    }
- 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
- 
-    assert ["_", "A", "B", "_"] in skeleton_sequences
-    # A placeholder between them would violate directness
-    assert ["_", "A", "_", "B", "_"] not in skeleton_sequences
- 
- 
-def test_three_activity_direct_chain():
-    """
-    Three activities in a direct chain A ≺_d B ≺_d C must produce exactly
-    ['_', 'A', 'B', 'C', '_'] with no intervening placeholders.
-    """
-    dependencies = {
-        ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None),
-        ("B", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None),
-        ("B", "C"): (TemporalDependency(type=DIRECT, direction=FWD), None),
-        ("C", "B"): (TemporalDependency(type=DIRECT, direction=BWD), None),
-    }
- 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
- 
-    assert ["_", "A", "B", "C", "_"] in skeleton_sequences
-    # Reversed order violates A ≺_d B
-    assert ["_", "C", "B", "A", "_"] not in skeleton_sequences
- 
- 
-def test_transitive_closure_excludes_all_violations():
-    """
-    Given A ≺_d B and B ≺_d C the transitive closure implies A ≺ C.
-    Any skeleton sequence placing C before A must be absent, regardless of
-    whether the gap is filled with a placeholder or not.
-    """
-    dependencies = {
-        ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None),
-        ("B", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None),
-        ("B", "C"): (TemporalDependency(type=DIRECT, direction=FWD), None),
-        ("C", "B"): (TemporalDependency(type=DIRECT, direction=BWD), None),
-    }
- 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
- 
-    # All orderings that place C before A must be absent
-    assert ["_", "C", "_", "A", "_"] not in skeleton_sequences
-    assert ["_", "C", "A", "_"] not in skeleton_sequences
-    assert ["_", "C", "_", "B", "_", "A", "_"] not in skeleton_sequences
- 
- 
-def test_eventual_chain_transitive_closure():
-    """
-    Given A ≺ B (eventual) and B ≺ C (eventual) the transitive closure still
-    forbids C before A or B before A. Placeholders are allowed between all
-    pairs.
-    """
-    dependencies = {
-        ("A", "B"): (TemporalDependency(type=EVENTUAL, direction=FWD), None),
-        ("B", "A"): (TemporalDependency(type=EVENTUAL, direction=BWD), None),
-        ("B", "C"): (TemporalDependency(type=EVENTUAL, direction=FWD), None),
-        ("C", "B"): (TemporalDependency(type=EVENTUAL, direction=BWD), None),
-    }
- 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
- 
-    # Valid ordering with placeholders allowed
-    assert ["_", "A", "_", "B", "_", "C", "_"] in skeleton_sequences
-    # Transitive violation: C must not precede A
-    assert ["_", "C", "_", "A", "_"] not in skeleton_sequences
-    assert ["_", "B", "_", "A", "_"] not in skeleton_sequences
- 
  
 def test_mixed_direct_eventual_chain():
-    """
-    A ≺_d B (direct) and B ≺ C (eventual): A and B must be adjacent, but C
-    may appear anywhere after B (with an intervening placeholder).
-    """
+    # test mixed combinations of temporal dependnecies, ensuring correct disticntion between types 
+    # and considers stransitive closure 
+
     dependencies = {
         ("A", "B"): (TemporalDependency(type=DIRECT, direction=FWD), None),
         ("B", "A"): (TemporalDependency(type=DIRECT, direction=BWD), None),
@@ -212,11 +123,8 @@ def test_mixed_direct_eventual_chain():
 # ---------------------------------------------------------------------------
  
 def test_implication_fwd_optional_activity():
-    """
-    A ⇒ B (FORWARD IMPLICATION): whenever A occurs B must also occur, but B
-    may occur without A. The skeleton must contain sequences with only B and
-    sequences where both A and B occur. No sequence must contain A without B.
-    """
+    # test if implication reflected correctly 
+
     dependencies = {
         ("A", "B"): (None, ExistentialDependency(type=IMPL, direction=FWD)),
         ("B", "A"): (None, ExistentialDependency(type=IMPL, direction=BWD)),
@@ -236,43 +144,14 @@ def test_implication_fwd_optional_activity():
         for seq in skeleton_sequences
     ), "Expected a skeleton with both A and B"
  
-    # A alone must not appear (implication requires B if A is present)
+    # A alone must not appear 
     assert not any(
         "A" in seq and "B" not in seq
         for seq in skeleton_sequences
     ), "Found forbidden skeleton with A but not B"
  
  
-def test_implication_bwd_optional_activity():
-    """
-    B ⇒ A (BACKWARD IMPLICATION): whenever B occurs A must also occur, but A
-    may occur without B.
-    """
-    dependencies = {
-        ("A", "B"): (None, ExistentialDependency(type=IMPL, direction=BWD)),
-        ("B", "A"): (None, ExistentialDependency(type=IMPL, direction=FWD)),
-    }
- 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
- 
-    # A alone is valid
-    assert any(
-        "A" in seq and "B" not in seq
-        for seq in skeleton_sequences
-    ), "Expected a skeleton with A but not B"
- 
-    # A and B together is valid
-    assert any(
-        "A" in seq and "B" in seq
-        for seq in skeleton_sequences
-    ), "Expected a skeleton with both A and B"
- 
-    # B alone must not appear
-    assert not any(
-        "B" in seq and "A" not in seq
-        for seq in skeleton_sequences
-    ), "Found forbidden skeleton with B but not A"
- 
+
  
 def test_negated_equivalence_mutual_exclusion():
     """
@@ -615,47 +494,3 @@ def test_three_activities_two_branches_nand():
     assert any("B" in seq and "C" in seq for seq in skeleton_sequences), \
         "Expected a skeleton with B and C"
  
- 
-def test_chain_with_optional_branch():
-    """
-    A ≺_d B (direct) and A ⇒ C (FORWARD IMPLICATION, eventual): B always
-    follows A directly; C must occur whenever A occurs but may appear anywhere
-    after A. The skeleton must include sequences where A, B, and C are all
-    present (with B directly after A) and sequences with only B and C
-    independently — but never A without C.
-    """
-    dependencies = {
-        ("A", "B"): (
-            TemporalDependency(type=DIRECT, direction=FWD),
-            None,
-        ),
-        ("B", "A"): (
-            TemporalDependency(type=DIRECT, direction=BWD),
-            None,
-        ),
-        ("A", "C"): (
-            TemporalDependency(type=EVENTUAL, direction=FWD),
-            ExistentialDependency(type=IMPL, direction=FWD),
-        ),
-        ("C", "A"): (
-            TemporalDependency(type=EVENTUAL, direction=BWD),
-            ExistentialDependency(type=IMPL, direction=BWD),
-        ),
-    }
- 
-    skeleton_sequences = generate_skeleton(deps_to_matrix(dependencies))
- 
-    # A without C must be absent
-    assert not any(
-        "A" in seq and "C" not in seq
-        for seq in skeleton_sequences
-    ), "Found forbidden skeleton with A but not C"
- 
-    # A and B and C must be present in at least one sequence, with A directly before B
-    combined = [s for s in skeleton_sequences if "A" in s and "B" in s and "C" in s]
-    assert combined, "Expected at least one skeleton with A, B, and C"
-    for seq in combined:
-        idx_a = seq.index("A")
-        idx_b = seq.index("B")
-        assert idx_b == idx_a + 1, \
-            f"B must directly follow A in {seq}"
