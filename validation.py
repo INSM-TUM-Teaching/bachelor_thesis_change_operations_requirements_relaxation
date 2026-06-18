@@ -188,6 +188,7 @@ acceptance_sequences = [
     ['C', 'A', 'B'],
 ]
 
+
 """
 #WCP 19
 # acceptance_sequences = [['A', 'B'], ['A']]
@@ -347,7 +348,7 @@ print("   Business Process Redesign : Console Tool")
 print("═" * 60)
 
 # define change operation here 
-result, locked_dependencies = op_insert(matrix, locked_dependencies)
+result, locked_dependencies = op_parallelize(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:
