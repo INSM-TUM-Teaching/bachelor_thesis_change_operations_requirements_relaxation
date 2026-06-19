@@ -3,7 +3,7 @@
 [![Python Version](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This project provides a console-based application for automated business process redesign (BPR). It extends the baseline approach by Andree et al. to handle cases where change operations are rejected as infeasible due to unsatisfied structural requirements — even when the operations themselves are semantically valid. Rather than rejecting such operations, the application detects the failure condition, applies an appropriate solution strategy, and guides the user through any remaining decisions via a human-in-the-loop interface.
+This project provides a console-based application for automated business process redesign support. It extends the baseline approach by Andree et al. to handle cases where change operations are rejected as infeasible due to unsatisfied requirements — even when the operations themselves are semantically valid. Rather than rejecting such operations, the application detects the failure condition, applies an appropriate solution strategy, and guides the user through any remaining decisions via a human-in-the-loop interface.
 
 The application is modeling-language independent, operating on an **activity relationships matrix** and **acceptance sequences** as its central process representation.
 
@@ -27,28 +27,32 @@ For each failure condition, the application applies a dedicated solution strateg
 
 Two strategies are offered:
 
-- **Move activities**: All activities in the target set are moved to a single anchor position chosen by the user, eliminating any activities in between.
+- **Move activities**: All activities in the designated set for the change operation are moved to a single anchor position chosen by the user, eliminating ambiguity regarding the positioning of the resulting fragment.
 - **Expand the set**: The interfering activities are included in the parallelization/collapse set. This option is only offered when five or fewer activities are in between.
 
 ### Contradictions Between Inputs & Locked Dependency Violations
 
-Both conditions are resolved using the **skeleton solution strategy**:
+Both conditions are resolved using the **skeleton solution strategy**, since for both cases an adaption of the process structure to confom to the structure imposed by the required dependencies is needed:
 
-1. A set of _skeleton sequences_ is derived from the required dependencies (change operation inputs and locked dependencies). Each skeleton sequence is a valid structural template encoding the required ordering and co-occurrence of constrained activities.
-2. Each acceptance sequence of the process is matched to the most similar skeleton sequence using a configurable **similarity score** (occurrence-based, ordering-based, or combined).
+1. A set of _skeleton sequences_ is derived from the required dependencies (change operation inputs or/and locked dependencies). Each skeleton sequence is a valid structural template encoding the required ordering and co-occurrence of constrained activities.
+2. Each acceptance sequence of the process is matched to the most similar skeleton sequence using a configurable **similarity score** (occurrence-based, ordering-based, or combined). The selecetion of the similarity score calculation is due to the user, since it infleunces the structure of the resulting process and thus is a design decsision.
 3. Acceptance sequences are adapted to conform to their matched skeleton sequence, preserving as much of the original process structure as possible while guaranteeing all required dependencies are satisfied.
+4. For configurations of required acceptance sequences not presnted by the used skeleton sequences, additional pairs of acceptance and skeleton sequences are formed and adapted, to ensure the representation of all required dependencies in the result.
 
 For locked dependency violations, **dependency relaxation** is also offered: if the new dependency type after a change operation is a valid relaxation of the locked type (e.g., equivalence `⟺` relaxed to implication `⇒`), the user is asked whether to accept the relaxation before the skeleton strategy is applied.
+
+Additionally, for cases where change operations require to alter a locked dependency, we provide a **resolution dialogue** to resolve the conflict. The user is presented with the conflict and can choose to either either abandone the change operation, remove the locked dependency, or adapt the change operation input.
 
 ## Key Features
 
 - **Modeling language independent**: Operates on an abstract activity relationships matrix, not tied to any specific notation.
-- **11 supported change operations**: Full coverage of basic and composite behavioral redesign operations.
-- **Three failure condition handlers**: Automated detection and resolution of all identified structural failure conditions.
-- **Human-in-the-loop variant selection**: Where multiple structural adaptations are valid, the user selects the preferred variant.
+- **11 supported change operations**: Coverage of basic and composite behavioral redesign operations.
+- **Three failure condition handlers**: Automated detection and resolution of all identified failure conditions by adapting the structure of the process in dialogue with the user to meet the requierements.
+- **Human-in-the-loop variant selection**: Where multiple solution variants are applicable, the user selects the preferred variant.
 - **Locked dependencies**: Critical activity dependencies can be designated as locked and are preserved (or relaxed with user confirmation) across all change operations.
 - **Configurable similarity scoring**: Users choose whether to prioritize preserving existential dependencies (occurrence similarity), temporal dependencies (ordering similarity), or a balanced combination.
 - **YAML import/export**: Process models can be loaded from and exported to a human-readable `.yaml` format.
+- **Information mode**: Can be enabled, to understand intermediate steps of the algorithms.
 
 ## Supported Change Operations
 
@@ -74,7 +78,7 @@ For locked dependency violations, **dependency relaxation** is also offered: if 
 The application follows a three-step transformation cycle:
 
 1. **Matrix → Acceptance sequences**: The activity relationships matrix is translated into the complete set of valid execution traces (acceptance sequences).
-2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a structural requirement is not met, the appropriate solution strategy is triggered.
+2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a requirement is not met, the failure condition is identified and the appropriate solution strategy is applied, adapting the process to conform to the requiereement in dialogue with the user.
 3. **Acceptance sequences → Matrix**: The modified acceptance sequences are translated back into an activity relationships matrix, automatically capturing all primary and secondary dependency changes.
 
 ## Tests
@@ -107,8 +111,8 @@ Additionally during development we used the cases from the validtaion for the te
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/thecodeflo/thesis_redesign_relaxation.git
-   cd thesis_redesign_relaxation
+   git clone https://github.com/INSM-TUM-Teaching/bachelor_thesis_change_operations_requirements_relaxation.git
+   cd bachelor_thesis_change_operations_requirements_relaxation
    ```
 
 2. **Create and activate a virtual environment:**
@@ -138,13 +142,16 @@ Additionally during development we used the cases from the validtaion for the te
 
 The application guides the user through the following steps:
 
+**Step 0 - Enable Information mode**
+Enable the information mode to be presnted with intermediate results of the algorithms to better understand the computataion.
+
 **Step 1 — Load a process model**
 
-Choose to provide the process as a `.yaml` file or by entering acceptance sequences manually. Acceptance sequences are derived from the input to build the activity relationships matrix.
+Choose to provide the process as a `.yaml` file or by entering acceptance sequences manually. The activity relationships matrix is either loaded directly from the `.yaml`file or derived from the acceptance sequences.
 
 **Step 2 — Lock dependencies (optional)**
 
-Specify activity pairs whose temporal and/or existential dependencies must not be altered. The application will either refuse the change operation or apply a solution strategy to preserve the locks.
+Specify activity pairs whose temporal and/or existential dependencies must not be altered. The application will check the preservation of the dependnecies after each change operation application, adapting the process structure or resolve them in dialogue with the user to preserve the dependnecies.
 
 **Step 3 — Select and configure a change operation**
 
@@ -152,7 +159,7 @@ Choose one of the 11 supported change operations and provide the required input 
 
 **Step 4 — Review and confirm**
 
-If a failure condition is detected, the application presents available solution strategies or structural variants for user selection. For dependency relaxation, explicit confirmation is required before the lock is loosened.
+If a failure condition is detected, the application identifies the appropriate solution strategy and presnts solution variants for user selection.
 
 **Step 5 — Export (optional)**
 
@@ -182,20 +189,20 @@ dependencies:
       direction: both
 ```
 
-Each entry in `dependencies` defines the pairwise relationship between two activities. Temporal types include `direct` and `eventual`; existential types include `equivalence`, `negated_equivalence`, `implication`, `or`, and `nand`.
+Each entry in `dependencies` defines the pairwise relationship between two activities. Temporal types include `direct` and `eventual`; existential types include `equivalence`, `negated_equivalence`, `implication`, `or`, and `nand`. Additionally a direction is provided for every change operation which is either `forward`, `backward`, or `both`.
 
 ## Evaluation
 
 The solution strategies were validated against all failure cases identified during development (10 workflow control-flow patterns, 11 change operations) and evaluated for generalizability on five unseen process structures composed from combinations of workflow patterns. Key results:
 
 - **Activities in between**: 11/11 cases resolved (100%).
-- **Contradictions between inputs**: 61/64 cases resolved (three cases involve activity elimination treated as out of scope).
+- **Contradictions between inputs**: 64/64 cases resolved (100%).
 - **Locked dependency violations**: 11/11 cases resolved (100%).
 - **Generalizability**: All applicable failure conditions resolved across all five unseen process structures.
 
 ## Project Context
 
-This application was developed as part of a Bachelor's thesis at the Chair for Information Systems, Technical University of Munich.
+This application was developed as part of a Bachelor's thesis "Relaxing Change Operation Requirements Through Human-In-The-Loop Variant Selection" at the Chair for Information Systems, Technical University of Munich.
 
 - **Author**: Florian Alexander Stupp
 - **Supervisor**: M.Sc. Kerstin Andree
