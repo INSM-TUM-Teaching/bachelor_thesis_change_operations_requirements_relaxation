@@ -81,19 +81,6 @@ The application follows a three-step transformation cycle:
 2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a requirement is not met, the failure condition is identified and the appropriate solution strategy is applied, adapting the process to conform to the requiereement in dialogue with the user.
 3. **Acceptance sequences → Matrix**: The modified acceptance sequences are translated back into an activity relationships matrix, automatically capturing all primary and secondary dependency changes.
 
-## Tests
-
-The project includes a suite of tests to verify the correctness of the solution strategies algorithms and supporting functions.
-
-To run the tests, install the development dependencies and run `pytest`:
-
-```bash
-pip install -r dev-requirements.txt
-python -m pytest
-```
-
-Additionally during development we used the cases from the validtaion for the testing to validate the implementation.
-
 ## Technology Stack
 
 - **Language**: Python 3.10+
@@ -191,6 +178,19 @@ dependencies:
 
 Each entry in `dependencies` defines the pairwise relationship between two activities. Temporal types include `direct` and `eventual`; existential types include `equivalence`, `negated_equivalence`, `implication`, `or`, and `nand`. Additionally a direction is provided for every change operation which is either `forward`, `backward`, or `both`.
 
+## Testing
+
+The project includes a suite of tests to verify the correctness of the solution strategies algorithms and supporting functions.
+
+To run the tests, install the development dependencies and run `pytest`:
+
+```bash
+pip install -r dev-requirements.txt
+python -m pytest
+```
+
+Additionally during development we used the cases from the validtaion for the testing to validate the implementation.
+
 ## Evaluation
 
 The solution strategies were validated against all failure cases identified during development (10 workflow control-flow patterns, 11 change operations) and evaluated for generalizability on five unseen process structures composed from combinations of workflow patterns. Key results:
@@ -199,6 +199,8 @@ The solution strategies were validated against all failure cases identified duri
 - **Contradictions between inputs**: 64/64 cases resolved (100%).
 - **Locked dependency violations**: 11/11 cases resolved (100%).
 - **Generalizability**: All applicable failure conditions resolved across all five unseen process structures.
+
+The documentataion of the evaluation and validation can be found in the `\docs` folder
 
 ## Project Context
 
