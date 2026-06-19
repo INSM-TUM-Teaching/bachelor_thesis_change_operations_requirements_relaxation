@@ -33,7 +33,7 @@ def condition_update_in_variants(variants: List[List[str]], condition_activity: 
                 if variant_tuple not in seen:
                     seen.add(variant_tuple)
                     modified_variants.append(var)
-                       
+
     return modified_variants
 
 

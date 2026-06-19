@@ -1,9 +1,27 @@
 from itertools import permutations
+from typing import List
 
-# method for the parallelization, we assume the validation took place 
-# activities_parallelization defines the set of activities to be parallelized 
-# activity_positioning defiens the activity where the other activities are moved together at, we assume that by the previous functions it is confirmed that it is part of the activities for parallleization
-def parallelize_move_activities(acceptance_sequences, activities_parallelization, activity_positioning): 
+def parallelize_move_activities(acceptance_sequences: List[str], 
+                                activities_parallelization: List[str], 
+                                activity_positioning: str
+                                ) -> List[List[str]]: 
+    """
+    Parallelize a set of activities, by moving the activities all to one selected activity. 
+
+    1) Iterate over all acceptance sequences 
+        1.1) if the activity for positioning is contained, replace it with all permutations of the activities for parallelization 
+        1.2) remove all other activities for parallelize from the sequence 
+    2) Return the list of modified acceptance sequences 
+    
+    Args: 
+        acceptance_sequences: list of acceptance sequences of the process 
+        activities_parallelization: defines the list of activities to be parallelized
+        activity_positioning: activity at which the parallelized fragment is positioned 
+
+    Returns: 
+        List[List[str]]: modified acceptance sequences 
+    
+    """
 
      # empty list to store the new acceptance sequences after the parallelization 
     acceptance_sequences_modified = []
@@ -40,10 +58,27 @@ def parallelize_move_activities(acceptance_sequences, activities_parallelization
     return acceptance_sequences_modified
 
 
-# method for the parallelization, we assume the validation took place 
-# activities_parallelization defines the set of activities to be parallelized 
-# activities_in_between describes the set of activities happening in between 
-def parallelize_expand_set(acceptance_sequences, activities_parallelization, activities_in_between): 
+def parallelize_expand_set(acceptance_sequences: List[List[str]], 
+                           activities_parallelization: List[str], 
+                           activities_in_between: List[str]
+                           ) -> List[List[str]]: 
+    """
+    Parallelize the set of activities by inclduing the activities happening in between in the set for parallelization  
+
+    1) Expand the set for parallelization by the activities happening in between 
+    2) Iterate over each acceptance sequence 
+        2.1) Replace the first occurrence of an activity for parallelization, with all permutations of the activities for parallelize 
+        2.2) Delete all other activities for parallelization from the sequence 
+    3) Return the list of modified acceptance sequences
+
+    Args: 
+        acceptance_sequences: List of acceptance seqeunces of the process 
+        activities_collapse: List of activities for parallelization
+        activities_in_between: List of activities happening between the activities for parallelization 
+
+    Returns: 
+        List[List[str]]: Modified acceptance seqeunces 
+    """
 
     # define the new set of activities to be parallelized 
     activities_parallelization = activities_parallelization + activities_in_between

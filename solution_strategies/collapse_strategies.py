@@ -1,8 +1,28 @@
-# method for the collapse, we assume the validation took place; here we move the activities for collapse 
-# activities_collapse defines the set of activities to be collapsed
-# collapsed_activity is the new activity to be inserted for the collapsed activities 
-# activity_positioning is the activity at which the collapsed activity is positioned 
-def collapse_move_activities(acceptance_sequences, activities_collapse, collapsed_activity, activity_positioning): 
+from typing import List
+
+def collapse_move_activities(acceptance_sequences: List[List[str]], 
+                             activities_collapse: List[str], 
+                             collapsed_activity, 
+                             activity_positioning
+                            ) -> List[List[str]]: 
+    """
+    Moves the collapsed fragment to one activity of the set to be collapsed.
+
+    1) Iterate over all acceptance sequences 
+        1.1) if the activity for positioning is contained, replace it with the collapsed activity 
+        1.2) remove all other activities for collapse from the sequence 
+    2) Return the list of modified acceptance sequences 
+    
+    Args: 
+        acceptance_sequences: list of acceptance sequences of the process 
+        activities_collapse: defines the list of activities to be collapsed
+        collapsed_activity: new activity to be inserted for the collapsed activities 
+        activity_positioning: activity at which the collapsed activity is positioned 
+
+    Returns: 
+        modified acceptance sequences 
+    
+    """
 
     # empty list to store the new acceptance sequences after the parallelization 
     acceptance_sequences_modified = []
@@ -16,7 +36,7 @@ def collapse_move_activities(acceptance_sequences, activities_collapse, collapse
             # index of the anchor activity 
             idx = seq_without_others.index(activity_positioning)
 
-            # replace the anchor activity with each of the permutations 
+            # replace the anchor activity with the collapsed activity 
             new_seq = seq_without_others[:idx] + [collapsed_activity] + seq_without_others[idx + 1:]
 
             # verify that we do not have duplicates 
@@ -35,11 +55,29 @@ def collapse_move_activities(acceptance_sequences, activities_collapse, collapse
     return acceptance_sequences_modified
 
 
-# method for the collaps, we assume the validation took place, here we expand the set of activities to be collapsed
-# activities_collapse defines the set of activities to be collapsed
-# activities_in_between describes the set of activities happening in between and causing the violation 
-# collapsed_activity is the new activity to be inserted for the collapsed activities 
-def collapse_expand_set(acceptance_sequences, activities_collapse, activities_in_between, collapsed_activity): 
+def collapse_expand_set(acceptance_sequences: List[List[str]], 
+                        activities_collapse: List[str], 
+                        activities_in_between: List[str], 
+                        collapsed_activity: str
+                        ) -> List[List[str]]:
+    """
+    Collapse the set of activities by inclduing the activities happening in between in the set for collapse 
+
+    1) Iterate over each acceptance sequence 
+        1.1) Replace the first occurrence of an activity for collapse, with the collapsed activity 
+        1.2) Delete all other activities for collapse from the sequence 
+    2) Return the list of modified acceptance sequences
+
+    Args: 
+        acceptance_sequences: List of acceptance seqeunces of the process 
+        activities_collapse: List of activities for collapse
+        activities_in_between: List of activities happening between the activities for collapse 
+        collapsed_activity: name of the collapsed activity 
+
+    Returns: 
+        List[List[str]]: Modified acceptance seqeunces 
+
+    """
 
     # empty list to store the new acceptance sequences after the parallelization 
     new_acceptance_sequences = []
@@ -76,16 +114,6 @@ def collapse_expand_set(acceptance_sequences, activities_collapse, activities_in
             new_acceptance_sequences.append(new_acceptance_sequence)
 
     return new_acceptance_sequences
-
-    
-
-# *************************************************
-# define an acceptance sequence for testing 
-acceptance_sequences = [['A', 'B', 'C', 'D'], ['Y', 'A', 'B']]
-
-variants = collapse_expand_set(acceptance_sequences, ['A', 'C'], ['B'], 'X')
-
-print(variants)
 
             
 

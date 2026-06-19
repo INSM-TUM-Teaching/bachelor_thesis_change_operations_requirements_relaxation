@@ -77,8 +77,8 @@ def decollapse_operation(main_matrix: AdjacencyMatrix, collapsed_activity: str, 
     
     # Remove activity from variants
     modified_variants = decollapse_variant_level(variants, collapsed_activity, collapsed_variants)
-    
+
     # Convert modified variants back to matrix
-    new_matrix = variants_to_matrix(modified_variants, main_matrix.activities)
+    new_matrix = variants_to_matrix(modified_variants)
     
     return new_matrix
