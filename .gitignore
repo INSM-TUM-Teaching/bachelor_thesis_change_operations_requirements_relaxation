@@ -1,0 +1,11 @@
+__pycache__/
+
+solution_strategies/__pycache__/
+
+utils/__pycache__/
+
+operation_handlers/__pycache__/
+
+change_operations/__pycache__/
+
+.pytest_cache/
