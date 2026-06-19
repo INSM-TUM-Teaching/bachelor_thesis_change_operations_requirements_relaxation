@@ -79,7 +79,14 @@ The application follows a three-step transformation cycle:
 
 ## Tests
 
-The tests folder provides some basic test cases for the implementataion, they can be used using TODO
+The project includes a suite of tests to verify the correctness of the solution strategies algorithms and supporting functions.
+
+To run the tests, install the development dependencies and run `pytest`:
+
+```bash
+pip install -r dev-requirements.txt
+python -m pytest
+```
 
 Additionally during development we used the cases from the validtaion for the testing to validate the implementation.
 

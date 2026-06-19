@@ -16,9 +16,6 @@ from variants_to_matrix import variants_to_matrix
 from utils.console_helpers import deps_to_matrix
 
 
-# Re-use shorthand constructors from the shared test setup
-from tests.test_setup import DIRECT, EVENTUAL, INDEP, EQUIV, IMPL, NEG_EQUIV, OR, NAND, FWD, BWD, BOTH 
-
 # ── Solution strategies ─────────────────────────────────────────────────
 from solution_strategies.parallelization_strategies import parallelize_expand_set, parallelize_move_activities
 from solution_strategies.collapse_strategies import collapse_expand_set, collapse_move_activities

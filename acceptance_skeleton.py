@@ -18,7 +18,6 @@ from acceptance_variants import build_permutations
 from collections import deque
 
 
-
 def add_placeholder_activities(acceptance_skeleton: List[List[str]],
     temporal_dependencies: Dict[Tuple[str, str], TemporalDependency],
 ) -> List[str]:
@@ -71,7 +70,14 @@ def add_placeholder_activities(acceptance_skeleton: List[List[str]],
 def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
     """
     Generates all valid acceptance variants from the provided conditions and dependencies matrix.
+
+    Args: 
+        matrix: Adjacency matrix of the dependnecies to be used for the generation of the skeleton 
+
+    Returns: 
+        List of skeleton sequences (list) 
     """
+
     activities = adj_matrix.activities
     temporal_deps: Dict[Tuple[str, str], TemporalDependency] = {}
     existential_deps: Dict[Tuple[str, str], ExistentialDependency] = {}
@@ -86,6 +92,10 @@ def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
 
     acceptance_variants = []
     n = len(activities)
+
+    # include a consistency check 
+    if not consistency_check_directions(existential_deps, temporal_deps): 
+        return []
 
     for i in range(0, 1 << n):  # 2^n subsets, skip empty set
         current_subset_indices = []
@@ -107,12 +117,81 @@ def generate_skeleton(adj_matrix: AdjacencyMatrix) -> List[List[str]]:
     # modify the acceptance sequences by adding placeholder activities 
     skeleton = add_placeholder_activities(acceptance_variants, temporal_deps)
 
-    # add the empty acceptnace sequence 
-    # by default we do not add an empty skeleton sequence 
-    # skeleton.append([])
-
     # return the final skeleton 
     return skeleton   
+
+
+def consistency_check_directions(existential_dependencies: Dict[Tuple[str, str], ExistentialDependency], 
+                                 temporal_dependencies: Dict[Tuple[str, str], TemporalDependency]) -> bool: 
+    """
+    For a provided set of dependnecies, check, that the dependencies if provided for both directions (A, B) and (B, A) match each other 
+    E.g. (A < B) and (B < A) would be a contradiction, leading to an empty skeleton sequence 
+
+    Args: 
+        existential_dependencies: dict of existential dependencies 
+        temporal_dependencies: dict of temporal dependnecies 
+
+    Returns
+        boolean value, true if the dependnecies are consistent 
+    """
+
+
+    # ensure that temporal dependnecies were provided 
+    if temporal_dependencies: 
+
+        # check for each pair of activities with a temporal dependency 
+        for (ai, aj), dependency_fwd in temporal_dependencies.items():
+
+            # check if the other direction is also part of the dict 
+            if (aj, ai) in temporal_dependencies: 
+
+                # get the dependnecy for the other direction 
+                dependency_bwd = temporal_dependencies.get((aj, ai))
+
+                # ensure they have the same type 
+                if dependency_fwd.type != dependency_bwd.type: 
+                    
+                    # if the type is different return False 
+                    return False
+                
+                # ensure the direction is the inverse 
+                if not ((dependency_fwd.direction == Direction.BOTH and dependency_bwd.direction == Direction.BOTH) or 
+                    (dependency_fwd.direction == Direction.FORWARD and dependency_bwd.direction == Direction.BACKWARD) or
+                    (dependency_fwd.direction == Direction.BACKWARD and dependency_bwd.direction == Direction.FORWARD)): 
+
+                    # if the directions are incosnistent, return False 
+                    return False
+                
+
+    # ensure that existential dependnecies were provided 
+    if existential_dependencies: 
+
+        # check for each pair of activities with a temporal dependency 
+        for (ai, aj), dependency_fwd in existential_dependencies.items():
+
+            # check if the other direction is also part of the dict 
+            if (aj, ai) in existential_dependencies: 
+
+                # get the dependnecy for the other direction 
+                dependency_bwd = existential_dependencies.get((aj, ai))
+
+                # ensure they have the same type 
+                if dependency_fwd.type != dependency_bwd.type: 
+                    
+                    # if the type is different return False 
+                    return False
+                
+                # ensure the direction is the inverse 
+                if not ((dependency_fwd.direction == Direction.BOTH and dependency_bwd.direction == Direction.BOTH) or 
+                    (dependency_fwd.direction == Direction.FORWARD and dependency_bwd.direction == Direction.BACKWARD) or
+                    (dependency_fwd.direction == Direction.BACKWARD and dependency_bwd.direction == Direction.FORWARD)): 
+
+                    # if the directions are incosnistent, return False 
+                    return False
+                
+    # if all checks pass, return True 
+    return True
+            
 
 
 def compute_transitive_closure(
