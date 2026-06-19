@@ -120,7 +120,11 @@ def step_apply_operation(matrix: AdjacencyMatrix, locked_dependencies):
 # ════════════════════════════════════════════════════════════════════════════
 
 def export_matrix_to_yaml(matrix: AdjacencyMatrix) -> None:
-    path = prompt("Save path for YAML file", "output_matrix.yaml")
+    path = prompt("Name of the matrix to save", "output_matrix.yaml")
+
+    if path != "output_matrix.yaml": 
+        path = path + ".yaml"
+        
     path = os.path.expanduser(path)
 
     data: dict = {
