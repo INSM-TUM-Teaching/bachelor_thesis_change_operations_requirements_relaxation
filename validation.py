@@ -318,8 +318,6 @@ locked_dependencies = dict()
 # acceptance_sequences = [['A', 'B', 'C', 'D'], ['B', 'A', 'C', 'D']]
 
 
-
-
 """
 locked_dependencies = {
     ("X", "D"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
