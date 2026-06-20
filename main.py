@@ -119,13 +119,25 @@ def step_apply_operation(matrix: AdjacencyMatrix, locked_dependencies):
 #  Export
 # ════════════════════════════════════════════════════════════════════════════
 
-def export_matrix_to_yaml(matrix: AdjacencyMatrix) -> None:
-    path = prompt("Name of the matrix to save", "output_matrix.yaml")
+# TODO adapt this, so that we provide the name of the new matrix and the location where it should be stored 
 
-    if path != "output_matrix.yaml": 
-        path = path + ".yaml"
-        
-    path = os.path.expanduser(path)
+def export_matrix_to_yaml(matrix: AdjacencyMatrix) -> None:
+    
+    # ask the user for the folder to store the matrix in and under which name 
+    folder = prompt("Folder to store the matrix in", "results_folder")
+    name   = prompt("Name of the matrix to save", "output_matrix")
+
+    # normalise: strip a trailing ".yaml" so we never produce "name.yaml.yaml"
+    if name.lower().endswith(".yaml"):
+        name = name[:-5]
+
+    # resolve the folder against the HOME directory, not the current working
+    folder = os.path.expanduser(folder) if folder else os.path.expanduser("~")
+    if not os.path.isabs(folder):
+        folder = os.path.join(os.path.expanduser("~"), folder)
+
+    os.makedirs(folder, exist_ok=True)          # create the folder if needed
+    path = os.path.join(folder, name + ".yaml")
 
     data: dict = {
         "metadata": {"activities": matrix.activities},
