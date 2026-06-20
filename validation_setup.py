@@ -1,25 +1,10 @@
 """
-Business Process Redesign : Console Interface
-=============================================
-Run with:  python main.py
+This file simplifies the validation and evaluation. For every WCP used, it specifies the acceptance sequences. 
 
-Workflow
---------
-1. Load a process model (YAML file OR raw acceptance sequences)
-2. Inspect the resulting adjacency matrix
-3. Pick a change operation and supply its parameters
-4. Inspect the modified matrix
-5. Optionally export it as YAML and/or apply further operations
+Additionally the setup is simplified, as the user does not has to specify the initial setup in the console interface, but it is done in code. 
 """
 
-import os
-import sys
-import copy
-import yaml
-from typing import List, Tuple, Dict, Optional
-
 # ── Core imports ────────────────────────────────────────────────────────────
-from adjacency_matrix import AdjacencyMatrix, parse_yaml_to_adjacency_matrix
 from dependencies import (
     TemporalDependency, ExistentialDependency,
     TemporalType, ExistentialType, Direction,
@@ -27,48 +12,8 @@ from dependencies import (
 from variants_to_matrix import variants_to_matrix
 from acceptance_variants import generate_acceptance_variants
 
-from acceptance_skeleton import generate_skeleton
-
-# ── Change-operation imports ─────────────────────────────────────────────────
-from change_operations.delete_operation    import delete_activity
-from change_operations.insert_operation    import insert_activity
-from change_operations.modify_operation    import modify_dependencies
-from change_operations.move_operation      import move_activity
-from change_operations.swap_operation      import swap_activities
-from change_operations.skip_operation      import skip_activity
-from change_operations.replace_operation   import replace_activity
-from change_operations.collapse_operation  import collapse_operation
-from change_operations.de_collapse_operation import decollapse_operation
-from change_operations.parallelize_operation import parallelize_activities
-from change_operations.condition_update    import condition_update
-
-# ── Change-operation helper functions imports ─────────────────────────────────────────────────
-from change_operations.parallelize_operation import get_activities_happening_between
-
 # ── Helper functions ─────────────────────────────────────────────────
-from utils.console_helpers import banner
-from utils.console_helpers import prompt
-from utils.console_helpers import choose
-from utils.console_helpers import confirm
-from utils.console_helpers import _dep_label
-from utils.console_helpers import dep_label_temp
-from utils.console_helpers import dep_label_exist
 from utils.console_helpers import print_matrix
-from utils.console_helpers import ask_temporal
-from utils.console_helpers import ask_existential
-from utils.console_helpers import ask_dependencies
-from utils.console_helpers import deps_to_matrix
-
-# ── Locked dependency functions ─────────────────────────────────────────────────
-from utils.utils_lock_dependencies import get_locked_dependencies
-from utils.utils_lock_dependencies import is_relaxation
-from utils.utils_lock_dependencies import is_temp_relaxation
-from utils.utils_lock_dependencies import is_exist_relaxation
-from utils.utils_lock_dependencies import are_locked_dependencies_violated
-from utils.utils_lock_dependencies import is_violated
-
-# ── dependency relaxation ─────────────────────────────────────────────────
-from utils.dependency_relaxation import perform_dependency_relaxation
 
 # ── Change operation handlers ─────────────────────────────────────────────────
 from operation_handlers.op_insert import op_insert
@@ -83,13 +28,8 @@ from operation_handlers.op_replace import op_replace
 from operation_handlers.op_skip import op_skip
 from operation_handlers.op_swap import op_swap
 
-# ── Load process models ─────────────────────────────────────────────────
-from utils.load_process_models import load_from_sequences
-from utils.load_process_models import load_from_yaml
-
 # ── Debug mode ─────────────────────────────────────────────────
 from utils.debug_mode import enable as enable_debug_mode
-from utils.debug_mode import log
 
 # --- define the dependnecies 
 DIRECT     = TemporalType.DIRECT
@@ -103,9 +43,14 @@ NAND       = ExistentialType.NAND
 FWD        = Direction.FORWARD
 BWD        = Direction.BACKWARD
 BOTH       = Direction.BOTH
+
 # ════════════════════════════════════════════════════════════════════════════
-#  Step 1 – Define the input for the change operation 
+#  Definitions of acceptance seqeunces for WCPs 
+#  Select the desired one by removing the comments 
 # ════════════════════════════════════════════════════════════════════════════
+
+# default empty acceptance seqeunce 
+acceptance_sequences = []
 
 # WCP 1 
 # acceptance_sequences = [['A', 'B', 'C', 'D']]
@@ -143,9 +88,6 @@ acceptance_sequences = [
 ]
 """
 
-
-
-
 # WCP 7 structured synchronization merge 
 """
 acceptance_sequences = [
@@ -167,8 +109,8 @@ acceptance_sequences = [
 ]
 """
 
-"""
 # WCP 10 
+"""
 acceptance_sequences = [
     ['A', 'B', 'C'],
     ['A', 'B', 'C', 'B', 'C'],
@@ -180,41 +122,26 @@ acceptance_sequences = [
 ]
 """
 
-
 # WCP 17
+"""
 acceptance_sequences = [
     ['A', 'B', 'C'],
     ['A', 'C', 'B'],
     ['C', 'A', 'B'],
 ]
-
-
 """
+
 #WCP 19
+"""
 # acceptance_sequences = [['A', 'B'], ['A']]
 """
-"""
-LOCKED_DEPENDENCIES: Dict[
-    Tuple[str, str],
-    Tuple[Optional[TemporalDependency], Optional[ExistentialDependency]]
-] = {
-    # Example: lock the temporal ordering of A→B (must stay direct) but leave
-    # the existential dependency unlocked.
-    # ("A", "B"): (temp(DIRECT), None),
- 
-    # Example: lock only the existential dependency between A and C.
-    # ("A", "C"): (None, exist(EQUIV)),
-}
-"""
-
-# acceptance_sequences = [['A', 'B', 'C']]
-
-# acceptance_sequences =[['A', 'B'], ['A']]
 
 
-# ----------------------------------------------
-# Validation Phase II
-# ----------------------------------------------
+
+# ════════════════════════════════════════════════════════════════════════════
+#  Definitions of acceptance seqeunces for the processes used for validation 
+#  Select the desired one by removing the comments 
+# ════════════════════════════════════════════════════════════════════════════
 
 
 # case I
@@ -230,8 +157,6 @@ acceptance_sequences = [
     ['C', 'D'],
 ]
 """
-
-
 
 # case II
 """
@@ -249,7 +174,6 @@ acceptance_sequences = [['A', 'Y', 'Z'],
     ['Z', 'B', 'Y']
 ]
 """
-
 
 # case III
 """
@@ -312,12 +236,16 @@ acceptance_sequences = [['A', 'X'],
                     ]
 """
 
+
+# ════════════════════════════════════════════════════════════════════════════
+#  Definitions of locked dependencies 
+#  Adapt the provided dependencies 
+# ════════════════════════════════════════════════════════════════════════════
+
+# default - no locked dependencies 
 locked_dependencies = dict()
 
-# example for thesis 
-# acceptance_sequences = [['A', 'B', 'C', 'D'], ['B', 'A', 'C', 'D']]
-
-
+# setup to add locked dependencies - add in both directions, since the algorithm also always dds them in both directions 
 """
 locked_dependencies = {
     ("X", "D"): (TemporalDependency(type=DIRECT, direction=BWD), None), 
@@ -328,22 +256,19 @@ locked_dependencies = {
 }
 """
 
-
-
-
-
+# ════════════════════════════════════════════════════════════════════════════
+#  Application of change operation 
+#  Just adapt the change operation provided in code in line 274 and insert the appropriate application handler 
+# ════════════════════════════════════════════════════════════════════════════
 
 # build the matrix
 matrix = variants_to_matrix(acceptance_sequences)
 
+# print the matrix to the console 
 print_matrix(matrix, "Initial Matrix")
 
-# enable the debug mode 
+# enable the debug mode - allow for a better understanding 
 enable_debug_mode()
-
-print("\n" + "═" * 60)
-print("   Business Process Redesign : Console Tool")
-print("═" * 60)
 
 # define change operation here 
 result, locked_dependencies = op_parallelize(matrix, locked_dependencies)
@@ -362,5 +287,6 @@ if result is not matrix:
 else:
     print("\n  ℹ  Matrix unchanged : no modified matrix to display.")
 
+# output the resulting acceptance sequences 
 print(generate_acceptance_variants(result))
 

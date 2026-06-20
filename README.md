@@ -200,7 +200,7 @@ The solution strategies were validated against all failure cases identified duri
 - **Locked dependency violations**: 11/11 cases resolved (100%).
 - **Generalizability**: All applicable failure conditions resolved across all five unseen process structures.
 
-The documentataion of the evaluation and validation can be found in the `\docs` folder
+The documentataion of the [evaluation](docs/Evaluation___Phase_6.pdf) and [validation](docs/Validation___Phase_5.pdf) can be found in the [`docs`](docs/) folder together with the [results](docs/Failure%20cases_phase%20I.pdf) of Phase I from the work, providing an overview of the examples tested and the derived failure cases. Additionally the [`validation_setup.py`](validation_setup.py) file contains a setup for performing the validation and evaluation, provding all acceptance sequences for the process models used.
 
 ## Project Context
 
