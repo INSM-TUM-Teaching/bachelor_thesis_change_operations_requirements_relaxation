@@ -9,3 +9,5 @@ operation_handlers/__pycache__/
 change_operations/__pycache__/
 
 .pytest_cache/
+
+playground.py

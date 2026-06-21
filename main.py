@@ -13,6 +13,7 @@ from utils.console_helpers import prompt
 from utils.console_helpers import choose
 from utils.console_helpers import confirm
 from utils.console_helpers import print_matrix
+from utils.console_helpers import print_matrix_difference
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
 from utils.utils_lock_dependencies import get_locked_dependencies
@@ -215,7 +216,9 @@ def main() -> None:
             if result is not current_matrix:
                 # inform the user that the change operation was applied succesfully 
                 print(f"\n  ✓  Change operation applied successfully.")
-                print_matrix(result, "Modified Matrix")
+
+                # use the difference function, to compare the old to the new matrix 
+                print_matrix_difference(current_matrix , result, "Modified Matrix")
 
                 if confirm("Export this matrix to YAML?"):
                     export_matrix_to_yaml(result)

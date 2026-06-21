@@ -67,6 +67,7 @@ def confirm(msg: str) -> bool:
     False by default. 
     """
     return prompt(f"{msg} (y/n)", "n").lower() == "y"
+ 
 
 
 # ════════════════════════════════════════════════════════════════════════════
@@ -184,6 +185,72 @@ def print_matrix(matrix: AdjacencyMatrix, title: str = "Adjacency Matrix") -> No
                 else:
                     cell = ""
             row += f"{cell:^{col_w}}"
+        print(row)
+    print()
+
+
+def print_matrix_difference(original_matrix: AdjacencyMatrix, modified_matrix: AdjacencyMatrix, title: str = "Adjacency Matrix") -> None:
+    """
+    Print the modified matrix to the console.
+    Entries which differ from the original matrix are printed in bold.
+
+    Args:
+        original_matrix: matrix before the change operation
+        modified_matrix: matrix after the change operation
+        title: title of the matrix to be shown, "Adjacency Matrix" by default
+    """
+    BOLD  = "\033[1m"
+    RESET = "\033[0m"
+
+    banner(title)
+    print("  Dependencies changed by the operation are marked with [ ]")
+
+    activities = modified_matrix.activities
+    col_w = 22
+
+    # Header row
+    header = f"{'':>14}" + "".join(f"{a:^{col_w}}" for a in activities)
+    print(header)
+    print("  " + "─" * (14 + col_w * len(activities)))
+
+    for row_act in activities:
+        row = f"  {row_act:>12}  "
+        for col_act in activities:
+            if row_act == col_act:
+                cell = "·"
+                row += f"{cell:^{col_w}}"
+                continue
+
+            new_dep = modified_matrix.get_dependency(row_act, col_act)
+           
+            if new_dep:
+                temp, exist = new_dep
+                cell = _dep_label(temp, exist)
+            else:
+                cell = ""
+
+            # Determine whether this cell changed.
+            # The activity pair may not exist in the original at all
+            # (e.g. after insert / collapse introduced a new activity).
+            row_in_orig = row_act in original_matrix.activities
+            col_in_orig = col_act in original_matrix.activities
+
+            if row_in_orig and col_in_orig:
+                old_dep = original_matrix.get_dependency(row_act, col_act)
+            else:
+                old_dep = None  # new activity → treat as changed
+
+            changed = new_dep != old_dep
+
+            padded = f"{cell:^{col_w}}"
+            if changed:
+                # Wrap in brackets and re-center within col_w,
+                # keeping visual width consistent
+                marked = f"[{cell}]"
+                row += f"{marked:^{col_w}}"
+            else:
+                row += padded
+
         print(row)
     print()
 
