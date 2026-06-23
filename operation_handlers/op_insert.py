@@ -21,9 +21,6 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 from utils.debug_mode import log
 
 
-
-
-
 def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     """
     Operation handler for inserting an activity 
@@ -80,7 +77,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         # indicate to the user that the standard insert method does not work here 
         print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
 
-        result = perform_skeleton_algorithm(matrix, deps)
+        result = perform_skeleton_algorithm(matrix, deps, insert_activity=activity)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -103,7 +100,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
         log("\nThe standard insertion algorithm was unable to perform the insertion.")
         log("We use the skeleton algorithm to perfom the insertion")     
 
-        result = perform_skeleton_algorithm(matrix, deps)
+        result = perform_skeleton_algorithm(matrix, deps, insert_activity=activity)
 
 
     # ════════════════════════════════════════════════════════════════════════════
@@ -135,7 +132,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
                 combined[(from_act, to_act)] = (ins_temp, ins_exist)
 
             # perfom the skeleton approach
-            result = perform_skeleton_algorithm(result, combined)
+            result = perform_skeleton_algorithm(result, combined, insert_activity=activity)
 
 
     # ════════════════════════════════════════════════════════════════════════════

@@ -23,7 +23,8 @@ from utils.debug_mode import log
 
 def perform_skeleton_algorithm(matrix: AdjacencyMatrix, 
                               locked_dependencies: dict, 
-                              skip_activity: Optional[str] = None
+                              skip_activity: Optional[str] = None, 
+                              insert_activity: Optional[str] = None
 ) -> AdjacencyMatrix: 
     """
     Handler for perfoming the skeleton solution staretgy. 
@@ -57,7 +58,7 @@ def perform_skeleton_algorithm(matrix: AdjacencyMatrix,
         similarity_strategy = "combined"
 
     # if an error occurs, we use the new insert opportunity 
-    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy, skip_activity)
+    modified_acceptance_sequences = adapt_process(matrix, locked_dependencies, similarity_strategy, skip_activity, insert_activity)
 
     # get the result by translating the modified acceptance sequences in the matrix
     result = variants_to_matrix(modified_acceptance_sequences)
@@ -68,7 +69,8 @@ def perform_skeleton_algorithm(matrix: AdjacencyMatrix,
 def adapt_process(matrix: AdjacencyMatrix, 
                   locked_dependencies: dict, 
                   similarity_strategy: str,
-                  skip_activity: Optional[str] = None
+                  skip_activity: Optional[str] = None,
+                  insert_activity: Optional[str] = None
                 ) -> AdjacencyMatrix: 
     """
     For a provided process adapt it to the locked dependencies and ensure they hold. 
@@ -250,6 +252,14 @@ def adapt_process(matrix: AdjacencyMatrix,
     # define a list to store the new acceptance sequences 
     acceptance_sequences_new = []
 
+    # define occurrence activities for the similarity score, without the inserted activity, if it exists 
+    # esnures that for the similarity calculation, the inserted new activity does not interfer
+    sim_activities_in_skeleton = activities_in_skeleton.copy()
+
+    if insert_activity and insert_activity in sim_activities_in_skeleton:
+        sim_activities_in_skeleton.remove(insert_activity) 
+        
+
     log("Phase 1 of skeleton algorithm: for each acceptance sequence find best fitting skeleton sequence")
     # iterate thorugh all acceptance sequences 
     for acceptance_sequence in acceptance_sequences: 
@@ -268,7 +278,7 @@ def adapt_process(matrix: AdjacencyMatrix,
         for skeleton_sequence in skeleton_sequences:
 
             # calculate the similarity score of occurence and ordering  
-            sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, activities_in_skeleton)
+            sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, skeleton_sequence, sim_activities_in_skeleton)
             sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
 
             # based on the selected similarity startegy, select the skeleton sequence 
@@ -377,7 +387,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             for acceptance_sequence in acceptance_sequences:
 
                 # calculate the similarity score of occurence and ordering  
-                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
+                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, sim_activities_in_skeleton)
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
              
                 # based on the selected similarity startegy, select the skeleton sequence 
@@ -483,7 +493,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             for acceptance_sequence in acceptance_sequences:
 
                 # calculate the similarity score of occurence and ordering  
-                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, activities_in_skeleton)
+                sim_score_occurence = similarity_score.similarity_calculation_occurence(acceptance_sequence, candidate_skel_seq, sim_activities_in_skeleton)
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
              
                 # based on the selected similarity startegy, select the skeleton sequence 

@@ -28,7 +28,7 @@ def similarity_calculation_occurence(acceptence_sequence: List[str], skeleton_se
 
     # from the skeleton get the activities, which are not a placeholder 
     for act in skeleton_sequence: 
-        if act != '_' and act not in activities_skeleton: 
+        if act != '_' and act not in activities_skeleton and act in all_skeleton_activities: 
             activities_skeleton.append(act)
     
     # define a variable num_act_skeleton_acceptance to count
