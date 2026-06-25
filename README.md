@@ -9,15 +9,15 @@ The application is modeling-language independent, operating on an **activity rel
 
 ## Background
 
-Change operations can only be implemented if a set of operation-specific structural requirements hold. For example, parallelizing activities `{A, C}` in a sequential process `A → B → C` fails because activity `B` lies between them, making the placement of the parallelized fragment ambiguous. A human modeler would resolve this by either moving `B` outside the set or expanding the set to `{A, B, C}`. This work automates exactly that resolution step.
+Change operations can only be implemented if a set of operation-specific structural requirements hold. For example, parallelizing activities `{A, C}` in a sequential process with the acceptance sequence `(A, B, C)` fails because activity `B` happens between them, making the placement of the parallelized fragment ambiguous. A human modeler would resolve this by either moving `B` outside the set or expanding the set to `{A, B, C}`. This work automates exactly that resolution step.
 
 Failure conditions are classified into three types:
 
-| Failure Condition                    | Affected Operations   | Description                                                        |
-| ------------------------------------ | --------------------- | ------------------------------------------------------------------ |
-| **Activities happening in between**  | Parallelize, Collapse | Interfering activities block placement of the new fragment         |
-| **Contradictions between inputs**    | Insert, Modify, Move  | Provided dependencies conflict with the existing process structure |
-| **Violation of locked dependencies** | All operations        | The change operation alters a dependency designated as locked      |
+| Failure Condition                    | Affected Operations   | Description                                                                     |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------- |
+| **Activities happening in between**  | Parallelize, Collapse | Activities happening in between, make placement of resulting fragment ambiguous |
+| **Contradictions between inputs**    | Insert, Modify, Move  | Provided dependencies conflict with the existing process structure              |
+| **Violation of locked dependencies** | All operations        | The change operation alters a dependency designated as locked                   |
 
 For each failure condition, the application applies a dedicated solution strategy and, where multiple structural variants are possible, presents them to the user for selection.
 
@@ -32,22 +32,22 @@ Two strategies are offered:
 
 ### Contradictions Between Inputs & Locked Dependency Violations
 
-Both conditions are resolved using the **skeleton solution strategy**, since for both cases an adaption of the process structure to confom to the structure imposed by the required dependencies is needed:
+Both conditions are resolved using the **skeleton solution strategy**, since for both cases an adaption of the process structure to conform to the structure imposed by the required dependencies is needed:
 
 1. A set of _skeleton sequences_ is derived from the required dependencies (change operation inputs or/and locked dependencies). Each skeleton sequence is a valid structural template encoding the required ordering and co-occurrence of constrained activities.
-2. Each acceptance sequence of the process is matched to the most similar skeleton sequence using a configurable **similarity score** (occurrence-based, ordering-based, or combined). The selecetion of the similarity score calculation is due to the user, since it infleunces the structure of the resulting process and thus is a design decsision.
+2. Each acceptance sequence of the process is matched to the most similar skeleton sequence using a configurable **similarity score** (occurrence-based, ordering-based, or combined). The selection of the similarity score calculation is left to the user, since it influences the structure of the resulting process and thus is a design decision.
 3. Acceptance sequences are adapted to conform to their matched skeleton sequence, preserving as much of the original process structure as possible while guaranteeing all required dependencies are satisfied.
-4. For configurations of required acceptance sequences not presnted by the used skeleton sequences, additional pairs of acceptance and skeleton sequences are formed and adapted, to ensure the representation of all required dependencies in the result.
+4. For configurations of required acceptance sequences not presented by the used skeleton sequences, additional pairs of acceptance and skeleton sequences are formed and adapted, to ensure the representation of all required dependencies in the result.
 
 For locked dependency violations, **dependency relaxation** is also offered: if the new dependency type after a change operation is a valid relaxation of the locked type (e.g., equivalence `⟺` relaxed to implication `⇒`), the user is asked whether to accept the relaxation before the skeleton strategy is applied.
 
-Additionally, for cases where change operations require to alter a locked dependency, we provide a **resolution dialogue** to resolve the conflict. The user is presented with the conflict and can choose to either either abandone the change operation, remove the locked dependency, or adapt the change operation input.
+Additionally, for cases where change operations require altering a locked dependency, we provide a **resolution dialogue** to resolve the conflict. The user is presented with the conflict and can choose to either abandon the change operation, remove the locked dependency, or adapt the change operation input.
 
 ## Key Features
 
 - **Modeling language independent**: Operates on an abstract activity relationships matrix, not tied to any specific notation.
 - **11 supported change operations**: Coverage of basic and composite behavioral redesign operations.
-- **Three failure condition handlers**: Automated detection and resolution of all identified failure conditions by adapting the structure of the process in dialogue with the user to meet the requierements.
+- **Three failure condition handlers**: Automated detection and resolution of all identified failure conditions by adapting the structure of the process in dialogue with the user to meet the requirements.
 - **Human-in-the-loop variant selection**: Where multiple solution variants are applicable, the user selects the preferred variant.
 - **Locked dependencies**: Critical activity dependencies can be designated as locked and are preserved (or relaxed with user confirmation) across all change operations.
 - **Configurable similarity scoring**: Users choose whether to prioritize preserving existential dependencies (occurrence similarity), temporal dependencies (ordering similarity), or a balanced combination.
@@ -78,7 +78,7 @@ Additionally, for cases where change operations require to alter a locked depend
 The application follows a three-step transformation cycle:
 
 1. **Matrix → Acceptance sequences**: The activity relationships matrix is translated into the complete set of valid execution traces (acceptance sequences).
-2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a requirement is not met, the failure condition is identified and the appropriate solution strategy is applied, adapting the process to conform to the requiereement in dialogue with the user.
+2. **Apply change operation**: The change operation is applied directly to the acceptance sequences. If a requirement is not met, the failure condition is identified and the appropriate solution strategy is applied, adapting the process to conform to the requirement in dialogue with the user.
 3. **Acceptance sequences → Matrix**: The modified acceptance sequences are translated back into an activity relationships matrix, automatically capturing all primary and secondary dependency changes.
 
 ## Technology Stack
@@ -130,7 +130,7 @@ The application follows a three-step transformation cycle:
 The application guides the user through the following steps:
 
 **Step 0 - Enable Information mode**
-Enable the information mode to be presnted with intermediate results of the algorithms to better understand the computataion.
+Enable the information mode to be presented with intermediate results of the algorithms to better understand the computation.
 
 **Step 1 — Load a process model**
 
@@ -138,7 +138,7 @@ Choose to provide the process as a `.yaml` file or by entering acceptance sequen
 
 **Step 2 — Lock dependencies (optional)**
 
-Specify activity pairs whose temporal and/or existential dependencies must not be altered. The application will check the preservation of the dependnecies after each change operation application, adapting the process structure or resolve them in dialogue with the user to preserve the dependnecies.
+Specify activity pairs whose temporal and/or existential dependencies must not be altered. The application will check the preservation of the dependencies after each change operation application, adapting the process structure or resolving them in dialogue with the user to preserve the dependencies.
 
 **Step 3 — Select and configure a change operation**
 
@@ -146,7 +146,7 @@ Choose one of the 11 supported change operations and provide the required input 
 
 **Step 4 — Review and confirm**
 
-If a failure condition is detected, the application identifies the appropriate solution strategy and presnts solution variants for user selection.
+If a failure condition is detected, the application identifies the appropriate solution strategy and presents solution variants for user selection.
 
 **Step 5 — Export (optional)**
 
@@ -176,7 +176,7 @@ dependencies:
       direction: both
 ```
 
-Each entry in `dependencies` defines the pairwise relationship between two activities. Temporal types include `direct` and `eventual`; existential types include `equivalence`, `negated_equivalence`, `implication`, `or`, and `nand`. Additionally a direction is provided for every change operation which is either `forward`, `backward`, or `both`.
+Each entry in `dependencies` defines the pairwise relationship between two activities. Temporal types include `direct` and `eventual`; existential types include `equivalence`, `negated_equivalence`, `implication`, `or`, and `nand`. Additionally a direction is provided for every dependency (temporal and existential) which is either `forward`, `backward`, or `both`.
 
 ## Testing
 
@@ -189,7 +189,7 @@ pip install -r dev-requirements.txt
 python -m pytest
 ```
 
-Additionally during development we used the cases from the validtaion for the testing to validate the implementation.
+Additionally during development we used the cases from the validation for the testing to validate the implementation.
 
 ## Evaluation
 
@@ -200,7 +200,7 @@ The solution strategies were validated against all failure cases identified duri
 - **Locked dependency violations**: 11/11 cases resolved (100%).
 - **Generalizability**: All applicable failure conditions resolved across all five unseen process structures.
 
-The documentataion of the [evaluation](docs/Evaluation___Phase_6.pdf) and [validation](docs/Validation___Phase_5.pdf) can be found in the [`docs`](docs/) folder together with the [results](docs/Failure%20cases_phase%20I.pdf) of Phase I from the work, providing an overview of the examples tested and the derived failure cases. Additionally the [`validation_setup.py`](validation_setup.py) file contains a setup for performing the validation and evaluation, provding all acceptance sequences for the process models used.
+The documentation of the [evaluation](docs/Evaluation___Phase_6.pdf) and [validation](docs/Validation___Phase_5.pdf) can be found in the [`docs`](docs/) folder together with the [results](docs/Failure%20cases_phase%20I.pdf) of Phase I from the work, providing an overview of the examples tested and the derived failure cases. Additionally the [`validation_setup.py`](validation_setup.py) file contains a setup for performing the validation and evaluation, providing all acceptance sequences for the process models used.
 
 ## Project Context
 
