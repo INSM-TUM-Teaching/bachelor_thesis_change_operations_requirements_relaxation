@@ -195,7 +195,7 @@ Additionally during development we used the cases from the validtaion for the te
 
 The solution strategies were validated against all failure cases identified during development (10 workflow control-flow patterns, 11 change operations) and evaluated for generalizability on five unseen process structures composed from combinations of workflow patterns. Key results:
 
-- **Activities in between**: 11/11 cases resolved (100%).
+- **Activities in between**: 13/13 cases resolved (100%).
 - **Contradictions between inputs**: 64/64 cases resolved (100%).
 - **Locked dependency violations**: 11/11 cases resolved (100%).
 - **Generalizability**: All applicable failure conditions resolved across all five unseen process structures.
