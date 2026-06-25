@@ -23,4 +23,4 @@ def log(message: str) -> None:
     Print message only when debug mode is active.
     """
     if _debug_mode:
-        print(f"  [ℹ] {message}")
+        print(f"  [i] {message}")

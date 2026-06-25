@@ -17,9 +17,6 @@ from utils.utils_lock_dependencies import are_locked_dependencies_violated
 # ── Dependency relaxation ─────────────────────────────────────────────────
 from utils.dependency_relaxation import perform_dependency_relaxation
 
-# ── Debug mode ─────────────────────────────────────────────────
-from utils.debug_mode import log
-
 
 def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     """
@@ -75,7 +72,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     
     except ValueError as e: 
         # indicate to the user that the standard insert method does not work here 
-        print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
+        print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it.")
 
         result = perform_skeleton_algorithm(matrix, deps, insert_activity=activity)
 
@@ -96,9 +93,6 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     # check if the new dependencies do not match the intended modification 
     if not_cor_activities: 
         print("\nFor the insert operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
-
-        log("\nThe standard insertion algorithm was unable to perform the insertion.")
-        log("We use the skeleton algorithm to perfom the insertion")     
 
         result = perform_skeleton_algorithm(matrix, deps, insert_activity=activity)
 

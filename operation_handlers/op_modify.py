@@ -183,7 +183,7 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
         log("Standard algorithm used for the modify operation\n")
 
     except Exception as e:
-        print("\nThe standard modification algorithm was unable to perform the modification. \nWe use the skeleton algorithm to perfom the modification")
+        print("The standard modification algorithm was unable to perform the modification. \nWe use the skeleton algorithm to perfom the modification")
 
         # build the dictionary for the skeleton algorithm 
         modified_dependencies = {(from_act, to_act): (temp, exist), 
@@ -235,8 +235,8 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
     # check if the new dependencies do not match the intended modification 
     if not_cor_exist or not_cor_temp or not_cor_activities or not act_in_result: 
-        log("\nThe standard modification algorithm was unable to perform the modification.")
-        log("We use the skeleton algorithm to perfom the modification")
+        print("The standard modification algorithm was unable to perform the modification. \nWe use the skeleton algorithm to perfom the modification")
+
 
         # build the dictionary for the skeleton algorithm 
         modified_dependencies = {(from_act, to_act): (temp, exist), 

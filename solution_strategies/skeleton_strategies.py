@@ -44,14 +44,14 @@ def perform_skeleton_algorithm(matrix: AdjacencyMatrix,
     """
 
     # we offer the user the option to choose the method to calculate the similarity score
-    options = ["Pure occurence similarity score - focus on preserving existential dependencies", 
-            "Pure ordering similarity score - focus on preserving temporal dependencies",
+    options = ["Occurrence similarity score - focus on preserving existential dependencies", 
+            "Ordering similarity score - focus on preserving temporal dependencies",
             "Combined similarity score - allowing for a balanced consideration"]
     
     similarity_strategy = choose("Choose a method to calculate the similarity score between skeleton sequences and acceptance sequences: ", options)
 
-    if "occurence" in similarity_strategy: 
-        similarity_strategy = "occurence"
+    if "occurrence" in similarity_strategy: 
+        similarity_strategy = "occurrence"
     elif "ordering" in similarity_strategy: 
         similarity_strategy = "ordering"
     else: 
@@ -170,6 +170,7 @@ def adapt_process(matrix: AdjacencyMatrix,
 
     # log the occurrence combinations and ordering pairs (structures which must occur)
     log("Build the occurrence combinations")
+    log("Each entry is (activity pair, occurrence combination): the first tuple names the activities, the second the occurrence combination")
     log(f"Occurrence combinations: {all_occurrence_combinations} \n")
 
     log("Build the ordering tuples")
@@ -282,7 +283,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, skeleton_sequence)
 
             # based on the selected similarity startegy, select the skeleton sequence 
-            if similarity_strategy == "occurence": 
+            if similarity_strategy == "occurrence": 
                 # we search for the highest occurence sim score, if found also update the ordering 
                 if sim_score_occurence > max_sim_score_occurence: 
                     max_sim_score_occurence = sim_score_occurence
@@ -336,7 +337,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             if pair in unused_ordering_pairs: 
                 unused_ordering_pairs.remove(pair)
 
-        if similarity_strategy == "occurence":
+        if similarity_strategy == "occurrence":
             used_score = max_sim_score_occurence
         elif similarity_strategy == "ordering":
             used_score = max_sim_score_ordering
@@ -344,7 +345,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             used_score = max_sim_score_combined
 
         log(f"Skeleton sequence: {selected_skeleton_sequence}, Acceptance sequence: {acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
-        log(f"Contained occurence combinations: {contained_occurence_combinations} \n")
+        log(f"Contained occurrence combinations: {contained_occurence_combinations} \n")
         
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(acceptance_sequence, selected_skeleton_sequence, activities_in_skeleton, matrix)
@@ -362,7 +363,8 @@ def adapt_process(matrix: AdjacencyMatrix,
     #  For unused occurrence combinations, find acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
 
-    log("Phase 2: for unused occurrence combinations find pair of acceptance and skeleton sequence")
+    if unused_occurrence_combinations: 
+        log("Phase 2: for unused occurrence combinations find pair of acceptance and skeleton sequence")
 
     for unused_occurrence_combination in list(unused_occurrence_combinations):  # create a copy, since the list is modified mid-loop
 
@@ -391,7 +393,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
              
                 # based on the selected similarity startegy, select the skeleton sequence 
-                if similarity_strategy == "occurence": 
+                if similarity_strategy == "occurrence": 
                     # we search for the highest occurence sim score, if found also update the ordering 
                     if sim_score_occurence > max_sim_score_occurence: 
                         max_sim_score_occurence = sim_score_occurence
@@ -448,15 +450,15 @@ def adapt_process(matrix: AdjacencyMatrix,
             if pair in unused_ordering_pairs: 
                 unused_ordering_pairs.remove(pair)
 
-        if similarity_strategy == "occurence":
+        if similarity_strategy == "occurrence":
                 used_score = max_sim_score_occurence
         elif similarity_strategy == "ordering":
             used_score = max_sim_score_ordering
         else:
             used_score = max_sim_score_combined
 
-        log(f"Occurence set: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
-        log(f"Contained occurence combinations: {contained_occurence_combinations} \n")
+        log(f"Skeleton sequence: {best_skel_seq}, Acceptance sequence: {best_acceptance_sequence}, {similarity_strategy} similarity score: {used_score}")
+        log(f"Contained occurrence combinations: {contained_occurence_combinations} \n")
 
         # perfom the adaption of the acceptance sequence 
         modified_variants = adapt_acceptance_sequence(best_acceptance_sequence, best_skel_seq, activities_in_skeleton, matrix)
@@ -470,7 +472,8 @@ def adapt_process(matrix: AdjacencyMatrix,
     #  For unused ordering pairs, find acceptance sequences 
     # ════════════════════════════════════════════════════════════════════════════
 
-    log("Phase 3: for unused ordering pairs find pair of acceptance and skeleton sequence")
+    if unused_ordering_pairs: 
+        log("Phase 3: for unused ordering pairs find pair of acceptance and skeleton sequence")
 
     for unused_ordering_pair in list(unused_ordering_pairs):  # create a copy, since the list is modified mid-loop
 
@@ -497,7 +500,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                 sim_score_ordering = similarity_score.similarity_calculation_ordering(acceptance_sequence, candidate_skel_seq)
              
                 # based on the selected similarity startegy, select the skeleton sequence 
-                if similarity_strategy == "occurence": 
+                if similarity_strategy == "occurrence": 
                     # we search for the highest occurence sim score, if found also update the ordering 
                     if sim_score_occurence > max_sim_score_occurence: 
                         max_sim_score_occurence = sim_score_occurence
@@ -547,7 +550,7 @@ def adapt_process(matrix: AdjacencyMatrix,
             if pair in unused_ordering_pairs: 
                 unused_ordering_pairs.remove(pair)
 
-        if similarity_strategy == "occurence":
+        if similarity_strategy == "occurrence":
                 used_score = max_sim_score_occurence
         elif similarity_strategy == "ordering":
             used_score = max_sim_score_ordering
@@ -565,9 +568,7 @@ def adapt_process(matrix: AdjacencyMatrix,
                 acceptance_sequences_new.append(v)
 
 
-    log(f"Unused ordering pairs after phase 1: {unused_ordering_pairs} \n")
-
-    log(f"Acceptance sequences after skeleton algorithm: {acceptance_sequences_new}")
+    log(f"Modified acceptance sequences after skeleton algorithm: {acceptance_sequences_new}")
     # return the final result 
     return acceptance_sequences_new
 
@@ -918,11 +919,11 @@ def adapt_acceptance_sequence(
                                 acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
                                 current_acceptance_sequences.append(acceptance_sequence_current)
 
-                            # if no of the insertion positions was valid, use all of them 
-                            if acceptance_sequence_current == []:
-                                for i in range (prev_anchor_idx_acc + 1, len(acceptance_sequence) + 1): 
-                                    acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
-                                    current_acceptance_sequences.append(acceptance_sequence_current)
+                        # if no of the insertion positions was valid, use all of them 
+                        if acceptance_sequence_current == []:
+                            for i in range (prev_anchor_idx_acc + 1, len(acceptance_sequence) + 1): 
+                                acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
+                                current_acceptance_sequences.append(acceptance_sequence_current)
 
                 else: 
                     # no anchors present, so wen insert at all possible positions 
@@ -936,8 +937,6 @@ def adapt_acceptance_sequence(
                         for i in range (0, len(acceptance_sequence) + 1): 
                             acceptance_sequence_current = acceptance_sequence[:i] + [missing_anchor] + acceptance_sequence[i:]
                             current_acceptance_sequences.append(acceptance_sequence_current)
-
-
 
 
 

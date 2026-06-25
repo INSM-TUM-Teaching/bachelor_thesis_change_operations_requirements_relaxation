@@ -24,9 +24,6 @@ from utils.dependency_relaxation import perform_dependency_relaxation
 # ── Dependency reversion ─────────────────────────────────────────────────
 from utils.console_helpers import reverse_dependency
 
-# ── Debug mode ─────────────────────────────────────────────────
-from utils.debug_mode import log
-
 
 def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     """
@@ -221,9 +218,6 @@ def op_move(matrix: AdjacencyMatrix, locked_dependencies):
     # check if the new dependencies do not match the intended modification 
     if not_cor_activities: 
         print("\nFor the modify operation there is a contradiction between the inputs, we use the skeleton approach to resolve it")
-
-        log("\nThe standard modification algorithm was unable to perform the modification.")
-        log("We use the skeleton algorithm to perfom the modification")     
 
         result = perform_skeleton_algorithm(matrix, deps)
 

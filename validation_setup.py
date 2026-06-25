@@ -14,6 +14,7 @@ from acceptance_variants import generate_acceptance_variants
 
 # ── Helper functions ─────────────────────────────────────────────────
 from utils.console_helpers import print_matrix
+from utils.console_helpers import print_matrix_difference
 
 # ── Change operation handlers ─────────────────────────────────────────────────
 from operation_handlers.op_insert import op_insert
@@ -238,6 +239,19 @@ acceptance_sequences = [['A', 'X'],
 
 
 # ════════════════════════════════════════════════════════════════════════════
+#  Definitions of acceptance sequences for the running example in the thesis
+# ════════════════════════════════════════════════════════════════════════════
+
+"""
+acceptance_sequences = [['A', 'B', 'C', 'D'], 
+                        ['B', 'A', 'C', 'D'], 
+                        ['A', 'B', 'D'], 
+                        ['B', 'A', 'D'], 
+                    ]
+"""
+
+
+# ════════════════════════════════════════════════════════════════════════════
 #  Definitions of locked dependencies 
 #  Adapt the provided dependencies 
 # ════════════════════════════════════════════════════════════════════════════
@@ -271,7 +285,7 @@ print_matrix(matrix, "Initial Matrix")
 enable_debug_mode()
 
 # define change operation here 
-result, locked_dependencies = op_parallelize(matrix, locked_dependencies)
+result, locked_dependencies = op_insert(matrix, locked_dependencies)
 
 # check if the user wants to end the application 
 if result is None:
@@ -283,7 +297,7 @@ print(f"\n  ✓  Change operation applied successfully.")
 
 # if the matrix did not change, display this information 
 if result is not matrix:
-    print_matrix(result, "Modified Matrix")
+    print_matrix_difference(original_matrix=matrix, modified_matrix=result, title="Modified Matrix")
 else:
     print("\n  ℹ  Matrix unchanged : no modified matrix to display.")
 
