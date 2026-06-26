@@ -239,7 +239,7 @@ def adapt_process(matrix: AdjacencyMatrix,
     log(f"Skeleton sequences: {skeleton_sequences}")
 
     # check that the provided input does not have a contradiction in itself, preventing the creation of the skeleton sequences 
-    if skeleton_sequences == [[]] or skeleton_sequences is None: 
+    if skeleton_sequences == [[]] or skeleton_sequences == [] or skeleton_sequences is None: 
         raise ValueError("There is a contradiction in the input and no skeleton can be built, please ensure the input does not contain contradictions in itself")
 
     # get the list of all activities of the skeleton 

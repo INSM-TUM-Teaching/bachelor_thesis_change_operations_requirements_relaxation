@@ -16,6 +16,9 @@ from utils.console_helpers import dep_label_exist
 from utils.console_helpers import ask_temporal
 from utils.console_helpers import ask_existential
 
+# ── Transitive closure ────────────────────────────────────────────────────────────
+from transitive_closure import compute_full_transitive_closure
+
 # ── Locked dependency functions ─────────────────────────────────────────────────
 from utils.utils_lock_dependencies import are_locked_dependencies_violated
 
@@ -102,6 +105,8 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     #  Check for violations of locked dependencies, which can not be resolved 
     # ════════════════════════════════════════════════════════════════════════════
 
+    print(locked_dependencies)
+
     # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
     if (from_act, to_act) in locked_dependencies:
 
@@ -166,12 +171,65 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
 
     # ── Early exit if the user suppressed both components ────────────────────
     if temp is None and exist is None:
-        print("\n  ℹ  All modifications were suppressed by locked dependencies. No changes applied.")
+        print("\n  The resolution caused the removal of all specified modifications. No changes applied.")
         return matrix, locked_dependencies
 
     # rebuild modification tuple with the (possibly narrowed) components; modify operation builds teh inverse 
     modification = [(from_act, to_act, temp, exist)]
 
+
+    # ════════════════════════════════════════════════════════════════════════════
+    #  Check for violations of trasnitive closure of locked dependencies, which can not be resolved 
+    # ════════════════════════════════════════════════════════════════════════════
+
+    locked_dependencies_trans_closure = compute_full_transitive_closure(locked_dependencies)
+
+    # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
+    if (from_act, to_act) in locked_dependencies_trans_closure:
+
+        banner("The modification alters a locked dependency derived by trasnitivity")
+
+        temp_locked, exist_locked = locked_dependencies_trans_closure[(from_act, to_act)]
+
+        # ── Temporal component conflict ───────────────────────────────────────
+        if (temp_locked is not None) and (temp is not None) and (temp_locked != temp):
+
+            print(f"\nThe locked transitive temporal dependency is:    ({from_act} {dep_label_temp(temp_locked)} {to_act})")
+            print(f"The requested temporal modification:  ({from_act} {dep_label_temp(temp)} {to_act})")
+
+            if confirm("Discard temporal component of modify operation (if not change operation cannot be applied)"):
+                # drop the temporal part of the modification, keep the lock intact
+                temp = None
+            else:
+                # change op not possible 
+                print("Change operation can with this configuration not be applied")
+                return matrix, locked_dependencies
+                
+
+
+        # ── Existential component conflict ────────────────────────────────────
+        if (exist_locked is not None) and (exist is not None) and (exist_locked != exist):
+
+            print(f"\nThe locked transitive existential dependency is:    ({from_act} {dep_label_exist(exist_locked)} {to_act})")
+            print(f"The requested existential modification:  ({from_act} {dep_label_exist(exist)} {to_act})")
+
+            if confirm("Discard existential component of modify operation"):
+                # drop the existential part of the modification, keep the lock intact
+                exist = None
+            else:
+                print("Change operation can with this configuration not be applied")
+                return matrix, locked_dependencies
+                
+
+    # ── Early exit if the user suppressed both components ────────────────────
+    if temp is None and exist is None:
+        print("\n  The resolution caused the removal of all specified modifications. No changes applied.")
+        return matrix, locked_dependencies
+
+    # rebuild modification tuple with the (possibly narrowed) components; modify operation builds teh inverse 
+    modification = [(from_act, to_act, temp, exist)]
+
+    
 
     # ════════════════════════════════════════════════════════════════════════════
     #  Step 2: Try performance of the change operation  
