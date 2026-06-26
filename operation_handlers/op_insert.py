@@ -118,13 +118,19 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
 
                     print(f"\nThe locked temporal dependency is:  ({from_act} {dep_label_temp(temp_locked)} {to_act})")
                     print(f"The requested temporal dependency by transitivity is: ({from_act} {dep_label_temp(temp_dep)} {to_act})")
-
+                    
                     # provide the different options to resolve the conflict 
                     options = ["Delete locked temporal dependency " + from_act + " " + dep_label_temp(temp_locked) + " " + to_act, 
-                            "Remove temporal input dependency (" + str(from_act) + str(dep_label_temp(deps[(from_act, activity)][0])) + " " + str(activity) + ")", 
-                            "Remove temporal input dependency (" + str(to_act) + str(dep_label_temp(deps[(to_act, activity)][0])) + " " + str(activity) + ")",
                             "Discard change operation"
                             ]
+                    
+                    if (from_act, activity) in deps and deps[(from_act, activity)][0] is not None:
+                        options.append("Remove temporal input dependency (" + str(from_act) + str(dep_label_temp(deps[(from_act, activity)][0])) + " " + str(activity) + ")")
+                    
+                    if (to_act, activity) in deps and deps[(to_act, activity)][0] is not None:
+                        options.append("Remove temporal input dependency (" + str(to_act) + str(dep_label_temp(deps[(to_act, activity)][0])) + " " + str(activity) + ")")
+
+                    
                     
                     selection = choose("Choose one temporal dependency to be removed, to resolve the conflict", options)
 
@@ -300,11 +306,14 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
                     print(f"The requested temporal dependency by transitivity is: ({from_act} {dep_label_temp(temp_dep)} {to_act})")
 
                     # provide the different options to resolve the conflict 
-                    options = ["Remove temporal input dependency (" + str(from_act) + str(dep_label_temp(deps[(from_act, activity)][0])) + " " + str(activity) + ")", 
-                            "Remove temporal input dependency (" + str(to_act) + str(dep_label_temp(deps[(to_act, activity)][0])) + " " + str(activity) + ")",
-                            "Discard change operation"
-                            ]
+                    options = ["Discard change operation"]
                     
+                    if (from_act, activity) in deps and deps[(from_act, activity)][0] is not None:
+                        options.append("Remove temporal input dependency (" + str(from_act) + str(dep_label_temp(deps[(from_act, activity)][0])) + " " + str(activity) + ")")
+                    
+                    if (to_act, activity) in deps and deps[(to_act, activity)][0] is not None:
+                        options.append("Remove temporal input dependency (" + str(to_act) + str(dep_label_temp(deps[(to_act, activity)][0])) + " " + str(activity) + ")")
+
                     selection = choose("Choose one temporal dependency to be removed, to resolve the conflict", options)
 
                     if "(" + str(from_act) in selection: 
