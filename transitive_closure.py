@@ -353,6 +353,7 @@ def compute_full_transitive_closure(deps: dict) -> dict:
     return result
 
 
+# remark: this function was written with the help of Claude (Sonnet 4.6)
 def compute_full_closure_with_provenance(deps: dict):
     """
     Full transitive closure (multi-hop) that also records, for each derived
@@ -427,6 +428,57 @@ def compute_full_closure_with_provenance(deps: dict):
     return closed, prov
 
     
+def compute_full_closure_with_chain_endpoints(deps: dict):
+    """
+    Full transitive closure (multi-hop) which, for each derived dependency, stores
+    the original dependencies that form the chain, but reduced to only those pairs
+    which include one of the two activities of the final derived pair.
+ 
+    The idea is to offer the user the option to delete a locked dependency which is
+    part of the chain, thereby breaking it. We only keep the chain edges touching
+    the endpoints (from_act or to_act of the derived pair), since deleting one of
+    these is sufficient to break the chain.
+ 
+    Args:
+        deps: dictionary of the dependencies, for which the closure is calculated
+ 
+    Returns:
+        closed: dict[(a, c)] -> (temp_dep, exist_dep)   # derived pairs only
+        endpoints: dict[(a, c)] -> {'temporal': set[(x, y)], 'existential': set[(x, y)]}
+                   each set holds the original *directed* edges (as present in deps)
+                   on a witness chain that touch a or c
+    """
+ 
+    # reuse the existing provenance closure, which stores the full witness chain
+    closed, prov = compute_full_closure_with_provenance(deps)
+ 
+    # accumulator for the reduced provenance (endpoint touching edges only)
+    endpoints = dict()
+ 
+    # iterate over all derived pairs and their witness chains
+    for (act1, act2), components in prov.items():
+ 
+        # store the endpoint touching edges per component
+        endpoints[(act1, act2)] = {'temporal': set(), 'existential': set()}
+ 
+        # check both the temporal and the existential witness chain
+        for component in ('temporal', 'existential'):
+ 
+            # iterate over the undirected witness edges of the chain
+            for edge in components.get(component, set()):
+ 
+                # only keep edges which touch one of the two endpoints
+                if act1 not in edge and act2 not in edge:
+                    continue
+ 
+                # resolve the undirected edge to the directed key present in deps
+                x, y = tuple(edge)
+                if (x, y) in deps:
+                    endpoints[(act1, act2)][component].add((x, y))
+                elif (y, x) in deps:
+                    endpoints[(act1, act2)][component].add((y, x))
+ 
+    return closed, endpoints
 
 
 # dictionary to define the closure 

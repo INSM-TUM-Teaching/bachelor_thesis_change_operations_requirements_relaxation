@@ -8,6 +8,10 @@ from transitive_closure import compute_full_transitive_closure
 # ── Change-operation imports ─────────────────────────────────────────────────
 from change_operations.insert_operation    import insert_activity
 
+# ── Skeleton generation ────────────────────────────────────────────────────────────
+from acceptance_skeleton import generate_skeleton
+from utils.console_helpers import deps_to_matrix
+
 # ── Skeleton algorithm ─────────────────────────────────────────────────
 from solution_strategies.skeleton_strategies import perform_skeleton_algorithm
 
@@ -270,7 +274,6 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
     #  2) Check if insertion conditions (closed by transitivity), violate locked dependencies (closed by transitivity)
     # ════════════════════════════════════════════════════════════════════════════
 
-
     if locked_dependencies: 
         # compute the transitive closure of the deps and use the transitive deps
         trans_closure_deps = compute_transitive_closure(deps)
@@ -293,7 +296,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
                 # ── Temporal component conflict ───────────────────────────────────────
                 if (temp_locked is not None) and (temp_dep is not None) and (temp_locked != temp_dep):
 
-                    print(f"\nThe locked trasnitive temporal dependency is:  ({from_act} {dep_label_temp(temp_locked)} {to_act})")
+                    print(f"\nThe locked transitive temporal dependency is:  ({from_act} {dep_label_temp(temp_locked)} {to_act})")
                     print(f"The requested temporal dependency by transitivity is: ({from_act} {dep_label_temp(temp_dep)} {to_act})")
 
                     # provide the different options to resolve the conflict 
@@ -349,7 +352,7 @@ def op_insert(matrix: AdjacencyMatrix, locked_dependencies: dict):
                 if (exist_locked is not None) and (exist_dep is not None) and (exist_locked != exist_dep):
 
 
-                    print(f"\nThe locked trasnitive existential dependency is:    ({from_act} {dep_label_exist(exist_locked)} {to_act})")
+                    print(f"\nThe locked transitive existential dependency is:    ({from_act} {dep_label_exist(exist_locked)} {to_act})")
                     print(f"The requested existential dependency by transitivity is: ({from_act} {dep_label_exist(exist_dep)} {to_act})")
 
                     # get the temporal dependencies involved 

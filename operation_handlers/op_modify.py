@@ -15,9 +15,10 @@ from utils.console_helpers import dep_label_temp
 from utils.console_helpers import dep_label_exist
 from utils.console_helpers import ask_temporal
 from utils.console_helpers import ask_existential
+from utils.console_helpers import choose
 
 # ── Transitive closure ────────────────────────────────────────────────────────────
-from transitive_closure import compute_full_transitive_closure
+from transitive_closure import compute_full_closure_with_chain_endpoints
 
 # ── Locked dependency functions ─────────────────────────────────────────────────
 from utils.utils_lock_dependencies import are_locked_dependencies_violated
@@ -105,8 +106,6 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     #  Check for violations of locked dependencies, which can not be resolved 
     # ════════════════════════════════════════════════════════════════════════════
 
-    print(locked_dependencies)
-
     # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
     if (from_act, to_act) in locked_dependencies:
 
@@ -182,50 +181,140 @@ def op_modify(matrix: AdjacencyMatrix, locked_dependencies):
     #  Check for violations of trasnitive closure of locked dependencies, which can not be resolved 
     # ════════════════════════════════════════════════════════════════════════════
 
-    locked_dependencies_trans_closure = compute_full_transitive_closure(locked_dependencies)
-
-    # check if for the modified dependencies there are locked dependencies; check in one direction sufficient since the locked deps are mirrored  
-    if (from_act, to_act) in locked_dependencies_trans_closure:
-
-        banner("The modification alters a locked dependency derived by trasnitivity")
-
-        temp_locked, exist_locked = locked_dependencies_trans_closure[(from_act, to_act)]
-
+    while True:
+ 
+        # compute the closure with the chain locks touching the endpoints
+        locked_dependencies_trans_closure, chain_endpoints = compute_full_closure_with_chain_endpoints(locked_dependencies)
+ 
+        # no transitive lock for the modified pair -> nothing to resolve
+        if (from_act, to_act) not in locked_dependencies_trans_closure:
+            break
+ 
+        temp_locked, exist_locked = locked_dependencies_trans_closure.get((from_act, to_act), (None, None))
+ 
+        # flag to indicate that a chain lock was deleted, so we recompute the closure
+        chain_lock_deleted = False
+ 
         # ── Temporal component conflict ───────────────────────────────────────
         if (temp_locked is not None) and (temp is not None) and (temp_locked != temp):
-
+ 
+            banner("The modification alters a locked dependency derived by trasnitivity")
+ 
             print(f"\nThe locked transitive temporal dependency is:    ({from_act} {dep_label_temp(temp_locked)} {to_act})")
             print(f"The requested temporal modification:  ({from_act} {dep_label_temp(temp)} {to_act})")
-
-            if confirm("Discard temporal component of modify operation (if not change operation cannot be applied)"):
-                # drop the temporal part of the modification, keep the lock intact
+ 
+            # the explicit temporal chain locks touching the endpoints, which can be deleted to break the chain
+            chain_locks = []
+            for (x, y) in chain_endpoints.get((from_act, to_act), {}).get('temporal', set()):
+                if locked_dependencies.get((x, y), (None, None))[0] is not None and (x, y) not in chain_locks:
+                    chain_locks.append((x, y))
+ 
+            # build the options: discard the modify component, delete one chain lock, or abort
+            options = ["Discard temporal component of modify operation"]
+            for (x, y) in chain_locks:
+                options.append("Delete locked temporal dependency (" + str(x) + " " + str(dep_label_temp(locked_dependencies[(x, y)][0])) + " " + str(y) + ")")
+            options.append("Do not apply the change operation")
+ 
+            selection = choose("Choose how to resolve the conflict with the transitive locked dependency", options)
+ 
+            if selection.startswith("Discard"):
+                # drop the temporal part of the modification, keep the chain intact
                 temp = None
-            else:
-                # change op not possible 
+ 
+            elif selection == "Do not apply the change operation":
+                # change op not possible — keep the locks intact
                 print("Change operation can with this configuration not be applied")
                 return matrix, locked_dependencies
-                
-
-
+ 
+            else:
+                # map the selection back to the chosen chain lock and delete its temporal component
+                leg = chain_locks[options.index(selection) - 1]
+                x, y = leg
+ 
+                # remove only the temporal component, keep the existential one
+                exist_locked_current = locked_dependencies[leg][1]
+                if exist_locked_current is None:
+                    del locked_dependencies[leg]
+ 
+                    # also delete the other direction
+                    if (y, x) in locked_dependencies:
+                        del locked_dependencies[(y, x)]
+ 
+                else:
+                    locked_dependencies[leg] = (None, exist_locked_current)
+ 
+                    # modify also the reverse entry
+                    locked_dependencies[(y, x)] = (None, reverse_dependency(exist_locked_current))
+ 
+                # a chain lock was deleted -> recompute the closure
+                chain_lock_deleted = True
+ 
         # ── Existential component conflict ────────────────────────────────────
         if (exist_locked is not None) and (exist is not None) and (exist_locked != exist):
-
+ 
+            banner("The modification alters a locked dependency derived by trasnitivity")
+ 
             print(f"\nThe locked transitive existential dependency is:    ({from_act} {dep_label_exist(exist_locked)} {to_act})")
             print(f"The requested existential modification:  ({from_act} {dep_label_exist(exist)} {to_act})")
-
-            if confirm("Discard existential component of modify operation"):
-                # drop the existential part of the modification, keep the lock intact
+ 
+            # the explicit existential chain locks touching the endpoints, which can be deleted to break the chain
+            chain_locks = []
+            for (x, y) in chain_endpoints.get((from_act, to_act), {}).get('existential', set()):
+                if locked_dependencies.get((x, y), (None, None))[1] is not None and (x, y) not in chain_locks:
+                    chain_locks.append((x, y))
+ 
+            # build the options: discard the modify component, delete one chain lock, or abort
+            options = ["Discard existential component of modify operation"]
+            for (x, y) in chain_locks:
+                options.append("Delete locked existential dependency (" + str(x) + " " + str(dep_label_exist(locked_dependencies[(x, y)][1])) + " " + str(y) + ")")
+            options.append("Do not apply the change operation")
+ 
+            selection = choose("Choose how to resolve the conflict with the transitive locked dependency", options)
+ 
+            if selection.startswith("Discard"):
+                # drop the existential part of the modification, keep the chain intact
                 exist = None
-            else:
+ 
+            elif selection == "Do not apply the change operation":
+                # change op not possible — keep the locks intact
                 print("Change operation can with this configuration not be applied")
                 return matrix, locked_dependencies
-                
-
+ 
+            else:
+                # map the selection back to the chosen chain lock and delete its existential component
+                leg = chain_locks[options.index(selection) - 1]
+                x, y = leg
+ 
+                # remove only the existential component, keep the temporal one
+                temp_locked_current = locked_dependencies[leg][0]
+                if temp_locked_current is None:
+                    del locked_dependencies[leg]
+ 
+                    # also delete the other direction
+                    if (y, x) in locked_dependencies:
+                        del locked_dependencies[(y, x)]
+ 
+                else:
+                    locked_dependencies[leg] = (temp_locked_current, None)
+ 
+                    # modify also the reverse entry
+                    locked_dependencies[(y, x)] = (reverse_dependency(temp_locked_current), None)
+ 
+                # a chain lock was deleted -> recompute the closure
+                chain_lock_deleted = True
+ 
+        # if no chain lock was deleted, the conflicts were resolved by discarding -> done
+        if not chain_lock_deleted:
+            break
+ 
+        # otherwise loop again: recompute the closure against the (now broken) chain
+ 
+ 
     # ── Early exit if the user suppressed both components ────────────────────
     if temp is None and exist is None:
         print("\n  The resolution caused the removal of all specified modifications. No changes applied.")
         return matrix, locked_dependencies
-
+ 
     # rebuild modification tuple with the (possibly narrowed) components; modify operation builds teh inverse 
     modification = [(from_act, to_act, temp, exist)]
 
